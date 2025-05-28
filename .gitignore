@@ -1,0 +1,57 @@
+# .NET Core / .NET 5+ / .NET 8 SDK
+bin/
+obj/
+*.dll
+*.exe
+*.app
+*.pdb
+*.cache
+*.db
+*.log
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider (JetBrains)
+.idea/
+
+# ASP.NET
+wwwroot/
+appsettings.*.json
+appsettings.json
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.assets.json
+
+# Build Output
+*.Build.cs
+*.csproj.user
+
+# Logs
+*.log
+
+# OS-specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+
+# Test results
+TestResults/
+*.coverage
+*.coveragexml
+*.trx
+
+# Ignore Relative Path
+DotNetDJ/bin/
+DotNetDJ/obj/
+DotNetDJ/.vs/
