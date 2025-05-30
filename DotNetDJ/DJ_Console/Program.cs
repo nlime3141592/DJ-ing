@@ -1,6 +1,7 @@
 ﻿using NAudio.Wave;
-using nl.AudioFilter;
 using System;
+
+using nl.AudioFilter;
 
 namespace nl
 {
@@ -32,37 +33,28 @@ namespace nl
             ArduinoIO io = new ArduinoIO(portName);
 
             // Update Audio
-            string audioPath = "C:\\Test\\bangalore.wav";
+            string audioPath1 = "C:\\Test\\tiger.wav";
+            string audioPath2 = "C:\\Test\\breakaway.wav";
 
-            float fMin = 20.0f;
-            float fMax = 20000.0f;
+            Controller controller1 = new Controller(audioPath1);
+            Controller controller2 = new Controller(audioPath2);
 
-            using (AudioFileReader audioFile = new AudioFileReader(audioPath))
-            using (WaveOutEvent outputDevice = new WaveOutEvent())
+            controller1.device.Play();
+            controller2.device.Play();
+
+            io.Open();
+
+            while (!io.ExitFlag)
             {
-                BQLPF lpf = new BQLPF(audioFile);
-
-                io.Open();
                 io.Update();
 
-                float f = float.Lerp(fMin, fMax, io.W0);
-                lpf.CutoffHz = f;
-                Console.WriteLine($"Cutoff Freq == {f}");
-
-                outputDevice.Init(lpf);
-                outputDevice.Play();
-
-                while (!io.ExitFlag && outputDevice.PlaybackState == PlaybackState.Playing)
-                {
-                    io.Update();
-
-                    f = float.Lerp(fMin, fMax, io.W0);
-                    lpf.CutoffHz = f;
-                    Console.WriteLine($"Cutoff Freq == {f}");
-                }
-
-                io.Close();
+                controller1.ApplyWeights(io.W0, io.W1, io.W2, io.W3);
+                controller2.ApplyWeights(io.W4, io.W5, io.W6, io.W7);
             }
+
+            controller1.Dispose();
+            controller2.Dispose();
+            io.Close();
 
             return 0;
         }

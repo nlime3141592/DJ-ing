@@ -1,4 +1,5 @@
 ﻿using NAudio.Wave;
+using System;
 using System.Diagnostics;
 
 namespace nl.AudioFilter
@@ -8,22 +9,30 @@ namespace nl.AudioFilter
         public WaveFormat WaveFormat => source.WaveFormat;
 
         public bool Bypass { get; set; }
+        public ISampleProvider source
+        {
+            get => _source;
+            set
+            {
+                _source = value;
+                sampleRate = _source.WaveFormat.SampleRate;
+            }
+        }
 
-        protected readonly ISampleProvider source;
-        protected readonly int sampleRate;
+        protected int sampleRate { get; private set; }
 
         private readonly object _lock;
+        private ISampleProvider _source;
 
         public AudioFilter(ISampleProvider source)
         {
-            Debug.Assert(source != null, "Audio source cannot be null.");
+            //Debug.Assert(source != null, "Audio source cannot be null.");
 
             Bypass = false;
 
-            this.source = source;
-            sampleRate = source.WaveFormat.SampleRate;
-
             _lock = new object();
+            _source = source;
+            sampleRate = _source.WaveFormat.SampleRate;
         }
 
         public abstract float Process(float sample);
