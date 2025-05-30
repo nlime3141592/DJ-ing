@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO.Ports;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace nl
 {
@@ -13,9 +9,17 @@ namespace nl
 
         public bool ExitFlag => _flags[c_IDX_FLAG_EXIT];
         public float W0 => _fWeights[0];
+        public float W1 => _fWeights[1];
+        public float W2 => _fWeights[2];
+        public float W3 => _fWeights[3];
+        public float W4 => _fWeights[4];
+        public float W5 => _fWeights[5];
+        public float W6 => _fWeights[6];
+        public float W7 => _fWeights[7];
 
         private SerialPort _port;
 
+        private byte[] _buffer;
         private bool[] _flags;
         private float[] _fWeights;
 
@@ -23,8 +27,11 @@ namespace nl
         {
             _port = new SerialPort(portName);
 
+            _buffer = new byte[1];
             _flags = new bool[16];
             _fWeights = new float[12];
+
+            _buffer[0] = 0;
         }
 
         public static string InputGettingPortNameOrNull()
@@ -67,8 +74,9 @@ namespace nl
         {
             try
             {
+                _port.Write(_buffer, 0, 1);
                 string line = _port.ReadLine();
-
+                
                 Parse(line);
             }
             catch (Exception)
@@ -87,13 +95,17 @@ namespace nl
 
         private void Parse(string line)
         {
-            int value;
-            
-            if (int.TryParse(line, out value))
+            string[] tokens = line.Split('/');
+            uint value;
+
+            for (int i = 0; i < 8; ++i)
             {
-                _flags[c_IDX_FLAG_EXIT] |= (value & 1024) > 0;
-                _fWeights[0] = (float)(value & 1023) / 1023.0f;
+                if (uint.TryParse(tokens[i], out value))
+                    _fWeights[i] = ((float)value / 1023.0f);
             }
+
+            if (uint.TryParse(tokens[8], out value))
+                _flags[c_IDX_FLAG_EXIT] |= value > 0;
         }
     }
 }
