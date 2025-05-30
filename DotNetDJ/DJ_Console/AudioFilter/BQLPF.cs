@@ -7,7 +7,7 @@ namespace nl.AudioFilter
     /// <summary>
     /// Biquad Low Pass Filter
     /// </summary>
-    public class BQLPF : AudioFilter
+    public class BQLPF //: AudioFilter
     {
         public float CutoffHz
         {
@@ -34,7 +34,7 @@ namespace nl.AudioFilter
 
         private float _cutoffHz;
 
-        public BQLPF(ISampleProvider source, float cutoffHz = 1000.0f) : base(source)
+        public BQLPF(ISampleProvider source, float cutoffHz = 1000.0f)// : base(source)
         {
             _y2 = 0.0f;
             _y1 = 0.0f;
@@ -44,7 +44,9 @@ namespace nl.AudioFilter
             CalcCoefficients();
         }
 
-        public override float Process(float sample)
+        //public override float Process(float sample)
+        public float Process(float sample)
+
         {
             float y = _a0 * sample + _a1 * _y1 + _a2 * _y2 - _b1 * _y1 - _b2 * _y2;
             _y2 = _y1;
@@ -54,7 +56,8 @@ namespace nl.AudioFilter
 
         private void CalcCoefficients()
         {
-            float w = 2.0f * MathF.PI * _cutoffHz / base.sampleRate;
+            //float w = 2.0f * MathF.PI * _cutoffHz / base.sampleRate;
+            float w = 2.0f * MathF.PI * _cutoffHz / 44100.0f;
             float cos = MathF.Cos(w);
             float sin = MathF.Sin(w);
             float h = sin / MathF.Sqrt(2.0f);

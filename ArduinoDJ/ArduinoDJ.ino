@@ -3,8 +3,11 @@
 #define PIN_BUS_S2 4
 #define PIN_HALT 13
 
-int halt = 0;
-int values[8] = { 0 };
+#define FLAG_HALT 0b00000001
+
+uint8_t flagTimer = 0;
+uint8_t flags = 0;
+uint8_t analogBuffer[48] = { 0 };
 
 void setup()
 {
@@ -19,44 +22,38 @@ void setup()
 
 void loop()
 {
-  muxAnalogInput(values, 0, 7, A0);
-  halt = digitalRead(PIN_HALT) == 0 ? 1 : 0;
+  setFlag(PIN_HALT, FLAG_HALT);
+
+  muxAnalogInput(analogBuffer, 0, 7, A0);
 
   if (!Serial.available())
     return;
 
   int rd = Serial.read(); // ignore
-  Serial.print(values[0]);
-  Serial.print('/');
-  Serial.print(values[1]);
-  Serial.print('/');
-  Serial.print(values[2]);
-  Serial.print('/');
-  Serial.print(values[3]);
-  Serial.print('/');
-  Serial.print(values[4]);
-  Serial.print('/');
-  Serial.print(values[5]);
-  Serial.print('/');
-  Serial.print(values[6]);
-  Serial.print('/');
-  Serial.print(values[7]);
-  Serial.print('/');
-  Serial.print(halt);
-  Serial.print('\n');
+  Serial.write(flags);
+  Serial.write((const char*)analogBuffer, 8);
   delayMicroseconds(10);
 }
 
-void muxAnalogInput(int* dest, int addrBeg, int addrEnd, int pinAnalog)
+void setFlag(int pinDigital, uint8_t mask)
 {
-  int m = addrEnd - addrBeg;
+  if (digitalRead(pinDigital))
+    flags &= ~mask;
+  else
+    flags |= mask;
+}
+
+void muxAnalogInput(uint8_t* dest, int idxBeg, int idxEnd, int pinAnalog)
+{
+  int m = idxEnd - idxBeg;
 
   for (int i = 0; i <= m; ++i)
   {
-    int j = addrBeg + i;
+    int j = idxBeg + i;
     digitalWrite(PIN_BUS_S0, j & 1);
     digitalWrite(PIN_BUS_S1, j & 2);
     digitalWrite(PIN_BUS_S2, j & 4);
-    dest[i] = 1023 - analogRead(pinAnalog);
+    delayMicroseconds(1);
+    dest[i] = (uint8_t)(255 - (analogRead(pinAnalog) >> 2));
   }
 }

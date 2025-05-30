@@ -5,9 +5,10 @@ namespace nl
 {
     public class ArduinoIO
     {
-        private const int c_IDX_FLAG_EXIT = 0;
+        public const uint c_FLAG_EXIT = 0x00000001;
 
-        public bool ExitFlag => _flags[c_IDX_FLAG_EXIT];
+        public bool ExitFlag => (_flag & c_FLAG_EXIT) > 0;
+
         public float W0 => _fWeights[0];
         public float W1 => _fWeights[1];
         public float W2 => _fWeights[2];
@@ -19,17 +20,19 @@ namespace nl
 
         private SerialPort _port;
 
+        private uint _flag;
         private byte[] _buffer;
-        private bool[] _flags;
+
         private float[] _fWeights;
 
         public ArduinoIO(string portName)
         {
             _port = new SerialPort(portName);
 
-            _buffer = new byte[1];
-            _flags = new bool[16];
-            _fWeights = new float[12];
+            _flag = 0;
+            _buffer = new byte[8];
+
+            _fWeights = new float[8];
 
             _buffer[0] = 0;
         }
@@ -74,14 +77,27 @@ namespace nl
         {
             try
             {
+                int rd = 0;
+                int n = 1;
+
                 _port.Write(_buffer, 0, 1);
-                string line = _port.ReadLine();
-                
-                Parse(line);
+
+                rd = 0;
+                n = 1;
+                while ((rd += _port.Read(_buffer, rd, n - rd)) < n) ;
+                _flag = (uint)_buffer[0];
+
+                rd = 0;
+                n = 8;
+                while ((rd += _port.Read(_buffer, rd, n - rd)) < n) ;
+                for (int i = 0; i < n; ++i)
+                {
+                    _fWeights[i] = (float)_buffer[i] / 255.0f;
+                }
             }
             catch (Exception)
             {
-                _flags[c_IDX_FLAG_EXIT] = true;
+                _flag |= c_FLAG_EXIT;
             }
         }
 
@@ -91,21 +107,6 @@ namespace nl
                 return;
 
             _port.Close();
-        }
-
-        private void Parse(string line)
-        {
-            string[] tokens = line.Split('/');
-            uint value;
-
-            for (int i = 0; i < 8; ++i)
-            {
-                if (uint.TryParse(tokens[i], out value))
-                    _fWeights[i] = ((float)value / 1023.0f);
-            }
-
-            if (uint.TryParse(tokens[8], out value))
-                _flags[c_IDX_FLAG_EXIT] |= value > 0;
         }
     }
 }

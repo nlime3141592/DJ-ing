@@ -3,8 +3,10 @@ using System;
 
 namespace nl.AudioFilter
 {
-    public class PF : AudioFilter
+    public class PF : IAudioFilter
     {
+        public bool Bypass { get; set; }
+
         public float CutoffHz
         {
             get => _cutoffHz;
@@ -61,7 +63,9 @@ namespace nl.AudioFilter
         private float _gain;
         private float _qFactor;
 
-        public PF(ISampleProvider source, float cutoffHz = 1000.0f, float gain = 0.0f, float qFactor = 1.0f) : base(source)
+        private float _sampleRate;
+
+        public PF(float cutoffHz = 1000.0f, float gain = 0.0f, float qFactor = 1.0f)
         {
             _x2 = 0.0f;
             _x1 = 0.0f;
@@ -76,7 +80,7 @@ namespace nl.AudioFilter
             CalcCoefficients();
         }
 
-        public override float Process(float sample)
+        public float Process(float sample)
         {
             float y = _b0 * sample + _b1 * _x1 + _b2 * _x2 - _a1 * _y1 - _a2 * _y2;
 
@@ -89,9 +93,14 @@ namespace nl.AudioFilter
             return y;
         }
 
+        public void OnSourceChanged(ISampleProvider source)
+        {
+            _sampleRate = source.WaveFormat.SampleRate;
+        }
+
         private void CalcCoefficients()
         {
-            float w = 2.0f * MathF.PI * _cutoffHz / base.sampleRate;
+            float w = 2.0f * MathF.PI * _cutoffHz / _sampleRate;
             float a = MathF.Pow(10.0f, _gain / 40.0f);
             float cos = MathF.Cos(w);
             float sin = MathF.Sin(w);
