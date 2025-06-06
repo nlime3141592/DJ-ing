@@ -38,24 +38,28 @@ namespace nl
             Controller controller = new Controller();
 
             io.Open();
-            io.Update();
+            //io.Update();
 
             controller.device.Init(controller);
             controller.device.Play();
 
-            controller.c1.ApplyWeights(io.W0, io.W1, io.W2, io.W3);
-            controller.c2.ApplyWeights(io.W4, io.W5, io.W6, io.W7);
+            //controller.c1.ApplyWeights(io.W0, io.W1, io.W2, io.W3);
+            controller.c1.ApplyWeights(0.25f, io.W1, io.W2, io.W3);
+            //controller.c2.ApplyWeights(io.W4, io.W5, io.W6, io.W7);
+            controller.c2.ApplyWeights(0.25f, io.W5, io.W6, io.W7);
 
             Console.WriteLine("Stat::");
 
             while (!io.ExitFlag)
             {
-                io.Update();
+                //io.Update();
 
-                controller.c1.ApplyWeights(io.W0, io.W1, io.W2, io.W3);
-                controller.c2.ApplyWeights(io.W4, io.W5, io.W6, io.W7);
+                //controller.c1.ApplyWeights(io.W0, io.W1, io.W2, io.W3);
+                //controller.c2.ApplyWeights(io.W4, io.W5, io.W6, io.W7);
 
-                Console.Write($"\r  W[] == {io.W0:F4}, {io.W1:F4}, {io.W2:F4}, {io.W3:F4}, {io.W4:F4}, {io.W5:F4}, {io.W6:F4}, {io.W7:F4}");
+                Console.WriteLine($"Position == {controller.device.GetPosition()}");
+
+                //Console.Write($"\r  W[] == {io.W0:F4}, {io.W1:F4}, {io.W2:F4}, {io.W3:F4}, {io.W4:F4}, {io.W5:F4}, {io.W6:F4}, {io.W7:F4}");
             }
 
             controller.Dispose();
