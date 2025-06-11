@@ -5,7 +5,8 @@
 #define PIN_XF A4 // Cross Fader
 #define PIN_EQ A5 // Equalizer
 
-#define PIN_ROTARY 2
+#define PIN_ROTARY_CLK 2
+#define PIN_ROTARY_DT 3
 
 #define PIN_CLK 4
 
@@ -98,11 +99,13 @@ void communicate()
   analogValues[15] = 0;
 }
 
-void rotaryRead(uint8_t rotaryRegister, int rotaryIndex, int analogValueIndex)
+int rotaryRead(uint8_t* state)
 {
-  int next = (rotaryRegister >> (2 * rotaryIndex)) & 3;
-  rotaryStates[rotaryIndex] = (rotaryStates[rotaryIndex] << 2 | next) & 15;
-  analogValues[analogValueIndex] += rotaryPatterns[rotaryStates[rotaryIndex]];
+  *state = *state << 1 | digitalRead(PIN_ROTARY_CLK);
+  *state = *state << 1 | digitalRead(PIN_ROTARY_DT);
+  *state &= 15;
+
+  return rotaryPatterns[*state];
 }
 
 void loop()
@@ -133,11 +136,17 @@ void loop()
   analogValues[10] = analogReadUint8(PIN_VF_1, true);
   analogValues[11] = analogReadUint8(PIN_VF_2, true);
   analogValues[12] = analogReadUint8(PIN_XF, true);
-  rotaryRead(buttonValues[7], 0, 13);
-  rotaryRead(buttonValues[7], 1, 14);
-  rotaryRead(buttonValues[7], 2, 15);
+
+  // communicate 전까지 반드시 0, 1, -1 중 하나일 수 밖에 없는 구조, 멀티스레딩 가능?
+  analogValues[13] += rotaryRead(analogValues + 13);
+  analogValues[14] += rotaryRead(analogValues + 14);
+  analogValues[15] += rotaryRead(analogValues + 15);
 
   digitalWrite(PIN_IO_ENABLE, 0); // Active-Low
 
   communicate();
+
+  analogValues[13] = 0;
+  analogValues[14] = 0;
+  analogValues[15] = 0;
 }
