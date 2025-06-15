@@ -15,6 +15,7 @@ namespace nl
 
         private SerialPort _port;
         private Input[] _inputs;
+        private byte[] _wrBuffer;
 
         public ArduinoIO()
         {
@@ -22,6 +23,7 @@ namespace nl
             _inputs[0] = new InputController();
             _inputs[1] = new InputDeck();
             _inputs[2] = new InputDeck();
+            _wrBuffer = new byte[1];
         }
 
         public static string[] GetPortNames()
@@ -111,27 +113,22 @@ namespace nl
 
         public int Update()
         {
-            _inputs[0].Update(_port);
-            _inputs[1].Update(_port);
-            _inputs[2].Update(_port);
+            int rdLengthTotal = 0;
+            int rdLength = -1;
 
-            return 0;
+            _port.Write(_wrBuffer, 0, 1);
 
-            // 필요에 따라서 아래 코드를 사용
-            //int rdLengthTotal = 0;
-            //int rdLength = -1;
+            for (int i = 0; i < _inputs.Length; ++i)
+            {
+                rdLength = _inputs[i].Update(_port);
 
-            //for (int i = 0; i < _inputs.Length; ++i)
-            //{
-            //    rdLength = _inputs[i].Update(_port);
+                if (rdLength < 0)
+                    return -1;
 
-            //    if (rdLength < 0)
-            //        return -1;
+                rdLengthTotal += rdLength;
+            }
 
-            //    rdLengthTotal += rdLength;
-            //}
-
-            //return rdLengthTotal;
+            return rdLengthTotal;
         }
     }
 }
