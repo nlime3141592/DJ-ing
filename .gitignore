@@ -55,3 +55,6 @@ TestResults/
 DotNetDJ/bin/
 DotNetDJ/obj/
 DotNetDJ/.vs/
+
+ArduinoDJ*/.vscode
+ArduinoDJ*/build
