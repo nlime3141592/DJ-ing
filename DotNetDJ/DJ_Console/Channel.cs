@@ -1,7 +1,7 @@
-﻿using NAudio.CoreAudioApi;
-using NAudio.Wave;
+﻿using NAudio.Wave;
 using nl.AudioFilter;
 using System;
+using System.Collections.Generic;
 
 namespace nl
 {
@@ -11,23 +11,22 @@ namespace nl
 
         public AudioFileReader source;
 
-        public float volume;
+        private List<IAudioFilter> _filters;
+
+        public VOLUME vol;
         public LSF lsf;
         public PF pf;
         public HSF hsf;
 
-        public Channel(string audioPath)
+        public Channel()
         {
-            source = new AudioFileReader(audioPath);
+            _filters = new List<IAudioFilter>(8);
 
-            volume = 0.5f;
-            lsf = new LSF();
-            pf = new PF();
-            hsf = new HSF();
-
-            lsf.OnSourceChanged(source);
-            pf.OnSourceChanged(source);
-            hsf.OnSourceChanged(source);
+            // 먼저 추가된 순서대로 필터 적용
+            _filters.Add(vol = new VOLUME(0.5f));
+            _filters.Add(lsf = new LSF());
+            _filters.Add(pf = new PF());
+            _filters.Add(hsf = new HSF());
         }
 
         public int Read(float[] buffer, int offset, int count)
@@ -36,45 +35,81 @@ namespace nl
 
             for (int i = 0; i < n; ++i)
             {
-                float sample = buffer[i];
-
-                sample = lsf.Process(sample);
-                sample = pf.Process(sample);
-                sample = hsf.Process(sample);
-                sample *= volume;
-
-                buffer[i] = sample;
+                for (int j = 0; j < _filters.Count; ++j)
+                {
+                    buffer[i] = _filters[j].Process(buffer[i]);
+                }
             }
 
             return n;
         }
-
-        public void ApplyWeights(float w0, float w1, float w2, float w3)
+        
+        public void SetSource(AudioFileReader source)
         {
-            volume = w0;
+            for (int i = 0; i < _filters.Count; ++i)
+            {
+                _filters[i].OnSourceChanged(source);
+            }
 
-            lsf.Gain = GetGain(w1);
-            lsf.CutoffHz = GetFrequency(w1, 20.0f, 2000.0f);
-
-            pf.Gain = GetGain(w2);
-
-            hsf.Gain = GetGain(w3);
-            hsf.CutoffHz = GetFrequency(w3, 2000.0f, 20000.0f);
-
-            //Console.WriteLine("Stat::");
-            //Console.WriteLine($"  W[] == {w0}, {w1}, {w2}, {w3}");
-            //Console.WriteLine($"  G[] == {lsf.Gain}, {pf.Gain}, {hsf.Gain}");
-            //Console.WriteLine($"  F[] == {lsf.CutoffHz}, {pf.CutoffHz}, {hsf.CutoffHz}");
+            this.source = source;
         }
 
-        public void Dispose()
+        public void SetVolume(Byte analogValue, float crossFader)
         {
-            source?.Dispose();
+            float w = (float)analogValue / 255.0f;
+
+            vol.Volume = Math.Clamp(w * crossFader, 0.0f, 1.0f);
+        }
+
+        public void SetEqHigh(Byte analogValue)
+        {
+            float w = (float)analogValue / 255.0f;
+
+            hsf.Gain = GetGain(w);
+            hsf.CutoffHz = GetFrequency(w, 20.0f, 2000.0f);
+        }
+
+        public void SetEqMid(Byte analogValue)
+        {
+            float w = (float)analogValue / 255.0f;
+
+            pf.Gain = GetGain(w);
+        }
+
+        public void SetEqLow(Byte analogValue)
+        {
+            float w = (float)analogValue / 255.0f;
+
+            lsf.Gain = GetGain(w);
+            lsf.CutoffHz = GetFrequency(w, 2000.0f, 20000.0f);
+        }
+
+        public void SetWheel(Int32 dWheel, bool shift = false)
+        {
+            double milliseconds = (double)dWheel;
+
+            // 정밀 조정, 샘플 단위 이동
+            if (shift)
+            {
+                double r = (double)source.WaveFormat.SampleRate;
+                milliseconds = 1000.0 / r;
+            }
+
+            TimeSpan newTime = source.CurrentTime + TimeSpan.FromMilliseconds(milliseconds);
+
+            if (newTime < TimeSpan.Zero)
+                newTime = TimeSpan.Zero;
+            else if (newTime > source.TotalTime)
+                newTime = source.TotalTime;
+
+            source.CurrentTime = newTime;
         }
 
         private float GetGain(float w)
         {
             w = float.Clamp(2.0f * w, 1.0f / 1024.0f, 2.0f);
+
+            // -60dB to +6dB
             return MathF.Log(w, MathF.Pow(2.0f, 1.0f / 6.0f));
         }
 
