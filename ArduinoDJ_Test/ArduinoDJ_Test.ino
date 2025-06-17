@@ -49,16 +49,24 @@ void testlogic()
   ictrl.interface.eq3 = readAnalogMultiplexerUint8(&icEq, 3);
   ictrl.interface.eq4 = readAnalogMultiplexerUint8(&icEq, 4);
   ictrl.interface.eq5 = readAnalogMultiplexerUint8(&icEq, 5);
+  // ictrl.interface.eq0 = value0;
+  // ictrl.interface.eq1 = (uint8_t)127;
+  // ictrl.interface.eq2 = value1;
+  // ictrl.interface.eq3 = (uint8_t)127;
+  // ictrl.interface.eq4 = (uint8_t)127;
+  // ictrl.interface.eq5 = (uint8_t)127;
 
   ictrl.interface.fx0 = readAnalogMultiplexerUint8(&icEq, 6);
   ictrl.interface.fx1 = readAnalogMultiplexerUint8(&icEq, 7);
+  // ictrl.interface.fx0 = (uint8_t)127;
+  // ictrl.interface.fx1 = (uint8_t)127;
 
-  ictrl.interface.vf0 = (uint8_t)127;
-  ictrl.interface.vf1 = (uint8_t)0;
-  ictrl.interface.xf = (uint8_t)127;
-
-  ideck1.interface.btnFlag0 = 0;
-  ideck1.interface.btnFlag0 |= digitalRead(2) << 6;
+  ictrl.interface.vf0 = analogReadUint8(PIN_VF_1);
+  ictrl.interface.vf1 = analogReadUint8(PIN_VF_2);
+  ictrl.interface.xf = analogReadUint8(PIN_XF);
+  // ictrl.interface.vf0 = (uint8_t)127;
+  // ictrl.interface.vf1 = (uint8_t)127;
+  // ictrl.interface.xf = (uint8_t)127;
 
   inputParallel(&icCtrl);
   inputParallel(&icDeck1);
@@ -67,6 +75,9 @@ void testlogic()
   ictrl.interface.btnFlag0 = 0;
   ideck1.interface.btnFlag0 = 0;
   ideck2.interface.btnFlag0 = 0;
+
+  // Test Button Click
+  // ideck1.interface.btnFlag0 |= digitalRead(2) << 6;
 
   for (int i = 0; i < 8; ++i)
   {

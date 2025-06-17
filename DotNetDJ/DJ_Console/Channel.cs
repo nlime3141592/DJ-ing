@@ -1,4 +1,5 @@
-﻿using NAudio.Wave;
+﻿using MathNet.Numerics;
+using NAudio.Wave;
 using nl.AudioFilter;
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,10 @@ namespace nl
 
         public int Read(float[] buffer, int offset, int count)
         {
-            int n = source.Read(buffer, offset, count);
+            int n = 0;
+
+            if (source != null)
+                n = source.Read(buffer, offset, count);
 
             for (int i = 0; i < n; ++i)
             {
@@ -46,6 +50,11 @@ namespace nl
         
         public void SetSource(AudioFileReader source)
         {
+            if (this.source != null)
+            {
+                this.source.Dispose();
+            }
+
             for (int i = 0; i < _filters.Count; ++i)
             {
                 _filters[i].OnSourceChanged(source);
@@ -86,6 +95,9 @@ namespace nl
 
         public void SetWheel(Int32 dWheel, bool shift = false)
         {
+            if (source == null)
+                return;
+
             double milliseconds = (double)dWheel;
 
             // 정밀 조정, 샘플 단위 이동

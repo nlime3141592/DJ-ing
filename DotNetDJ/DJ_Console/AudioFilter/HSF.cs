@@ -96,6 +96,8 @@ namespace nl.AudioFilter
         public void OnSourceChanged(ISampleProvider source)
         {
             _sampleRate = source.WaveFormat.SampleRate;
+
+            CalcCoefficients();
         }
 
         private void CalcCoefficients()

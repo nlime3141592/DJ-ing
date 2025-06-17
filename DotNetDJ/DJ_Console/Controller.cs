@@ -5,7 +5,16 @@ namespace nl
 {
     public class Controller : ISampleProvider
     {
-        public WaveFormat WaveFormat => c1.WaveFormat;
+        public WaveFormat WaveFormat
+        {
+            get
+            {
+                if (c1 == null)
+                    return c2.WaveFormat;
+                else
+                    return c1.WaveFormat;
+            }
+        }
 
         public WaveOutEvent device;
 
@@ -22,20 +31,36 @@ namespace nl
 
         public Controller()
         {
-            device = new WaveOutEvent();
-
             c1 = new Channel();
             c2 = new Channel();
+        }
 
-            device.Volume = 1.0f; // Master Volume
-            device.DesiredLatency = 300;
+        public void SetSource(AudioFileReader source, int index)
+        {
+            switch (index)
+            {
+                case 1:
+                    c1.SetSource(source);
+                    break;
+                case 2:
+                    c2.SetSource(source);
+                    break;
+                default:
+                    return;
+            }
+
+            if (device == null)
+            {
+                WaveOutEvent waveOut = new WaveOutEvent();
+                waveOut.Init(this);
+                device = waveOut;
+            }
         }
 
         public void Dispose()
         {
-            //c1?.Dispose();
-            //c2?.Dispose();
-
+            c1.source?.Dispose();
+            c2.source?.Dispose();
             device?.Dispose();
         }
 
@@ -80,7 +105,9 @@ namespace nl
                 return;
 
             // play and stop 처리
-            if (!isPlay1 && !isPlay2)
+            if (device == null)
+                return;
+            else if (!isPlay1 && !isPlay2)
                 device.Stop();
             else if (device.PlaybackState != PlaybackState.Playing)
                 device.Play();
@@ -88,23 +115,27 @@ namespace nl
 
         public int Read(float[] buffer, int offset, int count)
         {
-            float[] tBuffer = new float[count];
+            float[] tBuffer1 = new float[count];
+            float[] tBuffer2 = new float[count];
+
             int rdLength1 = 0;
             int rdLength2 = 0;
 
             if (isPlay1)
-                rdLength1 = c1.Read(buffer, offset, count);
+                rdLength1 = c1.Read(tBuffer1, offset, count);
 
             if (isPlay2)
-                rdLength2 = c2.Read(tBuffer, offset, count);
+                rdLength2 = c2.Read(tBuffer2, offset, count);
 
+            int i = 0;
             int n = Math.Max(rdLength1, rdLength2);
 
-            for (int i = 0; i < n; ++i)
+            for (i = 0; i < n; ++i)
             {
-                int j = offset + i;
-                
-                buffer[i] = Math.Clamp(buffer[j] + tBuffer[j], -1.0f, 1.0f);
+                float sample1 = i < rdLength1 ? tBuffer1[i] : 0.0f;
+                float sample2 = i < rdLength2 ? tBuffer2[i] : 0.0f;
+
+                buffer[offset + i] = Math.Clamp(sample1 + sample2, -1.0f, 1.0f);
             }
 
             return n;
