@@ -3,7 +3,15 @@
 #include "djdef.h"
 #include "djinput.h"
 
+#include "74166.h"
+#include "744051.h"
+
 static uint32_t communicateTimestamp;
+
+static IC74166 icCtrl;
+static IC74166 icDeck1;
+static IC74166 icDeck2;
+static IC744051 icEq;
 
 void setup()
 {
@@ -35,15 +43,15 @@ void testlogic()
   uint8_t value0 = analogReadUint8(A0, true);
   uint8_t value1 = analogReadUint8(A1, true);
 
-  ictrl.interface.eq0 = (uint8_t)127;
-  ictrl.interface.eq1 = (uint8_t)127;
-  ictrl.interface.eq2 = (uint8_t)127;
-  ictrl.interface.eq3 = (uint8_t)127;
-  ictrl.interface.eq4 = (uint8_t)127;
-  ictrl.interface.eq5 = (uint8_t)127;
+  ictrl.interface.eq0 = readAnalogMultiplexerUint8(&icEq, 0);
+  ictrl.interface.eq1 = readAnalogMultiplexerUint8(&icEq, 1);
+  ictrl.interface.eq2 = readAnalogMultiplexerUint8(&icEq, 2);
+  ictrl.interface.eq3 = readAnalogMultiplexerUint8(&icEq, 3);
+  ictrl.interface.eq4 = readAnalogMultiplexerUint8(&icEq, 4);
+  ictrl.interface.eq5 = readAnalogMultiplexerUint8(&icEq, 5);
 
-  ictrl.interface.fx0 = (uint8_t)127;
-  ictrl.interface.fx1 = (uint8_t)127;
+  ictrl.interface.fx0 = readAnalogMultiplexerUint8(&icEq, 6);
+  ictrl.interface.fx1 = readAnalogMultiplexerUint8(&icEq, 7);
 
   ictrl.interface.vf0 = (uint8_t)127;
   ictrl.interface.vf1 = (uint8_t)0;
@@ -51,7 +59,23 @@ void testlogic()
 
   ideck1.interface.btnFlag0 = 0;
   ideck1.interface.btnFlag0 |= digitalRead(2) << 6;
-  ideck1.interface.dWheel = (int32_t)value0 - (int32_t)value1;
+
+  inputParallel(&icCtrl);
+  inputParallel(&icDeck1);
+  inputParallel(&icDeck2);
+
+  ictrl.interface.btnFlag0 = 0;
+  ideck1.interface.btnFlag0 = 0;
+  ideck2.interface.btnFlag0 = 0;
+
+  for (int i = 0; i < 8; ++i)
+  {
+    ictrl.interface.btnFlag0 |= (readSerial(&icCtrl) << i);
+    ideck1.interface.btnFlag0 |= (readSerial(&icDeck1) << i);
+    ideck2.interface.btnFlag0 |= (readSerial(&icDeck2) << i);
+  }
+
+  // ictrl.interface.btnFlag0의 플래그로 휠 값 설정
 }
 
 void communicate()
