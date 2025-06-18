@@ -44,7 +44,7 @@ namespace nl
         private Byte _vf0;
         private Byte _vf1;
         private Byte _xf;
-        private Byte _btnFlag0;
+        public Byte _btnFlag0;
         #endregion
 
         public InputController()
@@ -60,6 +60,7 @@ namespace nl
             if (rdLength != c_STRUCT_SIZE)
                 return -1;
 
+            // 아두이노에서 보낸 컨트롤러 구조체를 읽음
             _dSelect = BitConverter.ToInt32(base._rdBuffer, 0);
             _eq0 = base._rdBuffer[4];
             _eq1 = base._rdBuffer[5];

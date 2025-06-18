@@ -26,10 +26,9 @@ uint8_t analogReadUint8(uint8_t pin, bool toComplement = false)
     return value;
 }
 
-int8_t rotaryRead(uint8_t* state, uint8_t digitalPin0, uint8_t digitalPin1)
+int8_t rotaryRead(uint8_t* state, uint8_t phase)
 {
-  *state = *state << 1 | digitalRead(digitalPin0);
-  *state = *state << 1 | digitalRead(digitalPin1);
+  *state = *state << 2 | phase;
   *state &= 15;
 
   return rotaryPatterns[*state];

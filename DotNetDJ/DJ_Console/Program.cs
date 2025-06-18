@@ -9,6 +9,7 @@ namespace nl
         public static Controller controller;
         public static ArduinoIO io;
 
+        // 아두이노-PC 간 통신 스레드 시작점
         private static void InputThread(object portName)
         {
             io = new ArduinoIO();
@@ -18,10 +19,8 @@ namespace nl
             while (io.Update() > 0)
             {
                 controller.Update(io);
-                Console.WriteLine($"{io.Deck1.BtnPlay}, {io.Deck2.BtnPlay}");
             }
         }
-
 
         private static string SelectPort()
         {
@@ -41,7 +40,6 @@ namespace nl
                 return string.Empty;
             }
 
-
             return ports[index - 1];
         }
 
@@ -59,13 +57,14 @@ namespace nl
                 return;
             }
 
+            // 통신 스레드 생성
             Thread ioThread = new Thread(new ParameterizedThreadStart(Program.InputThread));
             ioThread.Start((object)portName);
 
             RootCommand command = new RootCommand();
-
             while (command.Switch() != Command.c_HALT) ;
 
+            // 통신 스레드 종료
             ioThread.Interrupt();
 
             Console.WriteLine("Enter 키를 누르면 종료합니다.");

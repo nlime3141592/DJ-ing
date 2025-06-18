@@ -24,12 +24,13 @@ namespace nl
             _filters = new List<IAudioFilter>(8);
 
             // 먼저 추가된 순서대로 필터 적용
-            _filters.Add(vol = new VOLUME(0.5f));
             _filters.Add(lsf = new LSF());
             _filters.Add(pf = new PF());
             _filters.Add(hsf = new HSF());
+            _filters.Add(vol = new VOLUME(0.5f));
         }
 
+        // Controller 클래스가 이 함수를 호출함
         public int Read(float[] buffer, int offset, int count)
         {
             int n = 0;
@@ -39,6 +40,7 @@ namespace nl
 
             for (int i = 0; i < n; ++i)
             {
+                // 모든 필터를 Cascading 방식으로 적용
                 for (int j = 0; j < _filters.Count; ++j)
                 {
                     buffer[i] = _filters[j].Process(buffer[i]);
@@ -73,6 +75,7 @@ namespace nl
         public void SetEqHigh(Byte analogValue)
         {
             float w = (float)analogValue / 255.0f;
+            //Console.WriteLine($"EqHigh: {analogValue}");
 
             hsf.Gain = GetGain(w);
             hsf.CutoffHz = GetFrequency(w, 20.0f, 2000.0f);
@@ -81,6 +84,7 @@ namespace nl
         public void SetEqMid(Byte analogValue)
         {
             float w = (float)analogValue / 255.0f;
+            //Console.WriteLine($"EqMid: {analogValue}");
 
             pf.Gain = GetGain(w);
         }
@@ -88,6 +92,7 @@ namespace nl
         public void SetEqLow(Byte analogValue)
         {
             float w = (float)analogValue / 255.0f;
+            //Console.WriteLine($"EqLow: {analogValue}");
 
             lsf.Gain = GetGain(w);
             lsf.CutoffHz = GetFrequency(w, 2000.0f, 20000.0f);

@@ -82,11 +82,14 @@ namespace nl.AudioFilter
 
         public float Process(float sample)
         {
+            // 과거 샘플, 피드백 샘플, 현재 입력 모두를 선형 결합한 출력 생성
             float y = _b0 * sample + _b1 * _x1 + _b2 * _x2 - _a1 * _y1 - _a2 * _y2;
 
+            // 과거 샘플 기록
             _x2 = _x1;
             _x1 = sample;
 
+            // 피드백 샘플 기록
             _y2 = _y1;
             _y1 = y;
 

@@ -9,7 +9,7 @@ namespace nl
         {
             get
             {
-                if (c1 == null)
+                if (c1.source == null)
                     return c2.WaveFormat;
                 else
                     return c1.WaveFormat;
@@ -121,6 +121,7 @@ namespace nl
                 device.Play();
         }
 
+        // WaveOutEvent 클래스가 이 함수를 내부에서 호출함
         public int Read(float[] buffer, int offset, int count)
         {
             float[] tBuffer1 = new float[count];
@@ -129,15 +130,17 @@ namespace nl
             int rdLength1 = 0;
             int rdLength2 = 0;
 
+            // 재생 상태에 따라서 샘플을 읽거나 읽지 않음
             if (isPlay1)
                 rdLength1 = c1.Read(tBuffer1, offset, count);
-
             if (isPlay2)
                 rdLength2 = c2.Read(tBuffer2, offset, count);
 
             int i = 0;
             int n = Math.Max(rdLength1, rdLength2);
 
+            // 두 샘플을 더해서 출력함
+            // 매개변수로 들어온 buffer 배열에 값을 쓰는 것으로 디바이스에 최종 출력하는 방식
             for (i = 0; i < n; ++i)
             {
                 float sample1 = i < rdLength1 ? tBuffer1[i] : 0.0f;

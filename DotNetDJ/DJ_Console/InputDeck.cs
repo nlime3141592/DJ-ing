@@ -48,6 +48,7 @@ namespace nl
             if (rdLength != c_STRUCT_SIZE)
                 return -1;
 
+            // 아두이노에서 보낸 덱 구조체를 읽음
             _dWheel = BitConverter.ToInt32(base._rdBuffer, 0);
             _tempo = base._rdBuffer[4];
             _btnFlag0 = base._rdBuffer[5];

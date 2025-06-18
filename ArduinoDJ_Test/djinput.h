@@ -42,6 +42,6 @@ extern InputDeck ideck1;
 extern InputDeck ideck2;
 
 uint8_t analogReadUint8(uint8_t analogPin, bool toComplement = false);
-int8_t rotaryRead(uint8_t* state, uint8_t digitalPin0, uint8_t digitalPin1);
+int8_t rotaryRead(uint8_t* state, uint8_t phase);
 
 #endif
