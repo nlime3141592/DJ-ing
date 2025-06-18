@@ -53,6 +53,7 @@ namespace nl
             {
                 WaveOutEvent waveOut = new WaveOutEvent();
                 waveOut.Init(this);
+                waveOut.DesiredLatency = 500;
                 device = waveOut;
             }
         }
@@ -95,11 +96,18 @@ namespace nl
 
             bool triggered = false;
 
-            if (triggered |= (!isPlayPrev1 && isPlayNext1))
+            if (!isPlayPrev1 && isPlayNext1)
+            {
+                triggered = true;
                 isPlay1 = !isPlay1;
+            }
+                
             
-            if (triggered |= (!isPlayPrev2 && isPlayNext2))
+            if (!isPlayPrev2 && isPlayNext2)
+            {
+                triggered = true;
                 isPlay2 = !isPlay2;
+            }
 
             if (!triggered)
                 return;

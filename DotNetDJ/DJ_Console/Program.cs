@@ -1,8 +1,5 @@
-﻿using NAudio.Wave;
-using nl.ConsoleCommand;
+﻿using nl.ConsoleCommand;
 using System;
-using System.IO;
-using System.Linq;
 using System.Threading;
 
 namespace nl
@@ -21,9 +18,10 @@ namespace nl
             while (io.Update() > 0)
             {
                 controller.Update(io);
-                //Console.WriteLine($"{io.Deck1.BtnPlay}");
+                Console.WriteLine($"{io.Deck1.BtnPlay}, {io.Deck2.BtnPlay}");
             }
         }
+
 
         private static string SelectPort()
         {
@@ -42,6 +40,7 @@ namespace nl
             {
                 return string.Empty;
             }
+
 
             return ports[index - 1];
         }

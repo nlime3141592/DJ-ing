@@ -8,9 +8,6 @@
 
 static uint32_t communicateTimestamp;
 
-static IC74166 icCtrl;
-static IC74166 icDeck1;
-static IC74166 icDeck2;
 static IC744051 icEq;
 
 void setup()
@@ -32,6 +29,8 @@ void setup()
   IO_SETUP_BUTTON_CTRL;
   IO_SETUP_BUTTON_DECK_1;
   IO_SETUP_BUTTON_DECK_2;
+
+  init74166(PIN_74166_SIN);
 
   Serial.begin(BAUD_RATE);
 
@@ -68,9 +67,7 @@ void testlogic()
   // ictrl.interface.vf1 = (uint8_t)127;
   // ictrl.interface.xf = (uint8_t)127;
 
-  inputParallel(&icCtrl);
-  inputParallel(&icDeck1);
-  inputParallel(&icDeck2);
+  inputParallel(PIN_74166_SIN, PIN_SOFTWARE_CLK);
 
   ictrl.interface.btnFlag0 = 0;
   ideck1.interface.btnFlag0 = 0;
@@ -81,9 +78,11 @@ void testlogic()
 
   for (int i = 0; i < 8; ++i)
   {
-    ictrl.interface.btnFlag0 |= (readSerial(&icCtrl) << i);
-    ideck1.interface.btnFlag0 |= (readSerial(&icDeck1) << i);
-    ideck2.interface.btnFlag0 |= (readSerial(&icDeck2) << i);
+    ictrl.interface.btnFlag0 |= (readSerial(PIN_BUTTON_CTRL) << i);
+    ideck1.interface.btnFlag0 |= (readSerial(PIN_BUTTON_DECK_1) << i);
+    ideck2.interface.btnFlag0 |= (readSerial(PIN_BUTTON_DECK_2) << i);
+
+    clock74166(PIN_SOFTWARE_CLK);
   }
 
   // ictrl.interface.btnFlag0의 플래그로 휠 값 설정

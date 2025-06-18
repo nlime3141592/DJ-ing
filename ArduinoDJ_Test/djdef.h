@@ -3,12 +3,12 @@
 
 #include <Arduino.h>
 
-#define PIN_TEMPO_1 A0
-#define PIN_TEMPO_2 A1
-#define PIN_VF_1 A2
-#define PIN_VF_2 A3
-#define PIN_XF A4
-#define PIN_EQ A5
+#define PIN_TEMPO_1 A3
+#define PIN_TEMPO_2 A4
+#define PIN_VF_1 A1
+#define PIN_VF_2 A2
+#define PIN_XF A5
+#define PIN_EQ A0
 #define PIN_BUTTON_ROTARY 2
 #define PIN_SOFTWARE_CLK 4
 #define PIN_BUS_S0 5

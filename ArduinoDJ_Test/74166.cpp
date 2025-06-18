@@ -1,22 +1,31 @@
 #include "74166.h"
 
-void init(IC74166* ic)
+void init74166(uint8_t pinPe)
 {
-    digitalWrite(ic->pinPe, HIGH);
+    digitalWrite(pinPe, HIGH);
 }
 
-void inputParallel(IC74166* ic)
+void clock74166(uint8_t pinClk)
 {
-    digitalWrite(ic->pinPe, LOW);
-    digitalWrite(ic->pinClk, HIGH);
-    digitalWrite(ic->pinClk, LOW);
-    digitalWrite(ic->pinPe, HIGH);
+    digitalWrite(pinClk, HIGH);
+    delayMicroseconds(1);
+    digitalWrite(pinClk, LOW);
+    delayMicroseconds(1);
 }
 
-int readSerial(IC74166* ic)
+void inputParallel(uint8_t pinPe, uint8_t pinClk)
 {
-    int value = digitalRead(ic->pinDout);
-    digitalWrite(ic->pinClk, HIGH);
-    digitalWrite(ic->pinClk, LOW);
+    digitalWrite(pinPe, LOW);
+    delayMicroseconds(1);
+
+    clock74166(pinClk);
+
+    digitalWrite(pinPe, HIGH);
+    delayMicroseconds(1);
+}
+
+int readSerial(uint8_t pinDout)
+{
+    int value = digitalRead(pinDout);
     return value;
 }
