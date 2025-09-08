@@ -51,10 +51,7 @@ TestResults/
 *.coveragexml
 *.trx
 
-# Ignore Relative Path
-DotNetDJ/bin/
-DotNetDJ/obj/
-DotNetDJ/.vs/
-
-ArduinoDJ*/.vscode
-ArduinoDJ*/build
+# Individual Settings
+bin/
+obj/
+.vs/
