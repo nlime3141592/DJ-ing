@@ -1,4 +1,4 @@
-#include <mmdeviceapi.h>
+ï»¿#include <mmdeviceapi.h>
 #include <Audioclient.h>
 #include <Audiopolicy.h>
 #include <functiondiscoverykeys_devpkey.h>
@@ -10,7 +10,7 @@
 
 #define REFTIMES_PER_SEC 10000000
 
-// Âü°íÀÚ·á:
+// ì°¸ê³ ìë£Œ:
 // https://stackoverflow.com/questions/6464378/difference-safe-release-safe-delete
 //#define SAFE_RELEASE(p) { if ((p)) { (p)->Release(); (p) = 0; }}
 #define SAFE_DELETE(p) { if((a) != NULL) delete (a); (a) = NULL; }
@@ -25,18 +25,18 @@
 const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
 const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
 
-// Âü°íÀÚ·á:
+// ì°¸ê³ ìë£Œ:
 // https://learn.microsoft.com/ko-kr/windows/win32/coreaudio/device-properties
 void PrintEndpointNames()
 {
 	HRESULT hr = S_OK;
 	IMMDeviceEnumerator* pEnumerator = NULL;
-	IMMDeviceCollection* pCollection = NULL; // °³º° IMMDevice °´Ã¼¸¦ ¾ò±â À§ÇØ ÀÌ Æ÷ÀÎÅÍ¸¦ ÀÌ¿ëÇØ¾ß ÇÔ.
+	IMMDeviceCollection* pCollection = NULL; // ê°œë³„ IMMDevice ê°ì²´ë¥¼ ì–»ê¸° ìœ„í•´ ì´ í¬ì¸í„°ë¥¼ ì´ìš©í•´ì•¼ í•¨.
 	IMMDevice* pEndpoint = NULL;
 	IPropertyStore* pProps = NULL;
 	LPWSTR pwszID = NULL;
 
-	// Âü°íÀÚ·á:
+	// ì°¸ê³ ìë£Œ:
 	// https://learn.microsoft.com/ko-kr/windows/win32/api/combaseapi/nf-combaseapi-cocreateinstance
 	hr = CoCreateInstance(
 		CLSID_MMDeviceEnumerator,
@@ -78,7 +78,7 @@ void PrintEndpointNames()
 		PropVariantInit(&varName);
 
 		// Get the endpoint's friendly-name property.
-		// Âü°íÀÚ·á:
+		// ì°¸ê³ ìë£Œ:
 		// https://learn.microsoft.com/ko-kr/windows/win32/coreaudio/pkey-device-friendlyname
 		hr = pProps->GetValue(PKEY_Device_FriendlyName, &varName);
 		EXIT_ON_ERROR(hr);
@@ -130,7 +130,7 @@ void PrintDevice(IMMDevice* pDevice)
 	PropVariantInit(&varName);
 
 	// Get the endpoint's friendly-name property.
-	// Âü°íÀÚ·á:
+	// ì°¸ê³ ìë£Œ:
 	// https://learn.microsoft.com/ko-kr/windows/win32/coreaudio/pkey-device-friendlyname
 	hr = pProps->GetValue(PKEY_Device_FriendlyName, &varName);
 	EXIT_ON_ERROR(hr);
@@ -160,9 +160,9 @@ UINT GetDevices(IMMDeviceCollection** ppDeviceCollection)
 {
 	HRESULT hr = S_OK;
 	IMMDeviceEnumerator* pEnumerator = NULL;
-	IMMDeviceCollection* pCollection = NULL; // °³º° IMMDevice °´Ã¼¸¦ ¾ò±â À§ÇØ ÀÌ Æ÷ÀÎÅÍ¸¦ ÀÌ¿ëÇØ¾ß ÇÔ.
+	IMMDeviceCollection* pCollection = NULL; // ê°œë³„ IMMDevice ê°ì²´ë¥¼ ì–»ê¸° ìœ„í•´ ì´ í¬ì¸í„°ë¥¼ ì´ìš©í•´ì•¼ í•¨.
 	
-	// Âü°íÀÚ·á:
+	// ì°¸ê³ ìë£Œ:
 	// https://learn.microsoft.com/ko-kr/windows/win32/api/combaseapi/nf-combaseapi-cocreateinstance
 	hr = CoCreateInstance(
 		CLSID_MMDeviceEnumerator,
@@ -196,7 +196,7 @@ Exit:
 	SAFE_RELEASE(pCollection);
 }
 
-// Âü°íÀÚ·á:
+// ì°¸ê³ ìë£Œ:
 // https://learn.microsoft.com/en-us/windows/win32/api/audioclient/nf-audioclient-iaudioclient-initialize
 HRESULT CreateAudioClient(IMMDevice* pDevice, IAudioClient** ppAudioClient)
 {
@@ -284,14 +284,14 @@ HRESULT CreateAudioClient(IMMDevice* pDevice, IAudioClient** ppAudioClient)
 	return hr;
 }
 
-int main()
+int main1()
 {
-	// ÀÎÄÚµù ¹®Á¦ ÇØ°áÀ» À§ÇÔ
-	// wprintf() + _setmode() ±¸Á¶
+	// ì¸ì½”ë”© ë¬¸ì œ í•´ê²°ì„ ìœ„í•¨
+	// wprintf() + _setmode() êµ¬ì¡°
 	_setmode(_fileno(stdout), _O_U16TEXT);
 
-	// ÇØ´ç ÇÔ¼ö°¡ È£ÃâµÇ¾î¾ß¸¸ COM ¶óÀÌºê·¯¸®¸¦ »ç¿ëÇÒ ¼ö ÀÖÀ½.
-	// Âü°íÀÚ·á:
+	// í•´ë‹¹ í•¨ìˆ˜ê°€ í˜¸ì¶œë˜ì–´ì•¼ë§Œ COM ë¼ì´ë¸ŒëŸ¬ë¦¬ë¥¼ ì‚¬ìš©í•  ìˆ˜ ìˆìŒ.
+	// ì°¸ê³ ìë£Œ:
 	// https://learn.microsoft.com/ko-kr/windows/win32/api/objbase/nf-objbase-coinitialize
 	CoInitialize(NULL);
 	//PrintEndpointNames();
@@ -312,4 +312,6 @@ int main()
 	CoUninitialize();
 
 	wprintf(L"hello world\n");
+
+	return 0;
 }
