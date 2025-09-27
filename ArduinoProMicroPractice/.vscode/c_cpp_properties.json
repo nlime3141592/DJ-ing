@@ -1,0 +1,61 @@
+{
+  "configurations": [
+    {
+      "name": "Arduino",
+      "includePath": [
+        "C:\\Users\\kycte\\Documents\\Arduino\\libraries/**",
+        "D:\\Programming\\DJ-ing\\ArduinoProMicroPractice/**"
+      ],
+      "forcedInclude": [],
+      "compilerPath": "C:\\Users\\kycte\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+      "compilerArgs": [
+        "C:\\Users\\kycte\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\7.3.0-atmel3.6.1-arduino7/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega32u4",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10607",
+        "-DARDUINO_AVR_LEONARDO",
+        "-DARDUINO_ARCH_AVR",
+        "-DUSB_VID=0x2341",
+        "-DUSB_PID=0x8036",
+        "-DUSB_MANUFACTURER=\"Unknown\"",
+        "-DUSB_PRODUCT=\"Arduino Leonardo\"",
+        "-IC:\\Users\\kycte\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.5\\cores\\arduino",
+        "-IC:\\Users\\kycte\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.5\\variants\\leonardo",
+        "-IC:\\Users\\kycte\\Documents\\Arduino\\libraries\\Keyboard\\src",
+        "-IC:\\Users\\kycte\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\avr\\1.8.5\\libraries\\HID\\src",
+        "D:\\Programming\\DJ-ing\\ArduinoProMicroPractice\\build\\sketch\\ArduinoProMicroPractice.ino.cpp",
+        "-o",
+        "D:\\Programming\\DJ-ing\\ArduinoProMicroPractice\\build\\sketch\\ArduinoProMicroPractice.ino.cpp.o"
+      ],
+      "defines": [
+        "F_CPU=16000000L",
+        "ARDUINO=10607",
+        "ARDUINO_AVR_LEONARDO",
+        "ARDUINO_ARCH_AVR",
+        "USB_VID=0x2341",
+        "USB_PID=0x8036",
+        "USB_MANUFACTURER=\"Unknown\"",
+        "USB_PRODUCT=\"Arduino",
+        "USB_MANUFACTURER=\\\"Unknown\\\"\"",
+        "USB_PRODUCT=\\\"Arduino",
+        "USBCON"
+      ],
+      "cStandard": "c17",
+      "cppStandard": "c++17"
+    }
+  ],
+  "version": 4
+}
