@@ -1,0 +1,22 @@
+{
+  "port": "COM14",
+  "configuration": "",
+  "output": "build",
+  "board": "arduino:avr:leonardo",
+  "programmer": "",
+  "useProgrammer": false,
+  "optimize_for_debug": false,
+  "configurationRequired": false,
+  "compile_profile": "",
+  "monitorPortSettings": {
+    "settings": {
+      "port": "COM14",
+      "baudRate": 115200,
+      "lineEnding": "\r\n",
+      "dataBits": 8,
+      "parity": "none",
+      "stopBits": "one"
+    },
+    "profile_name": ""
+  }
+}
