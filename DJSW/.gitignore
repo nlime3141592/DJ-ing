@@ -1,0 +1,96 @@
+## =========================
+## Visual Studio 기본 설정
+## =========================
+
+# 사용자별 설정 파일
+.vs/
+*.user
+*.userosscache
+*.suo
+
+# 빌드 결과물 (Debug / Release 등)
+[Bb]in/
+[Dd]ebug*/
+[Rr]elease*/
+x64/
+x86/
+[Bb]uild/
+ipch/
+
+# 임시 파일
+*.obj
+*.pch
+*.pdb
+*.idb
+*.ilk
+*.log
+*.tlog
+*.tmp
+*.cache
+*.db
+*.opendb
+*.VC.db
+*.VC.VC.opendb
+
+# 라이브러리 결과물
+*.lib
+*.dll
+*.exe
+*.exp
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+
+# 코드 분석 및 테스트 결과
+TestResult*/
+*.coverage
+*.coveragexml
+*.codeanalysis
+*.lastcodeanalysissucceeded
+
+# 패키지 및 외부 의존성 (NuGet 등)
+packages/
+*.nupkg
+project.lock.json
+.nuget/
+
+# CMake 관련 (만약 사용하는 경우)
+CMakeFiles/
+CMakeCache.txt
+CMakeSettings.json
+cmake-build-*/
+
+# Rider / JetBrains IDE (선택)
+.idea/
+
+# 기타 IDE 임시 폴더
+*.opensdf
+*.sdf
+*.suo
+*.sln.docstates
+
+# DirectX Shader Compiler 임시 파일 (선택)
+*.cso
+*.hlsl.h
+*.dxil
+*.pso
+
+# 로그 및 임시 텍스트 파일
+*.log
+*.tmp
+*.bak
+
+# 백업 및 임시 파일
+*~
+*.swp
+*.orig
+
+# 실행 파일이나 배포 산출물은 저장소에 포함하지 않음
+*.exe
+*.msi
+*.zip
+*.7z
+*.tar
+*.gz
+*.rar

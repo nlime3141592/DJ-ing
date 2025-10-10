@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36518.9 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DJSW", "DJSW\DJSW.vcxproj", "{A94EFB31-AA8E-4577-918E-0DF99C01773E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A94EFB31-AA8E-4577-918E-0DF99C01773E}.Debug|x64.ActiveCfg = Debug|x64
+		{A94EFB31-AA8E-4577-918E-0DF99C01773E}.Debug|x64.Build.0 = Debug|x64
+		{A94EFB31-AA8E-4577-918E-0DF99C01773E}.Debug|x86.ActiveCfg = Debug|Win32
+		{A94EFB31-AA8E-4577-918E-0DF99C01773E}.Debug|x86.Build.0 = Debug|Win32
+		{A94EFB31-AA8E-4577-918E-0DF99C01773E}.Release|x64.ActiveCfg = Release|x64
+		{A94EFB31-AA8E-4577-918E-0DF99C01773E}.Release|x64.Build.0 = Release|x64
+		{A94EFB31-AA8E-4577-918E-0DF99C01773E}.Release|x86.ActiveCfg = Release|Win32
+		{A94EFB31-AA8E-4577-918E-0DF99C01773E}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9A6F031D-F2DE-4C43-870D-D3C00BEEE94F}
+	EndGlobalSection
+EndGlobal
