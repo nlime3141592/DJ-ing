@@ -1,4 +1,4 @@
-﻿
+
 // Simple example code to load a Wav file and play it with WASAPI
 // This is NOT complete Wav loading code. It is a barebones example 
 // that makes a lot of assumptions, see the assert() calls for details
@@ -49,6 +49,8 @@ struct WavFile {
     uint16_t samples[]; // actual samples start here
 };
 #pragma warning(default : 4200)
+
+int pressed = 0;
 
 bool Win32LoadEntireFile(const char* filename, void** data, uint32_t* numBytesRead)
 {
@@ -162,11 +164,13 @@ int main()
     float f = 2000.0f;
     float fs = wav->sampleRate;
     float gain = -30.0f;
-    InitParamsLSF(&biquad_l, f, fs);
-    InitParamsLSF(&biquad_r, f, fs);
+    InitParamsLPF(&biquad_l, f, fs);
+    InitParamsLPF(&biquad_r, f, fs);
 
-    SetParamsLSF_Safe(&biquad_l, q, f, fs, gain);
-    SetParamsLSF_Safe(&biquad_r, q, f, fs, gain);
+    //SetParamsLSF_Safe(&biquad_l, q, f, fs, gain);
+    //SetParamsLSF_Safe(&biquad_r, q, f, fs, gain);
+    SetParamsLPF_Safe(&biquad_l, q, f, fs);
+    SetParamsLPF_Safe(&biquad_r, q, f, fs);
 
     int wavPlaybackSample = 0;
     while (true)
@@ -193,6 +197,16 @@ int main()
 
         for (UINT32 frameIndex = 0; frameIndex < numFramesToWrite; ++frameIndex)
         {
+            // 키 입력 감지 시 바로 특정 샘플 위치로 점프하는 기능
+            int p1 = GetAsyncKeyState(VK_F8) & 0x8000;
+
+            if (!pressed && p1)
+            {
+                wavPlaybackSample = (int)(44100.0f * 57.0f);
+            }
+
+            pressed = p1;
+
             int16_t lSample = wavSamples[wavPlaybackSample++];
             int16_t rSample = wavSamples[wavPlaybackSample++];
 
