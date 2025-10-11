@@ -17,6 +17,9 @@
 #include <stdint.h>
 
 #include "audiofilter.h"
+#include "audioutil.h"
+
+#include <stdio.h>
 
 // Struct to get data from loaded WAV file.
 // NB: This will only work for WAV files containing PCM (non-compressed) data
@@ -50,7 +53,8 @@ struct WavFile {
 };
 #pragma warning(default : 4200)
 
-int pressed = 0;
+int pressed1 = 0;
+int pressed2 = 0;
 
 bool Win32LoadEntireFile(const char* filename, void** data, uint32_t* numBytesRead)
 {
@@ -157,6 +161,7 @@ int main()
     hr = audioClient->Start();
     assert(hr == S_OK);
 
+    // 필터 검증 로직
     Biquad biquad_l; // 왼쪽 채널 오디오 필터
     Biquad biquad_r; // 오른쪽 채널 오디오 필터
 
@@ -172,6 +177,38 @@ int main()
     SetParamsLPF_Safe(&biquad_l, q, f, fs);
     SetParamsLPF_Safe(&biquad_r, q, f, fs);
 
+    // autocorrelation 검증 로직
+    float bpmMin = 128.0f;
+    float bpmMax = 132.0f;
+    float bpmDelta = 0.25f;
+    int16_t* b;
+    int offset = 0;
+    int length = numWavSamples;
+
+    printf("waiting for auto-correlation calculation...\n");
+
+    AutoCorrelation autoOutput;
+
+    float bpm = GetAutoCorrelation(
+        &autoOutput,
+        bpmMin, bpmMax, bpmDelta,
+        (int16_t*)wavSamples, offset, length, fs,
+        2
+    );
+
+    int jumpMadi = 17;
+    int shiftMadi = 0;
+
+    printf("selected bpm == %f\n", autoOutput.bpm);
+    printf("selected off == %i\n", autoOutput.offset);
+    printf("selected tau == %i\n", autoOutput.tau);
+
+    // 루프 제어
+    int lBegin = -1;
+    int lLength = -1;
+    int lTau = -1;
+
+    // 재생을 위한 버퍼링 동작
     int wavPlaybackSample = 0;
     while (true)
     {
@@ -199,26 +236,89 @@ int main()
         {
             // 키 입력 감지 시 바로 특정 샘플 위치로 점프하는 기능
             int p1 = GetAsyncKeyState(VK_F8) & 0x8000;
-
-            if (!pressed && p1)
+            int p2 = GetAsyncKeyState(VK_F7) & 0x8000;
+            
+            if (!pressed1 && p1)
             {
-                wavPlaybackSample = (int)(44100.0f * 57.0f);
+                //wavPlaybackSample = (int)(44100.0f * 57.0f);
+                wavPlaybackSample = autoOutput.offset;
+                wavPlaybackSample = autoOutput.offset + jumpMadi * autoOutput.tau + shiftMadi * autoOutput.tau / 8;
             }
 
-            pressed = p1;
+            if (!pressed2 && p2)
+            {
+                if (lBegin < 0)
+                {
+                    lTau = autoOutput.tau;
+                    lLength = lTau * 1;
+                    printf("Loop On\n");
 
-            int16_t lSample = wavSamples[wavPlaybackSample++];
-            int16_t rSample = wavSamples[wavPlaybackSample++];
+                    int w = wavPlaybackSample - autoOutput.offset;
+                    int t4 = lTau / 4;
+                    int t8 = lTau / 8;
+
+                    w %= t4;
+
+                    if (w < t8)
+                    {
+                        lBegin = wavPlaybackSample - w;
+                    }
+                    else
+                    {
+                        lBegin = wavPlaybackSample + (t4 - w);
+                    }
+                }
+                else
+                {
+                    lBegin = -1;
+                    lLength = -1;
+                    lTau = -1;
+                    printf("Loop Off\n");
+                }
+            }
+
+            pressed1 = p1;
+            pressed2 = p2;
+
+            int16_t lSample = wavSamples[wavPlaybackSample];
+
+            if (lBegin < 0)
+            {
+                wavPlaybackSample = (wavPlaybackSample + 1) % numWavSamples;
+            }
+            else
+            {
+                wavPlaybackSample = (wavPlaybackSample - lBegin + 1) % lLength + lBegin;
+            }
+
+            int16_t rSample = wavSamples[wavPlaybackSample];
+
+            if (lBegin < 0)
+            {
+                wavPlaybackSample = (wavPlaybackSample + 1) % numWavSamples;
+            }
+            else
+            {
+                wavPlaybackSample = (wavPlaybackSample - lBegin + 1) % lLength + lBegin;
+            }
 
             // left
-            //*buffer++ = lSample;
-            *buffer++ = BiquadConvolution(&biquad_l, lSample);
+            *buffer++ = lSample;
+            //*buffer++ = BiquadConvolution(&biquad_l, lSample);
 
             // right
-            //*buffer++ = rSample;
-            *buffer++ = BiquadConvolution(&biquad_r, rSample);
+            *buffer++ = rSample;
+            //*buffer++ = BiquadConvolution(&biquad_r, rSample);
 
-            wavPlaybackSample %= numWavSamples; // Loop if we reach end of wav file
+            //if (lBegin < 0)
+            //{
+            //    // Loop if we reach end of wav file
+            //    wavPlaybackSample %= numWavSamples;
+            //}
+            //else
+            //{
+            //    wavPlaybackSample = (wavPlaybackSample - lBegin) % lLength + lBegin;
+            //}
         }
         hr = audioRenderClient->ReleaseBuffer(numFramesToWrite, 0);
         assert(hr == S_OK);
