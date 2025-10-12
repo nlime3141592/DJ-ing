@@ -22,9 +22,11 @@
     <Text Include="개발환경설정.md" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="audiofilter.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="audiofilter.h" />
     <ClInclude Include="d3dx12.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
