@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include "hidapi/hidapi.h"
 
-int main() {
+int main2() {
     if (hid_init())
     {
         printf("HID init failed.\n");
@@ -13,10 +13,10 @@ int main() {
     unsigned short vid = 0x16c0; // Vendor ID
     unsigned short pid = 0x05df; // Product ID
 
-    //hid_device_info* info = hid_enumerate(vid, pid);
-    //hid_device_info* curInfo = info;
+    hid_device_info* info = hid_enumerate(vid, pid);
+    hid_device_info* curInfo = info;
 
-    /*if (!curInfo)
+    if (!curInfo)
     {
         printf("No matching HID devices found.\n");
     }
@@ -25,9 +25,9 @@ int main() {
     {
         printf("Device Path: %s\n", curInfo->path);
         curInfo = curInfo->next;
-    }*/
+    }
 
-    //hid_free_enumeration(info);
+    hid_free_enumeration(info);
 
     // 장치 열기
     hid_device* device = hid_open(vid, pid, nullptr);
@@ -37,9 +37,32 @@ int main() {
         return -1;
     }
 
+    wchar_t str[128];
+    int len = -1;
+    len = hid_get_manufacturer_string(device, str, 128);
+    wprintf(L"Opened Device Manufacturer Name == %ls\n", str);
+    len = hid_get_product_string(device, str, 128);
+    wprintf(L"Opened Device Product Name == %ls\n", str);
+
+    int res = -1;
+
+    // 송신 데이터 준비
+    //unsigned char output[65];
+    //output[0] = 0x00; // Report ID
+    //res = hid_write(device, output, sizeof(output));
+
+    //if (res < 0)
+    //{
+    //    wprintf(L"Write Failed. (%ls)\n", hid_error(device));
+    //}
+    //else
+    //{
+    //    wprintf(L"Write Succeed. (%d bytes)\n", res);
+    //}
+
     // 예: Keyboard 리포트 읽기 (8바이트 가정)
     unsigned char report[9];
-    int res = hid_read_timeout(device, report, sizeof(report), 10000);
+    res = hid_read_timeout(device, report, sizeof(report), 10000);
     printf("res == %d\n", res);
 
     if (res < 0)

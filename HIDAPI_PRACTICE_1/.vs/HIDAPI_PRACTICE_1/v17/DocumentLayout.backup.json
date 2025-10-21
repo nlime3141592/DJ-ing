@@ -3,8 +3,20 @@
   "WorkspaceRootPath": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\hidi.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|solutionrelative:HIDAPI_PRACTICE_1\\hidi.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|solutionrelative:HIDAPI_PRACTICE_1\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\input.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|solutionrelative:HIDAPI_PRACTICE_1\\input.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\INCLUDE\\HIDAPI\\HIDAPI.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|solutionrelative:HIDAPI_PRACTICE_1\\INCLUDE\\HIDAPI\\HIDAPI.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,7 +26,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 189,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -30,15 +42,59 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 3,
+              "Title": "hidapi.h",
+              "DocumentMoniker": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h",
+              "RelativeDocumentMoniker": "HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h",
+              "ToolTip": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h",
+              "RelativeToolTip": "HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h",
+              "ViewState": "AgIAACgCAAAAAAAAAAAowD4CAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-10-20T09:52:19.827Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "main.cpp",
               "DocumentMoniker": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\main.cpp",
               "RelativeDocumentMoniker": "HIDAPI_PRACTICE_1\\main.cpp",
               "ToolTip": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\main.cpp",
               "RelativeToolTip": "HIDAPI_PRACTICE_1\\main.cpp",
-              "ViewState": "AgIAABIAAAAAAAAAAADwvzEAAAAQAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAowBEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-10-19T15:19:34.489Z",
+              "EditorCaption": ""
+            }
+          ]
+        },
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "hidi.cpp",
+              "DocumentMoniker": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\hidi.cpp",
+              "RelativeDocumentMoniker": "HIDAPI_PRACTICE_1\\hidi.cpp",
+              "ToolTip": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\hidi.cpp",
+              "RelativeToolTip": "HIDAPI_PRACTICE_1\\hidi.cpp",
+              "ViewState": "AgIAAH8AAAAAAAAAAADwv5cAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-10-21T11:58:02.182Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "input.cpp",
+              "DocumentMoniker": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\input.cpp",
+              "RelativeDocumentMoniker": "HIDAPI_PRACTICE_1\\input.cpp",
+              "ToolTip": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\input.cpp",
+              "RelativeToolTip": "HIDAPI_PRACTICE_1\\input.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-10-20T13:30:22.237Z",
               "EditorCaption": ""
             }
           ]
