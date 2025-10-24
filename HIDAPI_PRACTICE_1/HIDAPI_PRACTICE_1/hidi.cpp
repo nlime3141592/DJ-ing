@@ -133,18 +133,15 @@ int main() {
                 input.digital5 = packet->values[5];
                 break;
             case 1: // Analog Input (Mixer)
-                update_modifier(&input, packet->modifier);
                 input.mixer0 = packet->values[0];
                 break;
             case 2: // Analog Input (Deck 1)
-                update_modifier(&input, packet->modifier);
                 input.deck10 = packet->values[0];
                 input.deck11 = packet->values[1];
                 input.deck12 = packet->values[2];
                 input.deck13 = packet->values[3];
                 break;
             case 3: // Analog Input (Deck 2)
-                update_modifier(&input, packet->modifier);
                 input.deck20 = packet->values[0];
                 input.deck21 = packet->values[1];
                 input.deck22 = packet->values[2];
