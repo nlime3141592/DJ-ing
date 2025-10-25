@@ -18,6 +18,7 @@
 
 #include "audiofilter.h"
 #include "audioutil.h"
+#include "audioreverb.h"
 
 #include <stdio.h>
 
@@ -162,6 +163,7 @@ int main()
     assert(hr == S_OK);
 
     // 필터 검증 로직
+#ifdef REGION_FILTER_1
     Biquad biquad_l; // 왼쪽 채널 오디오 필터
     Biquad biquad_r; // 오른쪽 채널 오디오 필터
 
@@ -176,8 +178,23 @@ int main()
     //SetParamsLSF_Safe(&biquad_r, q, f, fs, gain);
     SetParamsLPF_Safe(&biquad_l, q, f, fs);
     SetParamsLPF_Safe(&biquad_r, q, f, fs);
+#endif
+
+#define REGION_REVERB_1
+#ifdef REGION_REVERB_1
+    SchroederReverb lReverb(wav->sampleRate);
+    SchroederReverb rReverb(wav->sampleRate);
+    float roomSize = 0.8f;
+    float damping = 0.1f;
+    float wet = 0.2f;
+    float dry = 0.8f;
+
+    lReverb.setParams(roomSize, damping, wet, dry);
+    rReverb.setParams(roomSize, damping, wet, dry);
+#endif
 
     // autocorrelation 검증 로직
+#ifdef REGION_AUTO_CORRELATION_1
     float bpmMin = 128.0f;
     float bpmMax = 132.0f;
     float bpmDelta = 0.25f;
@@ -202,11 +219,15 @@ int main()
     printf("selected bpm == %f\n", autoOutput.bpm);
     printf("selected off == %i\n", autoOutput.offset);
     printf("selected tau == %i\n", autoOutput.tau);
+#endif
 
     // 루프 제어
+#ifdef REGION_LOOP_1
     int lBegin = -1;
     int lLength = -1;
     int lTau = -1;
+#endif
+
 
     // 재생을 위한 버퍼링 동작
     int wavPlaybackSample = 0;
@@ -240,86 +261,41 @@ int main()
             
             if (!pressed1 && p1)
             {
-                //wavPlaybackSample = (int)(44100.0f * 57.0f);
-                wavPlaybackSample = autoOutput.offset;
-                wavPlaybackSample = autoOutput.offset + jumpMadi * autoOutput.tau + shiftMadi * autoOutput.tau / 8;
+
             }
 
             if (!pressed2 && p2)
             {
-                if (lBegin < 0)
-                {
-                    lTau = autoOutput.tau;
-                    lLength = lTau * 1;
-                    printf("Loop On\n");
 
-                    int w = wavPlaybackSample - autoOutput.offset;
-                    int t4 = lTau / 4;
-                    int t8 = lTau / 8;
-
-                    w %= t4;
-
-                    if (w < t8)
-                    {
-                        lBegin = wavPlaybackSample - w;
-                    }
-                    else
-                    {
-                        lBegin = wavPlaybackSample + (t4 - w);
-                    }
-                }
-                else
-                {
-                    lBegin = -1;
-                    lLength = -1;
-                    lTau = -1;
-                    printf("Loop Off\n");
-                }
             }
 
             pressed1 = p1;
             pressed2 = p2;
 
             int16_t lSample = wavSamples[wavPlaybackSample];
-
-            if (lBegin < 0)
-            {
-                wavPlaybackSample = (wavPlaybackSample + 1) % numWavSamples;
-            }
-            else
-            {
-                wavPlaybackSample = (wavPlaybackSample - lBegin + 1) % lLength + lBegin;
-            }
-
+            wavPlaybackSample = (wavPlaybackSample + 1) % numWavSamples;
             int16_t rSample = wavSamples[wavPlaybackSample];
-
-            if (lBegin < 0)
-            {
-                wavPlaybackSample = (wavPlaybackSample + 1) % numWavSamples;
-            }
-            else
-            {
-                wavPlaybackSample = (wavPlaybackSample - lBegin + 1) % lLength + lBegin;
-            }
+            wavPlaybackSample = (wavPlaybackSample + 1) % numWavSamples;
 
             // left
-            *buffer++ = lSample;
+            //*buffer++ = lSample;
+            float lReverbValue = static_cast<float>(lSample) / 32768.0f;
+            lReverbValue = lReverb.processSample(lReverbValue);
+            lReverbValue = lReverbValue * 32768.0f;
+            lReverbValue = max(-32768.0f, min(lReverbValue, 32767.0f));
+            *buffer++ = static_cast<uint16_t>(lReverbValue);
             //*buffer++ = BiquadConvolution(&biquad_l, lSample);
 
             // right
-            *buffer++ = rSample;
+            //*buffer++ = rSample;
+            float rReverbValue = static_cast<float>(rSample) / 32768.0f;
+            rReverbValue = rReverb.processSample(rReverbValue);
+            rReverbValue = rReverbValue * 32768.0f;
+            rReverbValue = max(-32768.0f, min(rReverbValue, 32767.0f));
+            *buffer++ = static_cast<uint16_t>(rReverbValue);
             //*buffer++ = BiquadConvolution(&biquad_r, rSample);
-
-            //if (lBegin < 0)
-            //{
-            //    // Loop if we reach end of wav file
-            //    wavPlaybackSample %= numWavSamples;
-            //}
-            //else
-            //{
-            //    wavPlaybackSample = (wavPlaybackSample - lBegin) % lLength + lBegin;
-            //}
         }
+
         hr = audioRenderClient->ReleaseBuffer(numFramesToWrite, 0);
         assert(hr == S_OK);
 
