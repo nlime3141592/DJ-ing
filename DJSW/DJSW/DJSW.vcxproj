@@ -24,10 +24,22 @@
   <ItemGroup>
     <ClCompile Include="audiofilter.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MiniXML\mxml-attr.c" />
+    <ClCompile Include="MiniXML\mxml-file.c" />
+    <ClCompile Include="MiniXML\mxml-get.c" />
+    <ClCompile Include="MiniXML\mxml-index.c" />
+    <ClCompile Include="MiniXML\mxml-node.c" />
+    <ClCompile Include="MiniXML\mxml-options.c" />
+    <ClCompile Include="MiniXML\mxml-private.c" />
+    <ClCompile Include="MiniXML\mxml-search.c" />
+    <ClCompile Include="MiniXML\mxml-set.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="audiofilter.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="MiniXML\config.h" />
+    <ClInclude Include="MiniXML\mxml-private.h" />
+    <ClInclude Include="MiniXML\mxml.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -110,7 +122,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>

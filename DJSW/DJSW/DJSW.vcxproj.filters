@@ -19,6 +19,12 @@
     <Filter Include="소스 파일\Audio">
       <UniqueIdentifier>{e2737309-5d1c-4411-8a44-2d20ec67729b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\MiniXML">
+      <UniqueIdentifier>{74158627-b096-4b52-8557-18f75b3c47fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\MiniXML">
+      <UniqueIdentifier>{1e1b312b-c959-458a-8caa-d84f404538d7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="개발환경설정.md" />
@@ -30,6 +36,33 @@
     <ClCompile Include="audiofilter.cpp">
       <Filter>소스 파일\Audio</Filter>
     </ClCompile>
+    <ClCompile Include="MiniXML\mxml-attr.c">
+      <Filter>소스 파일\MiniXML</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniXML\mxml-file.c">
+      <Filter>소스 파일\MiniXML</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniXML\mxml-get.c">
+      <Filter>소스 파일\MiniXML</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniXML\mxml-index.c">
+      <Filter>소스 파일\MiniXML</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniXML\mxml-node.c">
+      <Filter>소스 파일\MiniXML</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniXML\mxml-options.c">
+      <Filter>소스 파일\MiniXML</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniXML\mxml-private.c">
+      <Filter>소스 파일\MiniXML</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniXML\mxml-search.c">
+      <Filter>소스 파일\MiniXML</Filter>
+    </ClCompile>
+    <ClCompile Include="MiniXML\mxml-set.c">
+      <Filter>소스 파일\MiniXML</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dx12.h">
@@ -37,6 +70,15 @@
     </ClInclude>
     <ClInclude Include="audiofilter.h">
       <Filter>헤더 파일\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="MiniXML\mxml.h">
+      <Filter>헤더 파일\MiniXML</Filter>
+    </ClInclude>
+    <ClInclude Include="MiniXML\mxml-private.h">
+      <Filter>헤더 파일\MiniXML</Filter>
+    </ClInclude>
+    <ClInclude Include="MiniXML\config.h">
+      <Filter>헤더 파일\MiniXML</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
