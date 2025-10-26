@@ -130,16 +130,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="audiochannel.cpp" />
+    <ClCompile Include="audiodevice.cpp" />
     <ClCompile Include="audiofilter.cpp" />
     <ClCompile Include="audioreverb.cpp" />
     <ClCompile Include="audioutil.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="main2.cpp" />
+    <ClCompile Include="pcmwav.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="audiochannel.h" />
+    <ClInclude Include="audiodevice.h" />
     <ClInclude Include="audiofilter.h" />
     <ClInclude Include="audioreverb.h" />
     <ClInclude Include="audioutil.h" />
+    <ClInclude Include="pcmwav.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

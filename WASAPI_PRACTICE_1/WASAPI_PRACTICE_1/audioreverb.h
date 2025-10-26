@@ -67,6 +67,7 @@ public:
     void SetDamping(float damping);
     void SetWet(float wet);
     float Process(float input);
+    int16_t Process(int16_t input);
     void ProcessBuffer(const float* inBuf, float* outBuf, size_t n);
     
 private:

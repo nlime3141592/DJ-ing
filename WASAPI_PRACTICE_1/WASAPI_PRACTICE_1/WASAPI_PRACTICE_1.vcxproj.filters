@@ -30,6 +30,15 @@
     <ClCompile Include="audioreverb.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="audiochannel.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="audiodevice.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="pcmwav.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="audiofilter.h">
@@ -39,6 +48,15 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="audioreverb.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="audiochannel.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="pcmwav.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="audiodevice.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

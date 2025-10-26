@@ -110,6 +110,14 @@ float SchroederReverb_Allpass::Process(float input)
     return output;
 }
 
+int16_t SchroederReverb::Process(int16_t input)
+{
+    float input01 = static_cast<float>(input) / 32768.0f;
+    float output01 = Process(input01);
+
+    return static_cast<int16_t>(std::max(-32768.0f, std::min(output01, 32767.0f)));
+}
+
 SchroederReverb::SchroederReverb(int sampleRate) :
     roomSize(0.2f),
     damping(0.2f),
