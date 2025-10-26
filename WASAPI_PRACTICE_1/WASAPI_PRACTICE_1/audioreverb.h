@@ -5,44 +5,54 @@
 #include <cstdint>
 #include <algorithm>
 #include <iostream>
+#include <assert.h>
 
-// schroeder.cpp
-// Simple Schroeder reverb: 4 feedback combs (parallel) -> 2 allpass (series).
-// Mono processing. API: processSample(float) or processBuffer(vector<float>&).
+// 44100Hz = 272ms
+// 48000Hz = 250ms
+#define BUFFER_CAPACITY 12000
 
 class Comb
 {
 public:
     Comb();
-    ~Comb();
+    ~Comb() = default;
 
-    void init(size_t size);
-    void setParams(float feedbackGain, float damping);
-    float process(float input);
+    void ClearBuffer();
+    void SetDelay(float delay_ms, int32_t sampleRate);
+    void SetFeedback(float feedback);
+    void SetDamping(float damping);
+    float Process(float input);
 
 private:
-    float* buffer;
-    size_t bufferSize;
-    size_t index;
+    float xBuffer[BUFFER_CAPACITY];
+    float yBuffer[BUFFER_CAPACITY];
+    float lpfBuffer;
+    int32_t index;
+    int32_t sampleRate;
+    float delay_ms;
+    int32_t delay_sample;
     float feedback;
-    float filterStore;
-    float damp1, damp2;
+    float damping, dampingInverse;
 };
 
 class Allpass
 {
 public:
     Allpass();
-    ~Allpass();
-
-    void init(size_t size);
-    void setFeedback(float fb);
-    float process(float input);
+    ~Allpass() = default;
+    
+    void ClearBuffer();
+    void SetDelay(float delay_ms, int32_t sampleRate);
+    void SetFeedback(float feedback);
+    float Process(float input);
 
 private:
-    float* buffer;
-    size_t bufferSize;
+    float xBuffer[BUFFER_CAPACITY];
+    float yBuffer[BUFFER_CAPACITY];
     size_t index;
+    int32_t sampleRate;
+    float delay_ms;
+    int32_t delay_sample;
     float feedback;
 };
 
@@ -52,11 +62,13 @@ public:
     SchroederReverb(int sampleRate = 44100);
     ~SchroederReverb() = default;
 
-    void setParams(float roomSize_, float damping_, float wet_, float dry_);
-    float processSample(float in);
-    void processBuffer(const float* inBuf, float* outBuf, size_t n);
-    void reset();
-
+    void ClearBuffer();
+    void SetRoomSize(float roomSize);
+    void SetDamping(float damping);
+    void SetWet(float wet);
+    float Process(float input);
+    void ProcessBuffer(const float* inBuf, float* outBuf, size_t n);
+    
 private:
     int sr;
     float roomSize, damping, wet, dry;
@@ -65,9 +77,7 @@ private:
     std::vector<Comb> combs;
     std::vector<Allpass> allpasses;
 
-    void initBuffers();
-
-    static size_t msToSamples(float ms, int sampleRate);
+    float GetRoomSizeInternal(float roomSizeExternal);
 };
 
 // -------------------- Usage example (main) --------------------

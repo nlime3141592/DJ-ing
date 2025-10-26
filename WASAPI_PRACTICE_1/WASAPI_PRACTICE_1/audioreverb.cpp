@@ -1,181 +1,223 @@
 #include "audioreverb.h"
 
 Comb::Comb() : 
-    buffer(nullptr),
-    bufferSize(0),
+    lpfBuffer(0.0f),
     index(0),
+    sampleRate(44100.0f),
     feedback(0.0f),
-    filterStore(0.0f),
-    damp1(0.0f),
-    damp2(0.0f)
+    damping(0.2f),
+    dampingInverse(0.8f)
 {
-
+    // NOTE: 인덱스가 버퍼를 순환하기 때문에, 인덱스 값을 굳이 0으로 초기화시켜 줄 필요가 없음.
+    ClearBuffer();
 }
 
-Comb::~Comb()
+void Comb::ClearBuffer()
 {
-    delete[] buffer;
+    lpfBuffer = 0.0f;
+    std::fill(xBuffer, xBuffer + BUFFER_CAPACITY, 0.0f);
+    std::fill(yBuffer, yBuffer + BUFFER_CAPACITY, 0.0f);
 }
 
-void Comb::init(size_t size)
+void Comb::SetDelay(float delay_ms, int32_t sampleRate)
 {
-    delete[] buffer;
-    bufferSize = size;
-    buffer = new float[bufferSize];
-    std::fill(buffer, buffer + bufferSize, 0.0f);
-    index = 0;
-    filterStore = 0.0f;
+    this->sampleRate = sampleRate;
+    this->delay_ms = delay_ms;
+    this->delay_sample = (int32_t)((float)sampleRate * delay_ms / 1000.0f);
 }
 
-// set feedback gain (0..1) and damping (0..1)
-void Comb::setParams(float feedbackGain, float damping)
+void Comb::SetFeedback(float feedback)
 {
-    feedback = feedbackGain;
-    // damping uses a simple one-pole lowpass in the feedback loop
-    damp1 = damping;
-    damp2 = 1.0f - damping;
+    assert(feedback >= 0.0f && feedback <= 0.99f);
+
+    this->feedback = feedback;
 }
 
-// process single sample
-float Comb::process(float input)
+void Comb::SetDamping(float damping)
 {
-    // read delayed sample
-    float output = buffer[index];
+    assert(damping >= 0.01f && damping <= 0.99f);
 
-    // lowpass in feedback path (simple one-pole)
-    filterStore = (output * damp2) + (filterStore * damp1);
+    this->damping = damping;
+    this->dampingInverse = 1.0f - damping;
+}
 
-    // new sample into buffer = input + feedback * filtered
-    buffer[index] = input + filterStore * feedback;
+float Comb::Process(float input)
+{
+    int32_t delay = delay_sample;
+    int32_t index_1 = index < 1 ? BUFFER_CAPACITY - 1 : index - 1;
+    int32_t index_d = (index - delay + BUFFER_CAPACITY) % BUFFER_CAPACITY;
 
-    // advance circular index
-    if (++index >= bufferSize) index = 0;
+    xBuffer[index] = input;
 
-    return output;
+    float output_lpf = yBuffer[index_d];
+    lpfBuffer = (dampingInverse * output_lpf) + (damping * output_lpf);
+    float output_comb = xBuffer[index] + feedback * lpfBuffer;
+
+    //float output_lpf = (dampingInverse * xBuffer[index_d]) + (damping * yBuffer[index_1]);
+    //float output_comb = xBuffer[index] + feedback * yBuffer[index_d];
+
+    yBuffer[index] = output_comb;
+
+    index = (index + 1) % BUFFER_CAPACITY;
+
+    return output_comb;
 }
 
 Allpass::Allpass() : 
-    buffer(nullptr),
-    bufferSize(0),
     index(0),
     feedback(0.5f)
 {
-
+    ClearBuffer();
 }
 
-Allpass::~Allpass()
+void Allpass::ClearBuffer()
 {
-    delete[] buffer;
+    std::fill(xBuffer, xBuffer + BUFFER_CAPACITY, 0.0f);
+    std::fill(yBuffer, yBuffer + BUFFER_CAPACITY, 0.0f);
 }
 
-void Allpass::init(size_t size)
+void Allpass::SetDelay(float delay_ms, int32_t sampleRate)
 {
-    delete[] buffer;
-    bufferSize = size;
-    buffer = new float[bufferSize];
-    std::fill(buffer, buffer + bufferSize, 0.0f);
-    index = 0;
+    this->sampleRate = sampleRate;
+    this->delay_ms = delay_ms;
+    this->delay_sample = (int32_t)((float)sampleRate * delay_ms / 1000.0f);
 }
 
-void Allpass::setFeedback(float fb)
+void Allpass::SetFeedback(float feedback)
 {
-    feedback = fb;
+    this->feedback = feedback;
 }
 
-float Allpass::process(float input)
+float Allpass::Process(float input)
 {
-    float bufout = buffer[index];
-    float output = -input + bufout;
-    buffer[index] = input + bufout * feedback;
-    if (++index >= bufferSize) index = 0;
+    int32_t delay = delay_sample;
+    int32_t index_1 = index < 1 ? BUFFER_CAPACITY - 1 : index - 1;
+    int32_t index_d = (index - delay + BUFFER_CAPACITY) % BUFFER_CAPACITY;
+
+    xBuffer[index] = input;
+
+    float output = feedback * (yBuffer[index_d] - xBuffer[index]) + xBuffer[index_d];
+
+    yBuffer[index] = output;
+
+    index = (index + 1) % BUFFER_CAPACITY;
+
     return output;
 }
 
 SchroederReverb::SchroederReverb(int sampleRate) :
     sr(sampleRate),
-    roomSize(0.5f),
+    roomSize(0.2f),
     damping(0.2f),
     wet(0.33f),
     dry(0.67f)
 {
-    // delay times in milliseconds (tunable)
-        // these are chosen to be relatively prime-ish to avoid metallic resonances
-    combDelaysMs = { 50.0f, 56.0f, 61.0f, 68.0f }; // comb delays in ms
-    allpassDelaysMs = { 6.0f, 12.0f };            // allpass delays in ms
+    combDelaysMs = { 32.4f, 33.7f, 31.1f, 29.6f };
+    allpassDelaysMs = { 4.7f, 0.5f };
 
     combs.resize(combDelaysMs.size());
     allpasses.resize(allpassDelaysMs.size());
 
-    initBuffers();
-    setParams(roomSize, damping, wet, dry);
-}
+    float roomSizeInternal = GetRoomSizeInternal(this->roomSize);
 
-void SchroederReverb::setParams(float roomSize_, float damping_, float wet_, float dry_)
-{
-    roomSize = std::max(0.0f, std::min(roomSize_, 0.99f));
-    damping = std::max(0.0f, std::min(damping_, 0.99f));
-    wet = std::max(0.0f, std::min(wet_, 1.0f));
-    dry = std::max(0.0f, std::min(dry_, 1.0f));
+    for (size_t i = 0; i < combs.size(); ++i)
+    {
+        combs[i].SetDelay(combDelaysMs[i], 44100);
 
-    // feedback gain for combs derived from room size
-    // typical mapping: roomSize 0..1 -> feedback 0.7..0.98 (tunable)
-    float feedbackBase = 0.7f + roomSize * 0.28f; // in [0.7, 0.98]
-    for (size_t i = 0; i < combs.size(); ++i) {
-        combs[i].setParams(feedbackBase, damping);
+        combs[i].SetFeedback(roomSizeInternal);
+        combs[i].SetDamping(damping);
     }
 
-    // allpass feedback typical ~0.5..0.6
-    for (auto& ap : allpasses) ap.setFeedback(0.5f);
+    for (size_t i = 0; i < allpasses.size(); ++i)
+    {
+        allpasses[i].SetDelay(allpassDelaysMs[i], 44100);
+
+        allpasses[i].SetFeedback(roomSizeInternal);
+    }
+}
+
+void SchroederReverb::SetRoomSize(float roomSize)
+{
+    assert(roomSize >= 0.0f && roomSize <= 1.0f);
+
+    this->roomSize = roomSize;
+    float roomSizeInternal = GetRoomSizeInternal(roomSize);
+
+    for (size_t i = 0; i < combs.size(); ++i)
+    {
+        combs[i].SetFeedback(roomSizeInternal);
+    }
+
+    for (size_t i = 0; i < allpasses.size(); ++i)
+    {
+        allpasses[i].SetFeedback(roomSize);
+    }
+}
+
+void SchroederReverb::SetDamping(float damping)
+{
+    assert(damping >= 0.01f && damping <= 0.99f);
+
+    this->damping = damping;
+
+    for (size_t i = 0; i < combs.size(); ++i)
+    {
+        combs[i].SetDamping(damping);
+    }
+}
+
+void SchroederReverb::SetWet(float wet)
+{
+    assert(wet >= 0.0f && wet <= 1.0f);
+
+    this->wet = wet;
+    this->dry = 1.0f - wet;
 }
 
 // process single sample (mono)
-float SchroederReverb::processSample(float in)
+float SchroederReverb::Process(float input)
 {
-    // feed input to each parallel comb
     float combSum = 0.0f;
-    for (auto& c : combs) combSum += c.process(in);
 
-    // average comb outputs
-    float out = combSum * (1.0f / static_cast<float>(combs.size()));
+    for (size_t i = 0; i < combs.size(); ++i)
+    {
+        combSum += combs[i].Process(input);
+    }
 
-    // serial allpass chain
-    for (auto& ap : allpasses) out = ap.process(out);
+    float output = combSum * (1.0f / static_cast<float>(combs.size()));
 
-    // mix wet/dry
-    return (dry * in + wet * out);
+    for (size_t i = 0; i < allpasses.size(); ++i)
+    {
+        output = allpasses[i].Process(output);
+    }
+
+    return (dry * input + wet * output);
 }
 
 // process a whole buffer in-place or to output buffer
-void SchroederReverb::processBuffer(const float* inBuf, float* outBuf, size_t n)
+void SchroederReverb::ProcessBuffer(const float* inBuf, float* outBuf, size_t n)
 {
     for (size_t i = 0; i < n; ++i) {
-        outBuf[i] = processSample(inBuf[i]);
+        outBuf[i] = Process(inBuf[i]);
     }
 }
 
-// allow resetting internal state
-void SchroederReverb::reset()
+void SchroederReverb::ClearBuffer()
 {
-    initBuffers();
-}
-
-void SchroederReverb::initBuffers()
-{
-    // initialize combs and allpasses with sample-size buffers
-    for (size_t i = 0; i < combs.size(); ++i) {
-        size_t samples = msToSamples(combDelaysMs[i], sr);
-        // ensure at least 1
-        samples = std::max<size_t>(1, samples);
-        combs[i].init(samples);
+    for (size_t i = 0; i < combs.size(); ++i)
+    {
+        combs[i].ClearBuffer();
     }
-    for (size_t i = 0; i < allpasses.size(); ++i) {
-        size_t samples = msToSamples(allpassDelaysMs[i], sr);
-        samples = std::max<size_t>(1, samples);
-        allpasses[i].init(samples);
+
+    for (size_t i = 0; i < allpasses.size(); ++i)
+    {
+        allpasses[i].ClearBuffer();
     }
 }
 
-size_t SchroederReverb::msToSamples(float ms, int sampleRate)
+float SchroederReverb::GetRoomSizeInternal(float roomSizeExternal)
 {
-    return static_cast<size_t>(std::round(ms * sampleRate / 1000.0f));
+    assert(roomSizeExternal >= 0.0f && roomSizeExternal <= 1.0f);
+
+    return 0.0f + 0.98f * roomSizeExternal;
 }

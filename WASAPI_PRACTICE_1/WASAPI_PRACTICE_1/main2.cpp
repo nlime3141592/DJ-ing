@@ -189,8 +189,8 @@ int main()
     float wet = 0.2f;
     float dry = 0.8f;
 
-    lReverb.setParams(roomSize, damping, wet, dry);
-    rReverb.setParams(roomSize, damping, wet, dry);
+    //lReverb.setParams(roomSize, damping, wet, dry);
+    //rReverb.setParams(roomSize, damping, wet, dry);
 #endif
 
     // autocorrelation 검증 로직
@@ -280,7 +280,7 @@ int main()
             // left
             //*buffer++ = lSample;
             float lReverbValue = static_cast<float>(lSample) / 32768.0f;
-            lReverbValue = lReverb.processSample(lReverbValue);
+            lReverbValue = lReverb.Process(lReverbValue);
             lReverbValue = lReverbValue * 32768.0f;
             lReverbValue = max(-32768.0f, min(lReverbValue, 32767.0f));
             *buffer++ = static_cast<uint16_t>(lReverbValue);
@@ -289,7 +289,7 @@ int main()
             // right
             //*buffer++ = rSample;
             float rReverbValue = static_cast<float>(rSample) / 32768.0f;
-            rReverbValue = rReverb.processSample(rReverbValue);
+            rReverbValue = rReverb.Process(rReverbValue);
             rReverbValue = rReverbValue * 32768.0f;
             rReverbValue = max(-32768.0f, min(rReverbValue, 32767.0f));
             *buffer++ = static_cast<uint16_t>(rReverbValue);
