@@ -20,6 +20,8 @@
 #include "audioutil.h"
 #include "audioreverb.h"
 
+#include "hidapi.h"
+
 #include <stdio.h>
 
 // Struct to get data from loaded WAV file.
@@ -86,7 +88,7 @@ int main()
 {
     void* fileBytes;
     uint32_t fileSize;
-    bool result = Win32LoadEntireFile("C:\\Test\\habibi.wav", &fileBytes, &fileSize);
+    bool result = Win32LoadEntireFile("C:\\Test\\loop1.wav", &fileBytes, &fileSize);
     assert(result);
 
     WavFile* wav = (WavFile*)fileBytes;
@@ -187,8 +189,7 @@ int main()
     float roomSize = 0.8f;
     float damping = 0.1f;
     float wet = 0.2f;
-    float dry = 0.8f;
-
+    
     //lReverb.setParams(roomSize, damping, wet, dry);
     //rReverb.setParams(roomSize, damping, wet, dry);
 #endif
@@ -228,6 +229,23 @@ int main()
     int lTau = -1;
 #endif
 
+#define REGION_HID_INPUT_1
+#ifdef REGION_HID_INPUT_1
+    int idVendor = 0x2341;
+    int idProduct = 0x8036;
+
+    hid_device* device = hid_open(idVendor, idProduct, NULL);
+    
+    if (!device)
+    {
+        printf("Device not found.\n");
+        return -1;
+    }
+
+    hid_set_nonblocking(device, true);
+
+    uint8_t reportBuffer[9] = { 0 };
+#endif
 
     // 재생을 위한 버퍼링 동작
     int wavPlaybackSample = 0;
@@ -271,6 +289,29 @@ int main()
 
             pressed1 = p1;
             pressed2 = p2;
+
+            int hidLength = hid_read(device, reportBuffer, sizeof(reportBuffer));
+
+            if (hidLength < 0)
+            {
+                break;
+            }
+            else if (hidLength > 0)
+            {
+                float iRoomSize = (float)reportBuffer[3] / 255.0f;
+                float iDamping = (float)reportBuffer[4] / 255.0f;
+                float iWet = (float)reportBuffer[5] / 255.0f;
+
+                lReverb.SetRoomSize(iRoomSize);
+                lReverb.SetDamping(iDamping);
+                lReverb.SetWet(iWet);
+
+                rReverb.SetRoomSize(iRoomSize);
+                rReverb.SetDamping(iDamping);
+                rReverb.SetWet(iWet);
+
+                printf("RoomSize == %0.03f   Damping == %0.03f   Wet == %0.03f\n", iRoomSize, iDamping, iWet);
+            }
 
             int16_t lSample = wavSamples[wavPlaybackSample];
             wavPlaybackSample = (wavPlaybackSample + 1) % numWavSamples;

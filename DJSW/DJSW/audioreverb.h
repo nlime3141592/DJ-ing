@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <vector>
 #include <cmath>
@@ -40,7 +40,7 @@ class SchroederReverb_Allpass
 public:
     SchroederReverb_Allpass();
     ~SchroederReverb_Allpass() = default;
-    
+
     void ClearBuffer();
     void SetDelay(float delay_ms, int32_t sampleRate);
     void SetFeedback(float feedback);
@@ -68,7 +68,7 @@ public:
     void SetWet(float wet);
     float Process(float input);
     void ProcessBuffer(const float* inBuf, float* outBuf, size_t n);
-    
+
 private:
     float roomSize;
     float damping;

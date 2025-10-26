@@ -1,6 +1,6 @@
-#include "audioreverb.h"
+﻿#include "audioreverb.h"
 
-SchroederReverb_Comb::SchroederReverb_Comb() : 
+SchroederReverb_Comb::SchroederReverb_Comb() :
     lpfBuffer(0.0f),
     index(0),
     sampleRate(44100.0f),
@@ -65,7 +65,7 @@ float SchroederReverb_Comb::Process(float input)
     return output_comb;
 }
 
-SchroederReverb_Allpass::SchroederReverb_Allpass() : 
+SchroederReverb_Allpass::SchroederReverb_Allpass() :
     index(0),
     feedback(0.5f)
 {
@@ -144,7 +144,7 @@ void SchroederReverb::SetRoomSize(float roomSize)
 
     this->roomSize = 0.7f + 0.28f * roomSize;
     //this->roomSize = roomSize;
-    
+
     for (size_t i = 0; i < combs.size(); ++i)
     {
         combs[i].SetFeedback(roomSize);
