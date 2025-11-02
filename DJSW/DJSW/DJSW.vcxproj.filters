@@ -63,6 +63,24 @@
     <ClCompile Include="MiniXML\mxml-set.c">
       <Filter>소스 파일\MiniXML</Filter>
     </ClCompile>
+    <ClCompile Include="audioreverb.cpp">
+      <Filter>소스 파일\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="HIDThread.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="audiodevice.cpp">
+      <Filter>소스 파일\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="audiothread.cpp">
+      <Filter>소스 파일\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="audiochannel.cpp">
+      <Filter>소스 파일\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="pcmwav.cpp">
+      <Filter>소스 파일\Audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dx12.h">
@@ -79,6 +97,24 @@
     </ClInclude>
     <ClInclude Include="MiniXML\config.h">
       <Filter>헤더 파일\MiniXML</Filter>
+    </ClInclude>
+    <ClInclude Include="audioreverb.h">
+      <Filter>헤더 파일\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="HIDThread.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="audiodevice.h">
+      <Filter>헤더 파일\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="audiothread.h">
+      <Filter>헤더 파일\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="audiochannel.h">
+      <Filter>헤더 파일\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="pcmwav.h">
+      <Filter>헤더 파일\Audio</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

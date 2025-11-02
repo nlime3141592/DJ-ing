@@ -22,7 +22,12 @@
     <Text Include="개발환경설정.md" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="audiochannel.cpp" />
+    <ClCompile Include="audiodevice.cpp" />
     <ClCompile Include="audiofilter.cpp" />
+    <ClCompile Include="audioreverb.cpp" />
+    <ClCompile Include="audiothread.cpp" />
+    <ClCompile Include="HIDThread.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MiniXML\mxml-attr.c" />
     <ClCompile Include="MiniXML\mxml-file.c" />
@@ -33,13 +38,20 @@
     <ClCompile Include="MiniXML\mxml-private.c" />
     <ClCompile Include="MiniXML\mxml-search.c" />
     <ClCompile Include="MiniXML\mxml-set.c" />
+    <ClCompile Include="pcmwav.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="audiochannel.h" />
+    <ClInclude Include="audiodevice.h" />
     <ClInclude Include="audiofilter.h" />
+    <ClInclude Include="audioreverb.h" />
+    <ClInclude Include="audiothread.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="HIDThread.h" />
     <ClInclude Include="MiniXML\config.h" />
     <ClInclude Include="MiniXML\mxml-private.h" />
     <ClInclude Include="MiniXML\mxml.h" />
+    <ClInclude Include="pcmwav.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -126,13 +138,17 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(ProjectDir)HID\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(WindowsSdkDir)Lib\10.0.26100.0\um\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)HID\lib;$(WindowsSdkDir)Lib\10.0.26100.0\um\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;hidapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(ProjectDir)HID\bin\hidapi.dll" "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

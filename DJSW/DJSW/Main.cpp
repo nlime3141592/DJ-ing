@@ -7,22 +7,72 @@
 #include <vector>
 
 #include "d3dx12.h"
+#include "HIDThread.h"
+#include "audiothread.h"
 
 using namespace Microsoft::WRL;
 
 const UINT FrameCount = 2;
-
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    if (message == WM_DESTROY) PostQuitMessage(0);
-    return DefWindowProc(hWnd, message, wParam, lParam);
-}
 
 struct Vertex {
     float position[3];
     float color[3];
 };
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+    {
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        break;
+    case WM_KEYDOWN:
+        // wParam: virtual key code. (ref: https://learn.microsoft.com/ko-kr/windows/win32/inputdev/virtual-key-codes)
+        switch (wParam)
+        {
+        case VK_ESCAPE:
+            PostQuitMessage(0);
+            break;
+        }
+    }
+
+    return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
+{
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    //assert(hr == S_OK);
+
+    DWORD dwThreadIdArray[2];
+    HANDLE hThreadArray[2];
+
+    HIDParams hidParams = { 0 };
+    hidParams.intrHaltThread = 0;
+
+    AudioParams audioParams = { 0 };
+    audioParams.intrHaltThread = 0;
+
+    // -------------------- HID Thread 시작 --------------------
+    hThreadArray[HID_THREAD_ID] = CreateThread(
+        NULL, // default security attributes
+        0, // use default stack size
+        HIDMain, // thread function name
+        (void*)(&hidParams), // argument to thread function
+        0, // use default creation flag
+        &dwThreadIdArray[HID_THREAD_ID]
+    );
+
+    // -------------------- Audio Thread 시작 --------------------
+    hThreadArray[AUDIO_THREAD_ID] = CreateThread(
+        NULL, // default security attributes
+        0, // use default stack size
+        AudioMain, // thread function name
+        (void*)(&audioParams), // argument to thread function
+        0, // use default creation flag
+        &dwThreadIdArray[AUDIO_THREAD_ID]
+    );
+
     // -------------------- 윈도우 생성 --------------------
     WNDCLASSEX wc = { sizeof(WNDCLASSEX) };
     wc.lpfnWndProc = WndProc;
@@ -221,7 +271,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
 
     // -------------------- 메시지 루프 & 렌더링 --------------------
     MSG msg = {};
-    while (msg.message != WM_QUIT) {
+
+    while (msg.message != WM_QUIT)
+    {
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
@@ -278,6 +330,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
         swapChain->Present(1, 0);
         WaitForPreviousFrame();
     }
+
+    audioParams.intrHaltThread = 1;
+    WaitForSingleObject(hThreadArray[AUDIO_THREAD_ID], 1000);
+    OutputDebugStringW(L"오디오 스레드가 안전하게 종료되었습니다.\n");
+
+    hidParams.intrHaltThread = 1;
+    WaitForSingleObject(hThreadArray[HID_THREAD_ID], 1000);
+    OutputDebugStringW(L"HID 스레드가 안전하게 종료되었습니다.\n");
 
     WaitForPreviousFrame();
     CloseHandle(fenceEvent);
