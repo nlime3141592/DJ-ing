@@ -5,6 +5,7 @@
 #include <d3dcompiler.h>
 #include <stdexcept>
 #include <vector>
+#include <assert.h>
 
 #include "d3dx12.h"
 #include "HIDThread.h"
@@ -41,37 +42,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-    //assert(hr == S_OK);
-
-    DWORD dwThreadIdArray[2];
-    HANDLE hThreadArray[2];
-
-    HIDParams hidParams = { 0 };
-    hidParams.intrHaltThread = 0;
-
-    AudioParams audioParams = { 0 };
-    audioParams.intrHaltThread = 0;
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_SPEED_OVER_MEMORY);
+    //HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    assert(hr == S_OK);
 
     // -------------------- HID Thread 시작 --------------------
-    hThreadArray[HID_THREAD_ID] = CreateThread(
-        NULL, // default security attributes
-        0, // use default stack size
-        HIDMain, // thread function name
-        (void*)(&hidParams), // argument to thread function
-        0, // use default creation flag
-        &dwThreadIdArray[HID_THREAD_ID]
-    );
+    HIDInit();
 
     // -------------------- Audio Thread 시작 --------------------
-    hThreadArray[AUDIO_THREAD_ID] = CreateThread(
-        NULL, // default security attributes
-        0, // use default stack size
-        AudioMain, // thread function name
-        (void*)(&audioParams), // argument to thread function
-        0, // use default creation flag
-        &dwThreadIdArray[AUDIO_THREAD_ID]
-    );
+    AudioInit();
 
     // -------------------- 윈도우 생성 --------------------
     WNDCLASSEX wc = { sizeof(WNDCLASSEX) };
@@ -274,12 +253,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
     while (msg.message != WM_QUIT)
     {
+        // -------------------- 입력 --------------------
+        HIDLoop();
+
+        // -------------------- 오디오 처리 --------------------
+        AudioLoop();
+
+        // -------------------- 메시지 처리 --------------------
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
             continue;
         }
 
+        // -------------------- 렌더링 --------------------
         // 커맨드 준비
         commandAllocator->Reset();
         commandList->Reset(commandAllocator.Get(), pipelineState.Get());
@@ -331,13 +318,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         WaitForPreviousFrame();
     }
 
-    audioParams.intrHaltThread = 1;
-    WaitForSingleObject(hThreadArray[AUDIO_THREAD_ID], 1000);
-    OutputDebugStringW(L"오디오 스레드가 안전하게 종료되었습니다.\n");
-
-    hidParams.intrHaltThread = 1;
-    WaitForSingleObject(hThreadArray[HID_THREAD_ID], 1000);
-    OutputDebugStringW(L"HID 스레드가 안전하게 종료되었습니다.\n");
+    // -------------------- 리소스 반환 --------------------
+    AudioFinal();
+    HIDFinal();
 
     WaitForPreviousFrame();
     CloseHandle(fenceEvent);

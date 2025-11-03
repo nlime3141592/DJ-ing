@@ -7,13 +7,17 @@
 #define ID_VENDOR 0x2341
 #define ID_PRODUCT 0x8036
 
-#define DIGITAL_KEY_COUNT 64
-#define DIGITAL_KEY_CAPACITY 128
+#define DIGITAL_KEY_COUNT 256
 
-static std::atomic<uint8_t> keyStates[DIGITAL_KEY_COUNT];
-static uint8_t valStates0[6] = { 0 };
-static uint8_t valStates1[6] = { 0 };
-static uint8_t valStates2[6] = { 0 };
+static uint8_t keyStates[DIGITAL_KEY_COUNT];
+
+static hid_device* device;
+static uint8_t buffer[64];
+
+static HIDKeyboardReport* pKeyboardReport;
+static HIDAnalogReport* pMixerReport;
+static HIDAnalogReport* pDeckReport1;
+static HIDAnalogReport* pDeckReport2;
 
 static hid_device* GetDeviceOrNull()
 {
@@ -47,41 +51,17 @@ static hid_device* GetDeviceOrNull()
 	return device;
 }
 
-static void HandleInput_Digital(HIDReport* report)
+static void HandleInput_Keyboard()
 {
 	for (int i = 0; i < DIGITAL_KEY_COUNT; ++i)
 	{
-		keyStates[i].store(keyStates[i].load() << 1, std::memory_order_relaxed);
+		keyStates[i] <<= 1;
 	}
 
 	for (int i = 0; i < 6; ++i)
 	{
-		uint8_t data = report->data[i];
-		keyStates[data].fetch_or(data != 0, std::memory_order_relaxed);
-	}
-}
-
-static void HandleInput_Analog_Mixer(HIDReport* report)
-{
-	for (int i = 0; i < sizeof(report->data); ++i)
-	{
-		valStates0[i] = report->data[i];
-	}
-}
-
-static void HandleInput_Analog_Deck1(HIDReport* report)
-{
-	for (int i = 0; i < sizeof(report->data); ++i)
-	{
-		valStates1[i] = report->data[i];
-	}
-}
-
-static void HandleInput_Analog_Deck2(HIDReport* report)
-{
-	for (int i = 0; i < sizeof(report->data); ++i)
-	{
-		valStates2[i] = report->data[i];
+		uint8_t data = pKeyboardReport->data[i];
+		keyStates[data] |= (data != 0);
 	}
 }
 
@@ -102,69 +82,69 @@ BOOL GetKeyUp(uint8_t nKey)
 
 uint8_t GetAnalog0(int index)
 {
-	return valStates0[index];
+	return pMixerReport->data[index];
 }
 
 uint8_t GetAnalog1(int index)
 {
-	return valStates1[index];
+	return pDeckReport1->data[index];
 }
 
 uint8_t GetAnalog2(int index)
 {
-	return valStates2[index];
+	return pDeckReport2->data[index];
 }
 
-DWORD WINAPI HIDMain(LPVOID lpParam)
+void HIDInit()
 {
-	HIDParams* params = (HIDParams*)lpParam;
-	hid_device* device = NULL;
-	HIDReport report;
-	void (*reportHandlers[4])(HIDReport*) = {
-		HandleInput_Digital,
-		HandleInput_Analog_Mixer,
-		HandleInput_Analog_Deck1,
-		HandleInput_Analog_Deck2
-	};
+	device = NULL;
 
-	OutputDebugStringW(L"새 HID 스레드가 시작되었습니다.\n");
+	pKeyboardReport = (HIDKeyboardReport*)(buffer + 1);
+	pMixerReport = (HIDAnalogReport*)(buffer + 9);
+	pDeckReport1 = (HIDAnalogReport*)(buffer + 17);
+	pDeckReport2 = (HIDAnalogReport*)(buffer + 25);
+}
 
-	while (!params->intrHaltThread)
+void HIDLoop()
+{
+	if (!device)
 	{
-		if (!device)
+		device = GetDeviceOrNull();
+
+		if (device)
 		{
-			device = GetDeviceOrNull();
-
-			if (device)
-			{
-				OutputDebugStringW(L"HID 장치가 연결되었습니다.\n");
-			}
-
-			continue;
+			OutputDebugStringW(L"HID 장치가 연결되었습니다.\n");
 		}
 
-		int result = hid_read(device, (uint8_t*)&report, sizeof(report));
-
-		if (result < 0)
-		{
-			device = NULL;
-			OutputDebugStringW(L"HID 장치와의 연결이 끊어졌습니다.\n");
-
-			continue;
-		}
-		else if (result == 0)
-		{
-			// no data
-			Sleep(1);
-			continue;
-		}
-		else
-		{
-			reportHandlers[report.index](&report);
-			Sleep(1);
-		}
+		return;
 	}
-	
-	OutputDebugStringW(L"HID 스레드가 종료되었습니다.\n");
-	return 0;
+
+	int result = hid_read(device, (uint8_t*)&buffer, sizeof(buffer));
+
+	if (result < 0)
+	{
+		device = NULL;
+		OutputDebugStringW(L"HID 장치와의 연결이 끊어졌습니다.\n");
+
+		return;
+	}
+	else if (result == 0)
+	{
+		// no data
+		return;
+	}
+	else
+	{
+		//reportHandlers[report.index](&report);
+		HandleInput_Keyboard();
+	}
+}
+
+void HIDFinal()
+{
+	if (!device)
+	{
+		hid_close(device);
+		device = NULL;
+	}
 }
