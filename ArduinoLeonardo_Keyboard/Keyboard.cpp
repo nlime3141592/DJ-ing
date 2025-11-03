@@ -65,6 +65,37 @@ static const uint8_t _hidReportDescriptor[] PROGMEM = {
     0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated))
     0x29, 0x73,                    //   USAGE_MAXIMUM (Keyboard Application)
     0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
+
+	// Mixer Channel Analog Data Bytes
+    0x95, 0x08,                    //   REPORT_COUNT (8)
+    0x75, 0x08,                    //   REPORT_SIZE (8)
+    0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
+    0x25, 0x73,                    //   LOGICAL_MAXIMUM (115)
+    0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
+    0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated))
+    0x29, 0x73,                    //   USAGE_MAXIMUM (Keyboard Application)
+    0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
+
+	// Deck1 Channel Analog Data Bytes
+    0x95, 0x08,                    //   REPORT_COUNT (8)
+    0x75, 0x08,                    //   REPORT_SIZE (8)
+    0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
+    0x25, 0x73,                    //   LOGICAL_MAXIMUM (115)
+    0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
+    0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated))
+    0x29, 0x73,                    //   USAGE_MAXIMUM (Keyboard Application)
+    0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
+
+	// Deck2 Channel Analog Data Bytes
+    0x95, 0x08,                    //   REPORT_COUNT (8)
+    0x75, 0x08,                    //   REPORT_SIZE (8)
+    0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
+    0x25, 0x73,                    //   LOGICAL_MAXIMUM (115)
+    0x05, 0x07,                    //   USAGE_PAGE (Keyboard)
+    0x19, 0x00,                    //   USAGE_MINIMUM (Reserved (no event indicated))
+    0x29, 0x73,                    //   USAGE_MAXIMUM (Keyboard Application)
+    0x81, 0x00,                    //   INPUT (Data,Ary,Abs)
+
     0xc0,                          // END_COLLECTION
 };
 
@@ -88,6 +119,11 @@ void Keyboard_::end(void)
 void Keyboard_::sendReport(KeyReport* keys)
 {
 	HID().SendReport(2, keys, sizeof(KeyReport));
+}
+
+void Keyboard_::sendBuffer(const uint8_t* buffer, size_t size)
+{
+	HID().SendReport(2, buffer, size);
 }
 
 uint8_t USBPutChar(uint8_t c);

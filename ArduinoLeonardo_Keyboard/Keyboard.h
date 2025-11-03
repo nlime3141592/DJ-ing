@@ -145,6 +145,7 @@ public:
   void releaseAll(void);
 
   void sendReport(KeyReport* keys);
+  void sendBuffer(const uint8_t* buffer, size_t size);
 };
 extern Keyboard_ Keyboard;
 
