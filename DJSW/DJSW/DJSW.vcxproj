@@ -26,8 +26,10 @@
     <ClCompile Include="audiodevice.cpp" />
     <ClCompile Include="audiofilter.cpp" />
     <ClCompile Include="audioreverb.cpp" />
-    <ClCompile Include="audiothread.cpp" />
-    <ClCompile Include="HIDThread.cpp" />
+    <ClCompile Include="LoopAudio.cpp" />
+    <ClCompile Include="LoopHID.cpp" />
+    <ClCompile Include="LoopKeyboard.cpp" />
+    <ClCompile Include="LoopRendering.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MiniXML\mxml-attr.c" />
     <ClCompile Include="MiniXML\mxml-file.c" />
@@ -45,9 +47,11 @@
     <ClInclude Include="audiodevice.h" />
     <ClInclude Include="audiofilter.h" />
     <ClInclude Include="audioreverb.h" />
-    <ClInclude Include="audiothread.h" />
     <ClInclude Include="d3dx12.h" />
-    <ClInclude Include="HIDThread.h" />
+    <ClInclude Include="LoopAudio.h" />
+    <ClInclude Include="LoopHID.h" />
+    <ClInclude Include="LoopKeyboard.h" />
+    <ClInclude Include="LoopRendering.h" />
     <ClInclude Include="MiniXML\config.h" />
     <ClInclude Include="MiniXML\mxml-private.h" />
     <ClInclude Include="MiniXML\mxml.h" />

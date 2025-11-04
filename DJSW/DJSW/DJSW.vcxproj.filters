@@ -25,6 +25,12 @@
     <Filter Include="헤더 파일\MiniXML">
       <UniqueIdentifier>{1e1b312b-c959-458a-8caa-d84f404538d7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Loop">
+      <UniqueIdentifier>{e4054bd3-b33f-4ef1-9817-24148664d678}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Loop">
+      <UniqueIdentifier>{e2e7ab53-d14c-475a-b749-a2e1e2054cad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="개발환경설정.md" />
@@ -66,13 +72,7 @@
     <ClCompile Include="audioreverb.cpp">
       <Filter>소스 파일\Audio</Filter>
     </ClCompile>
-    <ClCompile Include="HIDThread.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="audiodevice.cpp">
-      <Filter>소스 파일\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="audiothread.cpp">
       <Filter>소스 파일\Audio</Filter>
     </ClCompile>
     <ClCompile Include="audiochannel.cpp">
@@ -80,6 +80,18 @@
     </ClCompile>
     <ClCompile Include="pcmwav.cpp">
       <Filter>소스 파일\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="LoopHID.cpp">
+      <Filter>소스 파일\Loop</Filter>
+    </ClCompile>
+    <ClCompile Include="LoopAudio.cpp">
+      <Filter>소스 파일\Loop</Filter>
+    </ClCompile>
+    <ClCompile Include="LoopKeyboard.cpp">
+      <Filter>소스 파일\Loop</Filter>
+    </ClCompile>
+    <ClCompile Include="LoopRendering.cpp">
+      <Filter>소스 파일\Loop</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -101,13 +113,7 @@
     <ClInclude Include="audioreverb.h">
       <Filter>헤더 파일\Audio</Filter>
     </ClInclude>
-    <ClInclude Include="HIDThread.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="audiodevice.h">
-      <Filter>헤더 파일\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="audiothread.h">
       <Filter>헤더 파일\Audio</Filter>
     </ClInclude>
     <ClInclude Include="audiochannel.h">
@@ -115,6 +121,18 @@
     </ClInclude>
     <ClInclude Include="pcmwav.h">
       <Filter>헤더 파일\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="LoopAudio.h">
+      <Filter>헤더 파일\Loop</Filter>
+    </ClInclude>
+    <ClInclude Include="LoopHID.h">
+      <Filter>헤더 파일\Loop</Filter>
+    </ClInclude>
+    <ClInclude Include="LoopKeyboard.h">
+      <Filter>헤더 파일\Loop</Filter>
+    </ClInclude>
+    <ClInclude Include="LoopRendering.h">
+      <Filter>헤더 파일\Loop</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

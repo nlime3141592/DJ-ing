@@ -8,8 +8,9 @@
 #include <assert.h>
 
 #include "d3dx12.h"
-#include "HIDThread.h"
-#include "audiothread.h"
+#include "LoopHID.h"
+#include "LoopKeyboard.h"
+#include "LoopAudio.h"
 
 using namespace Microsoft::WRL;
 
@@ -46,10 +47,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     //HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     assert(hr == S_OK);
 
-    // -------------------- HID Thread 시작 --------------------
+    // -------------------- 입력 장치 초기화 --------------------
     HIDInit();
+    KeyboardInit();
 
-    // -------------------- Audio Thread 시작 --------------------
+    // -------------------- 오디오 장치 초기화 --------------------
     AudioInit();
 
     // -------------------- 윈도우 생성 --------------------
@@ -255,6 +257,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     {
         // -------------------- 입력 --------------------
         HIDLoop();
+        KeyboardLoop();
 
         // -------------------- 오디오 처리 --------------------
         AudioLoop();
@@ -319,8 +322,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     }
 
     // -------------------- 리소스 반환 --------------------
-    AudioFinal();
     HIDFinal();
+    KeyboardFinal();
+    AudioFinal();
 
     WaitForPreviousFrame();
     CloseHandle(fenceEvent);

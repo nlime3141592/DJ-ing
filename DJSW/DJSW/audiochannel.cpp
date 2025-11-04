@@ -86,27 +86,17 @@ void AudioChannel::Pause()
 	isPlaying = false;
 }
 
-bool AudioChannel::Read(int16_t* lSampleOutput, int16_t* rSampleOutput)
+void AudioChannel::Read16(int16_t* out)
 {
-	if (!isPlaying || position >= numWavSamples)
-	{
-		*lSampleOutput = 0;
-		*rSampleOutput = 0;
+	// return 16;
+}
 
-		return true;
-	}
-
+void AudioChannel::Read2(int16_t* out)
+{
 	int16_t lSample = (int16_t)wavSamples[position++];
 	int16_t rSample = (int16_t)wavSamples[position++];
 
-	// Crossfade Inputs
-	if (isMuted)
-	{
-		lSample = 0.0f;
-		rSample = 0.0f;
-		return true;
-	}
-	else if (xFadeSampleLeft > 0)
+	if (xFadeSampleLeft > 0)
 	{
 		float w0 = (float)xFadeSampleLeft / xFadeSampleLength;
 		float w1 = 1.0f - w0;
@@ -185,8 +175,37 @@ bool AudioChannel::Read(int16_t* lSampleOutput, int16_t* rSampleOutput)
 	rSample = (int16_t)((float)rSample * masterVolume);
 
 	// Final Outputs
-	*lSampleOutput = lSample;
-	*rSampleOutput = rSample;
+	out[0] = lSample;
+	out[1] = rSample;
+
+	// return 2;
+}
+
+void AudioChannel::ReadPass2(int16_t* out)
+{
+	position += 2;
+
+	out[0] = 0;
+	out[1] = 0;
+
+	// return 2;
+}
+
+void AudioChannel::Read(int16_t* out)
+{
+	if (!isPlaying || position >= numWavSamples)
+	{
+		out[0] = 0;
+		out[1] = 0;
+		return;
+	}
+	else if (isMuted)
+	{
+		ReadPass2(out);
+		return;
+	}
+
+	Read2(out);
 }
 
 void AudioChannel::Jump(int32_t sampleJumpingTo, int32_t whatSampleJumpingFrom)

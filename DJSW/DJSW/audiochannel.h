@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <immintrin.h>
 #include <stdint.h>
 #include <Windows.h>
 
@@ -21,7 +22,10 @@ public:
 	void Play();
 	void Pause();
 
-	bool Read(int16_t* lSampleOutput, int16_t* rSampleOutput);
+	void Read16(int16_t* out);
+	void Read2(int16_t* out);
+	void ReadPass2(int16_t* out);
+	void Read(int16_t* out);
 
 	void Jump(int32_t sampleJumpingTo, int32_t whatSampleJumpingFrom);
 	void JumpImmediate(int32_t sampleJumpingTo);
@@ -60,6 +64,9 @@ public:
 	int32_t xFadeSampleLength = 100; // Tunable
 	int32_t xFadeBeg;
 	int32_t xFadeSampleLeft;
+
+	// Global Cue
+	int32_t cuePosition = 0;
 
 	// Pad FX
 	int32_t fxNumber;
