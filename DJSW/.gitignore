@@ -94,3 +94,6 @@ cmake-build-*/
 *.tar
 *.gz
 *.rar
+
+# 무시하면 안되는 일부 라이브러리들
+!DJSW/HID/**/*
