@@ -1,14 +1,16 @@
 #include <Keyboard.h>
 
+#include "HIDControls.h"
+
 // digital io pins
-#define PIN_S0 16
+#define PIN_S0 14
 #define PIN_S1 15
 #define PIN_S2 16
 
-#define PIN_SHLD 7
-#define PIN_CLR 2
-#define PIN_CLK 3
-#define PIN_DOUT 5
+#define PIN_SHLD 3
+#define PIN_CLR 5
+#define PIN_CLK 2
+#define PIN_DOUT 7
 
 // analog input pins
 #define PIN_FX11 A7
@@ -28,14 +30,14 @@
 #define MODE_SERIAL_74166 1
 
 uint8_t keyTable[][8] = {
+  { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 },
   { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 },
-  { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 },
-  { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 },
-  { 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18 },
-  { 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28 },
-  { 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38 },
-  { 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48 },
-  { 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58 }
+  { HID_PAD11, HID_PAD12, HID_PAD13, HID_PAD14, HID_PAD15, HID_PAD16, HID_PAD17, HID_PAD18 },
+  { HID_PAD21, HID_PAD22, HID_PAD23, HID_PAD24, HID_PAD25, HID_PAD26, HID_PAD27, HID_PAD28 },
+  { HID_PADFN11, HID_PADFN21, HID_PADFN12, HID_PADFN22, HID_PADFN13, HID_PADFN23, HID_PADFN14, HID_PADFN24 },
+  { HID_TSH11, HID_TSH21, HID_TSH12, HID_TSH22, HID_TSH13, HID_TSH23, HID_TSH14, HID_TSH24 },
+  { HID_LD1, HID_MUTE1, HID_PLAY1, HID_CUE1, HID_UNDEFINED, HID_UNDEFINED, HID_SEL1, HID_SPLIT1 },
+  { HID_LD2, HID_MUTE2, HID_PLAY2, HID_CUE2, HID_UNDEFINED, HID_UNDEFINED, HID_SEL2, HID_SPLIT2 }
 };
 
 uint8_t buffer[32] = { 0 };
@@ -73,6 +75,24 @@ void LoadParallel(int address)
   delayMicroseconds(1);
 }
 
+// 21 mcs delay
+uint8_t ReadFlag(int address, uint8_t* keySet)
+{
+  LoadParallel(address);
+
+  uint8_t flag = 0;
+
+  for (int i = 0; i < 8; ++i)
+  {
+    if (digitalRead(PIN_DOUT))
+      flag |= keySet[i];
+
+    Clock();
+  }
+
+  return flag;
+}
+
 // 29 mcs delays
 uint8_t ReadData(int address, uint8_t* keySet)
 {
@@ -100,49 +120,14 @@ uint8_t ReadData(int address, uint8_t* keySet)
   return data;
 }
 
-// 21 mcs delay
-uint8_t ReadFlag(int address, uint8_t* keySet)
-{
-  LoadParallel(address);
-
-  uint8_t flag = 0;
-
-  for (int i = 0; i < 8; ++i)
-  {
-    if (digitalRead(PIN_DOUT))
-      flag += keySet[i];
-
-    Clock();
-  }
-
-  return flag;
-}
-
 void setup_buffer()
 {
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-  pBufferKey[1] = 0;
+  memset(buffer, 0x00, sizeof(buffer));
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-  pBufferMixer[1] = 0;
-  pBufferMixer[2] = 0;
-  pBufferMixer[3] = 0;
-  pBufferMixer[4] = 0;
-  pBufferMixer[5] = 0;
-  pBufferMixer[6] = 0;
-  pBufferMixer[7] = 0;
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-  pBufferDeck1[2] = 0;
-  pBufferDeck1[3] = 0;
-  pBufferDeck1[5] = 0;
-  pBufferDeck1[6] = 0;
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-  pBufferDeck2[2] = 0;
-  pBufferDeck2[3] = 0;
-  pBufferDeck2[5] = 0;
-  pBufferDeck2[6] = 0;
+  pBufferKey = buffer;
+  pBufferMixer = buffer + 8;
+  pBufferDeck1 = buffer + 16;
+  pBufferDeck2 = buffer + 24;
 }
 
 void setup()
@@ -170,32 +155,27 @@ void setup()
 
   pinMode(PIN_XFADE, INPUT);
 
-  // report buffer initialization
-  pBufferKey = buffer;
-  pBufferMixer = buffer + 8;
-  pBufferDeck1 = buffer + 16;
-  pBufferDeck2 = buffer + 24;
-
-  setup_buffer();
-
   // initial states
   digitalWrite(PIN_CLR, 1);
   digitalWrite(PIN_CLK, 0);
   digitalWrite(PIN_SHLD, 1);
+
+  // report buffer initialization
+  setup_buffer();
 }
 
 void loop()
 {
-  // 본 코드는 Soft Real Time을 따릅니다.
-  // 본 루프가 1 밀리초(1000 마이크로초) 이내에 실행될 수 있도록 코딩하는 것이 권장됩니다.
-  // delayMicroseconds(100);
+  // 루프 1회 실행 시간: 평균 2080 마이크로초 (2.08 밀리초)
+  // 디지털 입력: 약 1020 마이크로초 (1.02 밀리초)
+  // 아날로그 입력: 약 1060 마이크로초 (1.06 밀리초)
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
   pBufferKey[0] = ReadFlag(0, keyTable[0]);
-  
+
   for (int i = 2; i < 8; ++i)
   {
-    pBufferKey[i] = 0x80 + i;//ReadData(i, keyTable[i]);
+    pBufferKey[i] = ReadData(i, keyTable[i]);
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
