@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include <immintrin.h> // for AVX2 Instruction Set
 #include <stdint.h>
 #include <Windows.h>
 
@@ -14,6 +13,15 @@
 
 typedef struct
 {
+	int coreIndex;
+	HANDLE threadHandle;
+	DWORD threadId;
+
+	int interruptNumber;
+} HIDParams;
+
+typedef struct
+{
 	uint8_t modifier;
 	uint8_t reserved;
 	uint8_t data[6];
@@ -24,16 +32,21 @@ typedef struct
 	uint8_t data[8];
 } HIDAnalogReport;
 
-BOOL IsHIDConnected();
+BOOL IsVendorHIDConnected();
 
-BOOL GetHIDKeyDown(uint8_t keycode);
-BOOL GetHIDKey(uint8_t keycode);
-BOOL GetHIDKeyUp(uint8_t keycode);
+BOOL GetVendorHIDKeyDown(uint8_t keycode);
+BOOL GetVendorHIDKey(uint8_t keycode);
+BOOL GetVendorHIDKeyUp(uint8_t keycode);
 
 uint8_t GetAnalogMixer(int32_t idxProperty);
 uint8_t GetAnalogDeck1(int32_t idxProperty);
 uint8_t GetAnalogDeck2(int32_t idxProperty);
 
-void HIDInit();
-void HIDLoop();
-void HIDFinal();
+void SetStandardHIDKeyDown(uint8_t keycode);
+void SetStandardHIDKeyUp(uint8_t keycode);
+
+BOOL GetStandardHIDKeyDown(uint8_t keycode);
+BOOL GetStandardHIDKey(uint8_t keycode);
+BOOL GetStandardHIDKeyUp(uint8_t keycode);
+
+DWORD WINAPI HIDMain(LPVOID lpParams);

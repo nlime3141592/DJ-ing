@@ -1,0 +1,73 @@
+﻿#pragma once
+
+#include <Windows.h>
+
+// 참고자료: Windows API VIrtual-Key Codes
+// https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+
+#define STDHID_UNDEFINED 0x00
+
+#define STDHID_PAD11 0x41
+#define STDHID_PAD12 0x53
+#define STDHID_PAD13 0x44
+#define STDHID_PAD14 0x46
+#define STDHID_PAD15 0x5A
+#define STDHID_PAD16 0x58
+#define STDHID_PAD17 0x43
+#define STDHID_PAD18 0x56
+
+#define STDHID_PAD21 0x41
+#define STDHID_PAD22 0x53
+#define STDHID_PAD23 0x44
+#define STDHID_PAD24 0x46
+#define STDHID_PAD25 0x5A
+#define STDHID_PAD26 0x58
+#define STDHID_PAD27 0x43
+#define STDHID_PAD28 0x56
+
+#define STDHID_PADFN11 0x51
+#define STDHID_PADFN12 0x57
+#define STDHID_PADFN13 0x45
+#define STDHID_PADFN14 0x52
+#define STDHID_PADFN21 0x51
+#define STDHID_PADFN22 0x57
+#define STDHID_PADFN23 0x45
+#define STDHID_PADFN24 0x52
+
+#define STDHID_TSH11 0x31
+#define STDHID_TSH12 0x32
+#define STDHID_TSH13 0x33
+#define STDHID_TSH14 0x34
+#define STDHID_TSH21 0x31
+#define STDHID_TSH22 0x32
+#define STDHID_TSH23 0x33
+#define STDHID_TSH24 0x34
+
+#define STDHID_PLAY1 VK_CONTROL
+#define STDHID_PLAY2 VK_CONTROL
+#define STDHID_PLAY3 VK_CONTROL
+#define STDHID_PLAY4 VK_CONTROL
+#define STDHID_CUE1 VK_SHIFT
+#define STDHID_CUE2 VK_SHIFT
+#define STDHID_CUE3 VK_SHIFT
+#define STDHID_CUE4 VK_SHIFT
+#define STDHID_LD1 VK_LEFT
+#define STDHID_LD2 VK_UP
+#define STDHID_LD3 VK_RIGHT
+#define STDHID_LD4 VK_DOWN
+#define STDHID_SEL1 VK_SPACE
+#define STDHID_SEL2 VK_SPACE
+#define STDHID_SEL3 VK_SPACE
+#define STDHID_SEL4 VK_SPACE
+
+#define STDHID_RESET VK_F5
+
+#define STDHID_MUTE1 0x4D
+#define STDHID_MUTE2 0x4D
+#define STDHID_MUTE3 0x4D
+#define STDHID_MUTE4 0x4D
+
+#define STDHID_SPLIT1 VK_F9
+#define STDHID_SPLIT2 VK_F10
+#define STDHID_SPLIT3 VK_F11
+#define STDHID_SPLIT4 VK_F12

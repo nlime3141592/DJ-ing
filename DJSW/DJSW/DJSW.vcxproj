@@ -28,7 +28,6 @@
     <ClCompile Include="audioreverb.cpp" />
     <ClCompile Include="LoopAudio.cpp" />
     <ClCompile Include="LoopHID.cpp" />
-    <ClCompile Include="LoopKeyboard.cpp" />
     <ClCompile Include="LoopRendering.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MiniXML\mxml-attr.c" />
@@ -48,14 +47,17 @@
     <ClInclude Include="audiofilter.h" />
     <ClInclude Include="audioreverb.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="HIDControls.h" />
+    <ClInclude Include="InputControls.h" />
     <ClInclude Include="LoopAudio.h" />
     <ClInclude Include="LoopHID.h" />
-    <ClInclude Include="LoopKeyboard.h" />
     <ClInclude Include="LoopRendering.h" />
     <ClInclude Include="MiniXML\config.h" />
     <ClInclude Include="MiniXML\mxml-private.h" />
     <ClInclude Include="MiniXML\mxml.h" />
     <ClInclude Include="pcmwav.h" />
+    <ClInclude Include="StandardControls.h" />
+    <ClInclude Include="Timer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

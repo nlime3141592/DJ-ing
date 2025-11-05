@@ -7,10 +7,13 @@
 #include <vector>
 #include <assert.h>
 
+#include <chrono>
+#include <string>
+
 #include "d3dx12.h"
 #include "LoopHID.h"
-#include "LoopKeyboard.h"
 #include "LoopAudio.h"
+#include "Timer.h"
 
 using namespace Microsoft::WRL;
 
@@ -29,13 +32,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         break;
     case WM_KEYDOWN:
-        // wParam: virtual key code. (ref: https://learn.microsoft.com/ko-kr/windows/win32/inputdev/virtual-key-codes)
-        switch (wParam)
-        {
-        case VK_ESCAPE:
-            PostQuitMessage(0);
-            break;
-        }
+        SetStandardHIDKeyDown((uint8_t)wParam);
+        break;
+    case WM_KEYUP:
+        //SetStandardHIDKeyUp((uint8_t)wParam);
+        break;
     }
 
     return DefWindowProc(hWnd, message, wParam, lParam);
@@ -47,12 +48,51 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     //HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     assert(hr == S_OK);
 
-    // -------------------- 입력 장치 초기화 --------------------
-    HIDInit();
-    KeyboardInit();
+    // 실시간 멀티코어 처리를 위한 설정
+    SYSTEM_INFO info;
+    GetSystemInfo(&info);
 
-    // -------------------- 오디오 장치 초기화 --------------------
-    AudioInit();
+    AudioParams audioParams;
+    HIDParams hidParams;
+
+    audioParams.coreIndex = 0;
+    audioParams.threadHandle = CreateThread(
+        NULL,
+        0,
+        AudioMain,
+        &audioParams,
+        0,
+        &audioParams.threadId);
+    assert(audioParams.threadHandle != NULL);
+    audioParams.interruptNumber = 0;
+
+    hidParams.coreIndex = 1;
+    hidParams.threadHandle = CreateThread(
+        NULL,
+        0,
+        HIDMain,
+        &hidParams,
+        0,
+        &hidParams.threadId);
+    assert(hidParams.threadHandle != NULL);
+    hidParams.interruptNumber = 0;
+
+    //std::wstring logCore = L"Logical Core Count == " + std::to_wstring(info.dwNumberOfProcessors) + L"\n";
+    //OutputDebugStringW(logCore.c_str());
+
+    // 실행되는 코어 위치 고정
+    if (info.dwNumberOfProcessors >= 2)
+    {
+        SetThreadAffinityMask(audioParams.threadHandle, 1ULL << audioParams.coreIndex);
+        SetThreadAffinityMask(hidParams.threadHandle, 1ULL << hidParams.coreIndex);
+    }
+
+    // 완전 실시간 처리 스레드로 고정
+    if (info.dwNumberOfProcessors >= 8)
+    {
+        SetThreadPriority(audioParams.threadHandle, THREAD_PRIORITY_TIME_CRITICAL);
+        SetThreadPriority(hidParams.threadHandle, THREAD_PRIORITY_TIME_CRITICAL);
+    }
 
     // -------------------- 윈도우 생성 --------------------
     WNDCLASSEX wc = { sizeof(WNDCLASSEX) };
@@ -255,17 +295,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
     while (msg.message != WM_QUIT)
     {
-        // -------------------- 입력 --------------------
-        HIDLoop();
-        KeyboardLoop();
-
-        // -------------------- 오디오 처리 --------------------
-        AudioLoop();
-
         // -------------------- 메시지 처리 --------------------
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
+            continue;
+        }
+
+        if (GetStandardHIDKey(VK_ESCAPE))
+        {
+            PostQuitMessage(0);
             continue;
         }
 
@@ -322,9 +361,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     }
 
     // -------------------- 리소스 반환 --------------------
-    HIDFinal();
-    KeyboardFinal();
-    AudioFinal();
+    hidParams.interruptNumber = 1;
+    audioParams.interruptNumber = 1;
+
+    WaitForSingleObject(audioParams.threadHandle, 1000);
+    WaitForSingleObject(hidParams.threadHandle, 1000);
 
     WaitForPreviousFrame();
     CloseHandle(fenceEvent);

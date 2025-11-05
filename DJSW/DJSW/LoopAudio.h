@@ -8,6 +8,13 @@
 #include "audiochannel.h"
 #include "LoopHID.h"
 
-void AudioInit();
-void AudioLoop();
-void AudioFinal();
+typedef struct
+{
+	int coreIndex;
+	HANDLE threadHandle;
+	DWORD threadId;
+
+	int interruptNumber;
+} AudioParams;
+
+DWORD WINAPI AudioMain(LPVOID lpParams);

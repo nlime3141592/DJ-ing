@@ -1,9 +1,7 @@
 ﻿#include "LoopHID.h"
 
-static uint8_t _keyStateMask[32];
-static __m256i _keyStateMaskVector;
-
 static hid_device* _hidDevice;
+static BOOL _isHidDeviceConnected;
 
 static uint8_t _hidBuffer[HID_BUFFER_LENGTH];
 static uint8_t _hidKeyStates[HID_KEY_COUNT];
@@ -12,6 +10,8 @@ static HIDKeyboardReport* _pKeyboardReport;
 static HIDAnalogReport* _pMixerReport;
 static HIDAnalogReport* _pDeckReport1;
 static HIDAnalogReport* _pDeckReport2;
+
+static uint8_t _stdHidKeyStates[HID_KEY_COUNT];
 
 static hid_device* GetDeviceOrNull()
 {
@@ -45,14 +45,12 @@ static hid_device* GetDeviceOrNull()
 	return device;
 }
 
-static void HandleKeyStates()
+static void HandleVendorHIDKeyStates()
 {
-	for (int i = 0; i < HID_KEY_COUNT; i += 32)
+	for (int i = 0; i < HID_KEY_COUNT; ++i)
 	{
-		__m256i vector = _mm256_loadu_si256((const __m256i*)(_hidKeyStates + i));
-		vector = _mm256_add_epi8(vector, vector); // 1bit left shift
-		vector = _mm256_and_epi32(vector, _keyStateMaskVector);
-		_mm256_storeu_si256((__m256i*)(_hidKeyStates + i), vector);
+		_hidKeyStates[i] <<= 1;
+		_stdHidKeyStates[i] <<= 1;
 	}
 
 	for (int i = 0; i < 6; ++i)
@@ -62,30 +60,115 @@ static void HandleKeyStates()
 	}
 }
 
-static void ClearHIDInputs()
+static void HandleStandardHIDKeyStates()
+{
+	for (int i = 0; i < HID_KEY_COUNT; ++i)
+	{
+		_stdHidKeyStates[i] <<= 1;
+	}
+}
+
+static void ClearVendorHIDInputs()
 {
 	memset(_hidBuffer, 0x00, sizeof(_hidBuffer));
 	memset(_hidKeyStates, 0x00, sizeof(_hidKeyStates));
 }
 
-BOOL IsHIDConnected()
+static void VendorHIDInit()
 {
-	return _hidDevice != NULL;
+	_hidDevice = NULL;
+	_isHidDeviceConnected = false;
+
+	ClearVendorHIDInputs();
+
+	_pKeyboardReport = (HIDKeyboardReport*)(_hidBuffer + 1);
+	_pMixerReport = (HIDAnalogReport*)(_hidBuffer + 9);
+	_pDeckReport1 = (HIDAnalogReport*)(_hidBuffer + 17);
+	_pDeckReport2 = (HIDAnalogReport*)(_hidBuffer + 25);
 }
 
-BOOL GetHIDKeyDown(uint8_t keycode)
+static void VendorHIDLoop()
 {
-	return _hidKeyStates[keycode] == 0x01;
+	if (!_hidDevice)
+	{
+		_hidDevice = GetDeviceOrNull();
+
+		if (!_hidDevice)
+		{
+			HandleStandardHIDKeyStates();
+			Sleep(8);
+			return;
+		}
+
+		_isHidDeviceConnected = true;
+		OutputDebugStringW(L"HID 장치가 연결되었습니다.\n");
+	}
+
+	int result = hid_read(_hidDevice, (uint8_t*)&_hidBuffer, sizeof(_hidBuffer));
+
+	if (result > 0)
+	{
+		HandleVendorHIDKeyStates();
+	}
+	else if (result < 0)
+	{
+		_hidDevice = NULL;
+		_isHidDeviceConnected = false;
+		ClearVendorHIDInputs();
+
+		OutputDebugStringW(L"HID 장치와의 연결이 끊어졌습니다.\n");
+	}
 }
 
-BOOL GetHIDKey(uint8_t keycode)
+static void VendorHIDFinal()
 {
-	return _hidKeyStates[keycode] & 0x01;
+	if (!_hidDevice)
+	{
+		hid_close(_hidDevice);
+		_hidDevice = NULL;
+		_isHidDeviceConnected = false;
+	}
 }
 
-BOOL GetHIDKeyUp(uint8_t keycode)
+static void ClearStandardHIDInputs()
 {
-	return _hidKeyStates[keycode] == 0x02;
+	memset(_stdHidKeyStates, 0x00, sizeof(_stdHidKeyStates));
+}
+
+static void StandardHIDInit()
+{
+	ClearStandardHIDInputs();
+}
+
+static void StandardHIDLoop()
+{
+	ClearStandardHIDInputs();
+	Sleep(10);
+}
+
+static void StandardHIDFinal()
+{
+	// This block is intentionally left blank.
+}
+
+BOOL IsVendorHIDConnected()
+{
+	return _isHidDeviceConnected;
+}
+
+BOOL GetVendorHIDKeyDown(uint8_t keycode)
+{
+	return (_hidKeyStates[keycode] & 0x03) == 0x01;
+}
+
+BOOL GetVendorHIDKey(uint8_t keycode)
+{
+	return (_hidKeyStates[keycode] & 0x01) == 0x01;
+}
+
+BOOL GetVendorHIDKeyUp(uint8_t keycode)
+{
+	return (_hidKeyStates[keycode] & 0x03) == 0x02;
 }
 
 uint8_t GetAnalogMixer(int32_t idxProperty)
@@ -103,53 +186,45 @@ uint8_t GetAnalogDeck2(int32_t idxProperty)
 	return _pDeckReport2->data[idxProperty];
 }
 
-void HIDInit()
+void SetStandardHIDKeyDown(uint8_t keycode)
 {
-	memset(_keyStateMask, 0x03, sizeof(_keyStateMask));
-	_keyStateMaskVector = _mm256_loadu_si256((const __m256i*)_keyStateMask);
-
-	_hidDevice = NULL;
-
-	ClearHIDInputs();
-
-	_pKeyboardReport = (HIDKeyboardReport*)(_hidBuffer + 1);
-	_pMixerReport = (HIDAnalogReport*)(_hidBuffer + 9);
-	_pDeckReport1 = (HIDAnalogReport*)(_hidBuffer + 17);
-	_pDeckReport2 = (HIDAnalogReport*)(_hidBuffer + 25);
+	_stdHidKeyStates[keycode] |= 0x01;
 }
 
-void HIDLoop()
+void SetStandardHIDKeyUp(uint8_t keycode)
 {
-	if (!_hidDevice)
-	{
-		_hidDevice = GetDeviceOrNull();
-
-		if (!_hidDevice)
-			return;
-
-		OutputDebugStringW(L"HID 장치가 연결되었습니다.\n");
-	}
-
-	int result = hid_read(_hidDevice, (uint8_t*)&_hidBuffer, sizeof(_hidBuffer));
-
-	if (result > 0)
-	{
-		HandleKeyStates();
-	}
-	else if (result < 0)
-	{
-		_hidDevice = NULL;
-		ClearHIDInputs();
-
-		OutputDebugStringW(L"HID 장치와의 연결이 끊어졌습니다.\n");
-	}
+	_stdHidKeyStates[keycode] &= 0xFE;
 }
 
-void HIDFinal()
+BOOL GetStandardHIDKeyDown(uint8_t keycode)
 {
-	if (!_hidDevice)
+	return (_stdHidKeyStates[keycode] & 0x03) == 0x01;
+}
+
+BOOL GetStandardHIDKey(uint8_t keycode)
+{
+	return (_stdHidKeyStates[keycode] & 0x01) == 0x01;
+}
+
+BOOL GetStandardHIDKeyUp(uint8_t keycode)
+{
+	return (_stdHidKeyStates[keycode] & 0x03) == 0x02;
+}
+
+DWORD WINAPI HIDMain(LPVOID lpParams)
+{
+	HIDParams* hidParams = (HIDParams*)lpParams;
+
+	VendorHIDInit();
+	StandardHIDInit();
+
+	while (hidParams->interruptNumber != 1)
 	{
-		hid_close(_hidDevice);
-		_hidDevice = NULL;
+		VendorHIDLoop();
 	}
+
+	VendorHIDFinal();
+	StandardHIDFinal();
+
+	return 0;
 }

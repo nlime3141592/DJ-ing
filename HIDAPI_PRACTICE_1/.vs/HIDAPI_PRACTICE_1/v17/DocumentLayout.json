@@ -1,21 +1,21 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\",
+  "WorkspaceRootPath": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|solutionrelative:HIDAPI_PRACTICE_1\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\hidi.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\hidi.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|solutionrelative:HIDAPI_PRACTICE_1\\hidi.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\input.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\input.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{F758EE4F-5C5B-4BB7-8AE6-A48ADBDE6C52}|HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1.vcxproj|solutionrelative:HIDAPI_PRACTICE_1\\input.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
@@ -44,9 +44,9 @@
               "$type": "Document",
               "DocumentIndex": 3,
               "Title": "hidapi.h",
-              "DocumentMoniker": "C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h",
+              "DocumentMoniker": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h",
               "RelativeDocumentMoniker": "HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h",
-              "ToolTip": "C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h",
+              "ToolTip": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h",
               "RelativeToolTip": "HIDAPI_PRACTICE_1\\include\\hidapi\\hidapi.h",
               "ViewState": "AgIAACgCAAAAAAAAAAAowD4CAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
@@ -56,11 +56,11 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "main.cpp",
-              "DocumentMoniker": "C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\main.cpp",
+              "DocumentMoniker": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\main.cpp",
               "RelativeDocumentMoniker": "HIDAPI_PRACTICE_1\\main.cpp",
-              "ToolTip": "C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\main.cpp",
+              "ToolTip": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\main.cpp",
               "RelativeToolTip": "HIDAPI_PRACTICE_1\\main.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-10-19T15:19:34.489Z",
               "EditorCaption": ""
@@ -75,11 +75,11 @@
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "hidi.cpp",
-              "DocumentMoniker": "C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\hidi.cpp",
+              "DocumentMoniker": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\hidi.cpp",
               "RelativeDocumentMoniker": "HIDAPI_PRACTICE_1\\hidi.cpp",
-              "ToolTip": "C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\hidi.cpp",
+              "ToolTip": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\hidi.cpp",
               "RelativeToolTip": "HIDAPI_PRACTICE_1\\hidi.cpp",
-              "ViewState": "AgIAAGMAAAAAAAAAAAAAAHgAAAAMAAAAAAAAAA==",
+              "ViewState": "AgIAAGMAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-10-21T11:58:02.182Z",
               "EditorCaption": ""
@@ -88,9 +88,9 @@
               "$type": "Document",
               "DocumentIndex": 2,
               "Title": "input.cpp",
-              "DocumentMoniker": "C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\input.cpp",
+              "DocumentMoniker": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\input.cpp",
               "RelativeDocumentMoniker": "HIDAPI_PRACTICE_1\\input.cpp",
-              "ToolTip": "C:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\input.cpp",
+              "ToolTip": "D:\\Programming\\DJ-ing\\HIDAPI_PRACTICE_1\\HIDAPI_PRACTICE_1\\input.cpp",
               "RelativeToolTip": "HIDAPI_PRACTICE_1\\input.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
