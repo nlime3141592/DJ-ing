@@ -66,14 +66,14 @@ void printz()
     print_flag = 2;
 }
 
-void printk(DJKeyboardInput* input)
+void printk(uint8_t* buffer)
 {
-    printf("Shift   [%02x %02x]\nDigital [%02x %02x %02x %02x %02x %02x]\nMixer   [%04d]\nDeck1   [%04d %04d %04d %04d]\nDeck2   [%04d %04d %04d %04d]\n",
-        input->lShift, input->rShift,
-        input->digital0, input->digital1, input->digital2, input->digital3, input->digital4, input->digital5,
-        input->mixer0,
-        input->deck10, input->deck11, input->deck12, input->deck13,
-        input->deck20, input->deck21, input->deck22, input->deck23);
+    printf("Shift   [%02x %02x]\nDigital [%02x %02x %02x %02x %02x %02x]\nMixer   [%04d %04d %04d %04d %04d %04d %04d %04d]\nDeck1   [%04d %04d %04d %04d %04d %04d %04d %04d]\nDeck2   [%04d %04d %04d %04d %04d %04d %04d %04d]\n",
+        buffer[0], buffer[1],
+        buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7],
+        buffer[8], buffer[9], buffer[10], buffer[11], buffer[12], buffer[13], buffer[14], buffer[15],
+        buffer[16], buffer[17], buffer[18], buffer[19], buffer[20], buffer[21], buffer[22], buffer[23],
+        buffer[24], buffer[25], buffer[26], buffer[27], buffer[28], buffer[29], buffer[30], buffer[31]);
 }
 
 void update_modifier(DJKeyboardInput* input, uint8_t modifier)
@@ -118,38 +118,8 @@ int main() {
 
             if (reportId != 2)
                 continue;
-
-            HIDKeyboardPacket* packet = (HIDKeyboardPacket*)(buffer + 1);
-
-            switch (packet->channel)
-            {
-            case 0: // Digital Input
-                update_modifier(&input, packet->modifier);
-                input.digital0 = packet->values[0];
-                input.digital1 = packet->values[1];
-                input.digital2 = packet->values[2];
-                input.digital3 = packet->values[3];
-                input.digital4 = packet->values[4];
-                input.digital5 = packet->values[5];
-                break;
-            case 1: // Analog Input (Mixer)
-                input.mixer0 = packet->values[0];
-                break;
-            case 2: // Analog Input (Deck 1)
-                input.deck10 = packet->values[0];
-                input.deck11 = packet->values[1];
-                input.deck12 = packet->values[2];
-                input.deck13 = packet->values[3];
-                break;
-            case 3: // Analog Input (Deck 2)
-                input.deck20 = packet->values[0];
-                input.deck21 = packet->values[1];
-                input.deck22 = packet->values[2];
-                input.deck23 = packet->values[3];
-                break;
-            }
-
-            printk(&input);
+            
+            printk((uint8_t*)(buffer + 1));
         }
         else
         {

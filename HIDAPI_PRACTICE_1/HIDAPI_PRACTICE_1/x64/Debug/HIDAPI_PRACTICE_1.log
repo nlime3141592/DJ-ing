@@ -1,2 +1,3 @@
 ﻿  hidi.cpp
-  HIDAPI_PRACTICE_1.vcxproj -> D:\Programming\DJ-ing\HIDAPI_PRACTICE_1\x64\Debug\HIDAPI_PRACTICE_1.exe
+C:\Programming\DJ-ing\HIDAPI_PRACTICE_1\HIDAPI_PRACTICE_1\hidi.cpp(103,21): warning C4101: 'input' :참조되지 않은 지역 변수입니다.
+  HIDAPI_PRACTICE_1.vcxproj -> C:\Programming\DJ-ing\HIDAPI_PRACTICE_1\x64\Debug\HIDAPI_PRACTICE_1.exe
