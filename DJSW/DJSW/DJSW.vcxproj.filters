@@ -34,6 +34,18 @@
     <Filter Include="헤더 파일\Input">
       <UniqueIdentifier>{31a74819-d4d3-4b31-ba10-1c6d541422d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\GUICore">
+      <UniqueIdentifier>{ab492a7c-d4cc-4361-b246-2ed3bd12be0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\GUIApplication">
+      <UniqueIdentifier>{c3cc4da6-e666-47c6-ae7d-48a7a2dbeb8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\GUICore">
+      <UniqueIdentifier>{54927653-4dc7-4434-bdf0-4030eb4520c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\GUIApplication">
+      <UniqueIdentifier>{302fb8d8-00c8-480e-b5fe-e673a75136f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="개발환경설정.md" />
@@ -90,8 +102,14 @@
     <ClCompile Include="LoopAudio.cpp">
       <Filter>소스 파일\Loop</Filter>
     </ClCompile>
-    <ClCompile Include="LoopRendering.cpp">
+    <ClCompile Include="LoopRender.cpp">
       <Filter>소스 파일\Loop</Filter>
+    </ClCompile>
+    <ClCompile Include="LoopBase.cpp">
+      <Filter>소스 파일\Loop</Filter>
+    </ClCompile>
+    <ClCompile Include="djsw_gui_app.cpp">
+      <Filter>소스 파일\GUIApplication</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -128,7 +146,7 @@
     <ClInclude Include="LoopHID.h">
       <Filter>헤더 파일\Loop</Filter>
     </ClInclude>
-    <ClInclude Include="LoopRendering.h">
+    <ClInclude Include="LoopRender.h">
       <Filter>헤더 파일\Loop</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
@@ -142,6 +160,18 @@
     </ClInclude>
     <ClInclude Include="InputControls.h">
       <Filter>헤더 파일\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="LoopBase.h">
+      <Filter>헤더 파일\Loop</Filter>
+    </ClInclude>
+    <ClInclude Include="LoopInterrupt.h">
+      <Filter>헤더 파일\Loop</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_gui_app.h">
+      <Filter>헤더 파일\GUIApplication</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_gui_core.h">
+      <Filter>헤더 파일\GUICore</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

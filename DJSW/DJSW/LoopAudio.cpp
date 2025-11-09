@@ -37,7 +37,7 @@ static void AudioInit()
 	_channel1.Play();
 }
 
-static void AudioLoop()
+static void AudioUpdate()
 {
 	// 1. 버퍼 크기 얻기
 	UINT32 bufferSizeInFrames;
@@ -111,9 +111,9 @@ DWORD WINAPI AudioMain(LPVOID lpParams)
 
 	AudioInit();
 
-	while (audioParams->interruptNumber != 1)
+	while (audioParams->loopBaseParams.interruptNumber != 1)
 	{
-		AudioLoop();
+		AudioUpdate();
 	}
 
 	AudioFinal();

@@ -6,15 +6,13 @@
 
 #include "audiodevice.h"
 #include "audiochannel.h"
+#include "LoopBase.h"
 #include "LoopHID.h"
+#include "LoopInterrupt.h"
 
 typedef struct
 {
-	int coreIndex;
-	HANDLE threadHandle;
-	DWORD threadId;
-
-	int interruptNumber;
+	LoopBaseParams loopBaseParams;
 } AudioParams;
 
 DWORD WINAPI AudioMain(LPVOID lpParams);

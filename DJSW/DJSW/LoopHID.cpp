@@ -87,7 +87,7 @@ static void VendorHIDInit()
 	_pDeckReport2 = (HIDAnalogReport*)(_hidBuffer + 25);
 }
 
-static void VendorHIDLoop()
+static void VendorHIDUpdate()
 {
 	if (!_hidDevice)
 	{
@@ -140,7 +140,7 @@ static void StandardHIDInit()
 	ClearStandardHIDInputs();
 }
 
-static void StandardHIDLoop()
+static void StandardHIDUpdate()
 {
 	ClearStandardHIDInputs();
 	Sleep(10);
@@ -218,9 +218,9 @@ DWORD WINAPI HIDMain(LPVOID lpParams)
 	VendorHIDInit();
 	StandardHIDInit();
 
-	while (hidParams->interruptNumber != 1)
+	while (hidParams->loopBaseParams.interruptNumber != 1)
 	{
-		VendorHIDLoop();
+		VendorHIDUpdate();
 	}
 
 	VendorHIDFinal();

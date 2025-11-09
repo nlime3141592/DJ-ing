@@ -4,6 +4,8 @@
 #include <Windows.h>
 
 #include "hidapi.h"
+#include "LoopBase.h"
+#include "LoopInterrupt.h"
 
 #define HID_VID 0x2341
 #define HID_PID 0x8036
@@ -13,11 +15,7 @@
 
 typedef struct
 {
-	int coreIndex;
-	HANDLE threadHandle;
-	DWORD threadId;
-
-	int interruptNumber;
+	LoopBaseParams loopBaseParams;
 } HIDParams;
 
 typedef struct
