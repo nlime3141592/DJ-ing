@@ -93,6 +93,7 @@ void AudioChannel::Read16(int16_t* out)
 
 void AudioChannel::Read2(int16_t* out)
 {
+	// TODO: 노래가 끝난 뒤 position을 초기화하는 로직이 없어서 이 곳에서 예외가 발생했음. 처리해야 함.
 	int16_t lSample = (int16_t)wavSamples[position++];
 	int16_t rSample = (int16_t)wavSamples[position++];
 

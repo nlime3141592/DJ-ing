@@ -7,11 +7,12 @@
 #include <vector>
 #include <wrl.h>
 #include <Windows.h>
-
+#include <windowsx.h>
+#include <string>
 #include "d3dx12.h"
 #include "LoopBase.h"
 #include "LoopInterrupt.h"
-
+#include "LoopHID.h"
 using namespace Microsoft::WRL;
 
 const UINT FrameCount = 2;
