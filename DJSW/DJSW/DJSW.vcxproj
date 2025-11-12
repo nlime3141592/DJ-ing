@@ -27,9 +27,12 @@
     <ClCompile Include="audiofilter.cpp" />
     <ClCompile Include="audioreverb.cpp" />
     <ClCompile Include="djsw_gui_app.cpp" />
+    <ClCompile Include="djsw_gui_app_wave1.cpp" />
+    <ClCompile Include="djsw_gui_core.cpp" />
     <ClCompile Include="LoopAudio.cpp" />
     <ClCompile Include="LoopBase.cpp" />
     <ClCompile Include="LoopHID.cpp" />
+    <ClCompile Include="LoopMessage.cpp" />
     <ClCompile Include="LoopRender.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MiniXML\mxml-attr.c" />
@@ -50,6 +53,7 @@
     <ClInclude Include="audioreverb.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="djsw_gui_app.h" />
+    <ClInclude Include="djsw_gui_app_wave1.h" />
     <ClInclude Include="djsw_gui_core.h" />
     <ClInclude Include="HIDControls.h" />
     <ClInclude Include="InputControls.h" />
@@ -57,6 +61,7 @@
     <ClInclude Include="LoopBase.h" />
     <ClInclude Include="LoopHID.h" />
     <ClInclude Include="LoopInterrupt.h" />
+    <ClInclude Include="LoopMessage.h" />
     <ClInclude Include="LoopRender.h" />
     <ClInclude Include="MiniXML\config.h" />
     <ClInclude Include="MiniXML\mxml-private.h" />
@@ -151,7 +156,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(ProjectDir)HID\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)DJSW_Interface;$(ProjectDir)HID\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

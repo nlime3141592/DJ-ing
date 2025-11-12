@@ -10,9 +10,13 @@
 #include <windowsx.h>
 #include <string>
 #include "d3dx12.h"
+
+#include "djsw_errorcode.h"
+
 #include "LoopBase.h"
 #include "LoopInterrupt.h"
 #include "LoopHID.h"
+
 using namespace Microsoft::WRL;
 
 const UINT FrameCount = 2;
@@ -22,10 +26,12 @@ typedef struct
 	LoopBaseParams loopBaseParams;
 } RenderParams;
 
-struct Vertex {
+struct djVertexRGB {
     float position[3];
     float color[3];
 };
+
+djErrorCode AddVertices(djVertexRGB* vertices, size_t count);
 
 int WINAPI RenderInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow);
 int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow);

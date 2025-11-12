@@ -111,6 +111,15 @@
     <ClCompile Include="djsw_gui_app.cpp">
       <Filter>소스 파일\GUIApplication</Filter>
     </ClCompile>
+    <ClCompile Include="LoopMessage.cpp">
+      <Filter>소스 파일\Loop</Filter>
+    </ClCompile>
+    <ClCompile Include="djsw_gui_core.cpp">
+      <Filter>소스 파일\GUICore</Filter>
+    </ClCompile>
+    <ClCompile Include="djsw_gui_app_wave1.cpp">
+      <Filter>소스 파일\GUIApplication</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dx12.h">
@@ -172,6 +181,12 @@
     </ClInclude>
     <ClInclude Include="djsw_gui_core.h">
       <Filter>헤더 파일\GUICore</Filter>
+    </ClInclude>
+    <ClInclude Include="LoopMessage.h">
+      <Filter>헤더 파일\Loop</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_gui_app_wave1.h">
+      <Filter>헤더 파일\GUIApplication</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

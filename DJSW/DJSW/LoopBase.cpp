@@ -2,6 +2,7 @@
 
 #include "LoopHID.h"
 #include "LoopAudio.h"
+#include "LoopMessage.h"
 #include "LoopRender.h"
 
 #include "LoopInterrupt.h"
@@ -67,16 +68,30 @@ int WINAPI LoopInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         SetThreadPriority(_hidParams.loopBaseParams.threadHandle, THREAD_PRIORITY_TIME_CRITICAL);
     }
 
+    MessageInit();
     RenderInit(hInstance, NULL, NULL, nCmdShow);
 
-    return 0;
+    return 1;
 }
 
 int WINAPI LoopUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
+    MSG msg;
+
+    // Windows Message Queue 기반 메시지 확인
+    while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+    {
+        if (msg.message == WM_QUIT)
+            return 0;
+
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    MessageUpdate();
     RenderUpdate(hInstance, NULL, NULL, nCmdShow);
 
-    return 0;
+    return 1;
 }
 
 int WINAPI LoopFinal(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
@@ -89,5 +104,5 @@ int WINAPI LoopFinal(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
     RenderFinal(hInstance, NULL, NULL, nCmdShow);
 
-    return 0;
+    return 1;
 }

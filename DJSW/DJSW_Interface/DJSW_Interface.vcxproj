@@ -142,10 +142,6 @@
     <ClInclude Include="djsw_pipeline.h" />
     <ClInclude Include="djsw_type.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="djsw_interface.cpp" />
-    <ClCompile Include="djsw_io.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

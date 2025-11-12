@@ -1,7 +1,16 @@
 ﻿#include "LoopRender.h"
 
+#include "djsw_gui_app.h"
+#include "djsw_gui_core.h"
+
+#define DJSW_TIMER_EVENT_RESIZING 1
+
+#define DJSW_VERTEX_THROUGHPUT 65536
+#define DJSW_VERTEX_CAPACITY 65536
+
 static ComPtr<ID3D12CommandQueue> _cmdQueue;
 
+static DXGI_SWAP_CHAIN_DESC1 _swapChainDesc;
 static ComPtr<IDXGISwapChain3> _swapChain0;
 static ComPtr<IDXGISwapChain1> _swapChain1;
 static UINT _frameIndex;
@@ -21,13 +30,13 @@ static ComPtr<ID3D12RootSignature> _rootSignature;
 
 static ComPtr<ID3D12Resource> _vertexBuffer;
 static D3D12_VERTEX_BUFFER_VIEW _vertexBufferView;
+static size_t _vertexCount;
 
 static ComPtr<ID3D12PipelineState> _pipelineState;
 
+static UINT8* _pVertexDataBegin;
 
-
-
-static UINT8* pVertexDataBegin;
+static BOOL _isResizing;
 
 
 
@@ -42,6 +51,17 @@ static void WaitForPreviousFrame()
         WaitForSingleObject(_fenceEvent, INFINITE);
     }
     _frameIndex = _swapChain0->GetCurrentBackBufferIndex();
+}
+
+djErrorCode AddVertices(djVertexRGB* vertices, size_t count)
+{
+    if (_vertexCount + count > DJSW_VERTEX_CAPACITY)
+        return DJSW_ERR_ERROR;
+
+    memcpy((_pVertexDataBegin + sizeof(djVertexRGB) * _vertexCount), vertices, sizeof(djVertexRGB) * count);
+    _vertexCount += count;
+
+    return DJSW_ERR_NO_ERROR;
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -66,6 +86,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         log = L"WM_LBUTTONDOWN: " + std::to_wstring(x) + L", " + std::to_wstring(y) + L"\n";
         OutputDebugStringW(log.c_str());
         break;
+
+    // 싱글 스레드 환경에서 PeekMessage Blocking 현상을 파훼하고자 작성한 코드
+    case WM_ENTERSIZEMOVE:
+        _isResizing = true;
+        SetTimer(hWnd, DJSW_TIMER_EVENT_RESIZING, 8, NULL);
+        break;
+    case WM_EXITSIZEMOVE:
+        _isResizing = false;
+        KillTimer(hWnd, DJSW_TIMER_EVENT_RESIZING);
+        break;
+    case WM_TIMER:
+        break;
     }
 
     return DefWindowProc(hWnd, message, wParam, lParam);
@@ -77,11 +109,11 @@ int WINAPI RenderInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     WNDCLASSEX wc = { sizeof(WNDCLASSEX) };
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hInstance;
-    wc.lpszClassName = L"DX12TriangleClass";
+    wc.lpszClassName = L"DJSW";
     RegisterClassEx(&wc);
 
     HWND hwnd = CreateWindowEx(
-        0, wc.lpszClassName, L"DirectX 12 - Triangle",
+        0, wc.lpszClassName, L"DJSW",
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
         nullptr, nullptr, hInstance, nullptr
     );
@@ -107,21 +139,21 @@ int WINAPI RenderInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&_cmdQueue));
 
     // -------------------- 스왑 체인 --------------------
-    DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-    swapChainDesc.BufferCount = FrameCount;
+    _swapChainDesc = {};
+    _swapChainDesc.BufferCount = FrameCount;
     //swapChainDesc.Width = 800;
-    swapChainDesc.Width = 3840;
+    _swapChainDesc.Width = 3840;
     //swapChainDesc.Height = 600;
-    swapChainDesc.Height = 2160;
-    swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    swapChainDesc.SampleDesc.Count = 1;
+    _swapChainDesc.Height = 2160;
+    _swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    _swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    _swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    _swapChainDesc.SampleDesc.Count = 1;
 
     factory->CreateSwapChainForHwnd(
         _cmdQueue.Get(),
         hwnd,
-        &swapChainDesc,
+        &_swapChainDesc,
         nullptr,
         nullptr,
         &_swapChain1
@@ -156,21 +188,12 @@ int WINAPI RenderInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     device->CreateFence(_fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence));
     _fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
-    // -------------------- 삼각형 버텍스 --------------------
-    Vertex triangleVertices[] = {
-        { {  0.0f,  0.25f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-        { {  0.25f, -0.25f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-        { { -0.25f, -0.25f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
-    };
-
-    const UINT vertexBufferSize = sizeof(triangleVertices);
-
+    // -------------------- 정점 버퍼 정의 --------------------
     CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
 
     // 정점 버퍼의 크기 정의
-    const UINT VERTEX_CAPACITY = 1024;
     //CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-    CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(Vertex) * VERTEX_CAPACITY);
+    CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(djVertexRGB) * DJSW_VERTEX_CAPACITY);
 
     // 업로드 힙으로 버텍스 버퍼 생성
     device->CreateCommittedResource(
@@ -184,15 +207,15 @@ int WINAPI RenderInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
     //UINT8* pVertexDataBegin;
     CD3DX12_RANGE readRange(0, 0);
-    _vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin));
+    _vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&_pVertexDataBegin));
     //memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
     //_vertexBuffer->Unmap(0, nullptr);
 
     _vertexBufferView = {};
     _vertexBufferView.BufferLocation = _vertexBuffer->GetGPUVirtualAddress();
-    _vertexBufferView.StrideInBytes = sizeof(Vertex);
+    _vertexBufferView.StrideInBytes = sizeof(djVertexRGB);
     //_vertexBufferView.SizeInBytes = vertexBufferSize;
-    _vertexBufferView.SizeInBytes = sizeof(Vertex) * VERTEX_CAPACITY;
+    _vertexBufferView.SizeInBytes = sizeof(djVertexRGB) * DJSW_VERTEX_CAPACITY;
 
     // -------------------- 셰이더 컴파일 --------------------
     ComPtr<ID3DBlob> vertexShader;
@@ -254,7 +277,12 @@ int WINAPI RenderInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
     device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&_pipelineState));
 
-    return 0;
+    _isResizing = false;
+
+    OnGuiInit_Core();
+    OnGuiInit_App();
+
+    return 1;
 }
 
 int iii = 0;
@@ -262,7 +290,7 @@ int iii = 0;
 int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
     // -------------------- 렌더링 --------------------
-    Vertex vertices[6] = {
+    djVertexRGB vertices[6] = {
         { { -1.0f,  0.5f, 0.0f }, { 1, 0, 0 } },
         { {  1.0f,  0.5f, 0.0f }, { 0, 1, 0 } },
         { {  0.0f, -1.0f, 0.0f }, { 0, 0, 1 } },
@@ -274,19 +302,19 @@ int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     iii = (iii + 1) % 256;
     vertices[0].position[1] = (iii / 255.0f) * 2.0f - 1.0f;
 
-    memcpy(pVertexDataBegin, vertices, sizeof(vertices));
-
+    //memcpy(_pVertexDataBegin, vertices, sizeof(vertices));
+    
     // 커맨드 준비
     _cmdAllocator->Reset();
     _cmdList->Reset(_cmdAllocator.Get(), _pipelineState.Get());
 
-    CD3DX12_VIEWPORT viewport(100, 100, 1920.0f, 600.0f);
+    //CD3DX12_VIEWPORT viewport(100, 100, 1920.0f, 600.0f);
     //CD3DX12_RECT rect(0, 0, 1920, 600);
-    CD3DX12_RECT rect(100, 100, 2020, 700);
+    //CD3DX12_RECT rect(100, 100, 2020, 700);
 
     _cmdList->SetGraphicsRootSignature(_rootSignature.Get());
-    _cmdList->RSSetViewports(1, &viewport);
-    _cmdList->RSSetScissorRects(1, &rect);
+    //_cmdList->RSSetViewports(1, &viewport);
+    //_cmdList->RSSetScissorRects(1, &rect);
 
     auto rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(
         _rtvHeap->GetCPUDescriptorHandleForHeapStart(),
@@ -299,18 +327,35 @@ int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         D3D12_RESOURCE_STATE_PRESENT,
         D3D12_RESOURCE_STATE_RENDER_TARGET
     );
-
+    
     _cmdList->ResourceBarrier(1, &transition1);
 
     _cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-    const float clearColor[] = { 0.1f, 0.2f, 0.3f, 1.0f };
+    //const float clearColor[] = { 0.1f, 0.2f, 0.3f, 1.0f };
+    const float clearColor[] = { 0.13f, 0.13f, 0.13f, 1.0f };
     _cmdList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
     _cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     _cmdList->IASetVertexBuffers(0, 1, &_vertexBufferView);
 
+    OnGuiUpdate_Core(
+        _cmdList,
+        _swapChainDesc.Width,
+        _swapChainDesc.Height);
+
+    AddVertices(vertices, 6);
+
     // 실제 그리기 작업을 수행하는 명령
-    _cmdList->DrawInstanced(6, 1, 0, 0);
+    size_t vertexScaler = 3;
+    for (size_t i = 0; i < _vertexCount; i += DJSW_VERTEX_THROUGHPUT)
+    {
+        size_t drawCount = _vertexCount - i;
+
+        if (drawCount > DJSW_VERTEX_THROUGHPUT)
+            drawCount = DJSW_VERTEX_THROUGHPUT;
+
+        _cmdList->DrawInstanced(drawCount * vertexScaler, 1, i * vertexScaler, 0);
+    }
 
     CD3DX12_RESOURCE_BARRIER transition2 = CD3DX12_RESOURCE_BARRIER::Transition(
         _renderTargets[_frameIndex].Get(),
@@ -326,16 +371,20 @@ int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     ID3D12CommandList* ppCommandLists[] = { _cmdList.Get() };
     _cmdQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
+    _vertexCount = 0;
+
     _swapChain0->Present(1, 0);
     WaitForPreviousFrame();
 
-    return 0;
+    return 1;
 }
 
 int WINAPI RenderFinal(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
+    OnGuiFinal_Core();
+
     WaitForPreviousFrame();
     CloseHandle(_fenceEvent);
 
-    return 0;
+    return 1;
 }
