@@ -1,26 +1,25 @@
 ﻿#include "djsw_gui_app_wave1.h"
 
-void OnGuiInit_Wave1(djView* view)
+void djWaveView::OnGuiInit()
 {
-	view->viewport.topLeftX = 100;
-	view->viewport.topLeftY = 100;
-	view->viewport.width = 1920;
-	view->viewport.height = 1080;
-	view->scissor.left = 100;
-	view->scissor.top = 100;
-	view->scissor.right = 100;
-	view->scissor.bottom = 100;
-	view->backgroundColor.r = 1.0f;
-	view->backgroundColor.g = 1.0f;
-	view->backgroundColor.b = 1.0f;
-	view->foregroundColor.r = 0.5f;
-	view->foregroundColor.g = 0.5f;
-	view->foregroundColor.b = 0.5f;
-	view->shouldRender = true;
-	view->onGuiUpdateHandler = OnGuiUpdate_Wave1;
+	this->viewport.topLeftX = 100;
+	this->viewport.topLeftY = 100;
+	this->viewport.width = 1920;
+	this->viewport.height = 1080;
+	this->bounds.left = 10;
+	this->bounds.top = 10;
+	this->bounds.right = 10;
+	this->bounds.bottom = 10;
+	this->backgroundColor.r = 1.0f;
+	this->backgroundColor.g = 1.0f;
+	this->backgroundColor.b = 1.0f;
+	this->boundColor.r = 0.5f;
+	this->boundColor.g = 0.5f;
+	this->boundColor.b = 0.5f;
+	this->shouldRender = true;
 }
 
-void OnGuiUpdate_Wave1()
+void djWaveView::OnGuiUpdate()
 {
 	djRectLTRB ltrb;
 	ltrb.left = 10;

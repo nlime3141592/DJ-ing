@@ -2,10 +2,11 @@
 
 #include "djsw_gui_app_wave1.h"
 
+static djWaveView _waveView1;
+
 void OnGuiInit_App()
 {
-	djView* view;
+	_waveView1.OnGuiInit();
 
-	GetView(&view, 0);
-	OnGuiInit_Wave1(view);
+	SetView(&_waveView1, 0);
 }

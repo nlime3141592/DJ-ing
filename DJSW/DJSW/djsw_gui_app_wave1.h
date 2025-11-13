@@ -2,5 +2,9 @@
 
 #include "djsw_gui_app.h"
 
-void OnGuiInit_Wave1(djView* view);
-void OnGuiUpdate_Wave1();
+class djWaveView : public djView
+{
+public:
+	virtual void OnGuiInit();
+	virtual void OnGuiUpdate();
+};

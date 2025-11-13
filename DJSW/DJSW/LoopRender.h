@@ -26,13 +26,6 @@ typedef struct
 	LoopBaseParams loopBaseParams;
 } RenderParams;
 
-struct djVertexRGB {
-    float position[3];
-    float color[3];
-};
-
-djErrorCode AddVertices(djVertexRGB* vertices, size_t count);
-
 int WINAPI RenderInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow);
 int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow);
 int WINAPI RenderFinal(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow);

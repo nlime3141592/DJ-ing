@@ -114,11 +114,17 @@
     <ClCompile Include="LoopMessage.cpp">
       <Filter>소스 파일\Loop</Filter>
     </ClCompile>
-    <ClCompile Include="djsw_gui_core.cpp">
+    <ClCompile Include="djsw_gui_core_api_internal.cpp">
       <Filter>소스 파일\GUICore</Filter>
     </ClCompile>
     <ClCompile Include="djsw_gui_app_wave1.cpp">
       <Filter>소스 파일\GUIApplication</Filter>
+    </ClCompile>
+    <ClCompile Include="djsw_gui_core_api_view.cpp">
+      <Filter>소스 파일\GUICore</Filter>
+    </ClCompile>
+    <ClCompile Include="djsw_gui_core_api_drawer.cpp">
+      <Filter>소스 파일\GUICore</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -179,7 +185,7 @@
     <ClInclude Include="djsw_gui_app.h">
       <Filter>헤더 파일\GUIApplication</Filter>
     </ClInclude>
-    <ClInclude Include="djsw_gui_core.h">
+    <ClInclude Include="djsw_gui_core_api_internal.h">
       <Filter>헤더 파일\GUICore</Filter>
     </ClInclude>
     <ClInclude Include="LoopMessage.h">
@@ -187,6 +193,9 @@
     </ClInclude>
     <ClInclude Include="djsw_gui_app_wave1.h">
       <Filter>헤더 파일\GUIApplication</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_gui_core_api.h">
+      <Filter>헤더 파일\GUICore</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

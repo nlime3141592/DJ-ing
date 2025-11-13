@@ -1,12 +1,12 @@
 ﻿#include "LoopRender.h"
 
 #include "djsw_gui_app.h"
-#include "djsw_gui_core.h"
+#include "djsw_gui_core_api_internal.h"
 
 #define DJSW_TIMER_EVENT_RESIZING 1
 
-#define DJSW_VERTEX_THROUGHPUT 65536
-#define DJSW_VERTEX_CAPACITY 65536
+#define DJSW_VERTEX_THROUGHPUT 0x10000 // 16-bit address space
+#define DJSW_VERTEX_CAPACITY 0x100000 // 20-bit address space
 
 static ComPtr<ID3D12CommandQueue> _cmdQueue;
 
@@ -38,8 +38,28 @@ static UINT8* _pVertexDataBegin;
 
 static BOOL _isResizing;
 
+/*static void InitPSO_0()
+{
+    D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+    };
 
-
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+    psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+    psoDesc.pRootSignature = _rootSignature.Get();
+    psoDesc.VS = { reinterpret_cast<BYTE*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
+    psoDesc.PS = { reinterpret_cast<BYTE*>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize() };
+    psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    psoDesc.DepthStencilState.DepthEnable = FALSE;
+    psoDesc.DepthStencilState.StencilEnable = FALSE;
+    psoDesc.SampleMask = UINT_MAX;
+    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; // 이 곳에서 파이프라인 상태를 변경할 수 있음.
+    psoDesc.NumRenderTargets = 1;
+    psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    psoDesc.SampleDesc.Count = 1;
+}*/
 
 static void WaitForPreviousFrame()
 {
@@ -53,13 +73,16 @@ static void WaitForPreviousFrame()
     _frameIndex = _swapChain0->GetCurrentBackBufferIndex();
 }
 
-djErrorCode AddVertices(djVertexRGB* vertices, size_t count)
+djErrorCode AddVertices(void* vertices, size_t szVertex, size_t cntVertex)
 {
-    if (_vertexCount + count > DJSW_VERTEX_CAPACITY)
+    if (_vertexCount + cntVertex > DJSW_VERTEX_CAPACITY)
         return DJSW_ERR_ERROR;
 
-    memcpy((_pVertexDataBegin + sizeof(djVertexRGB) * _vertexCount), vertices, sizeof(djVertexRGB) * count);
-    _vertexCount += count;
+    int offset = szVertex * _vertexCount;
+    int byteCount = szVertex * cntVertex;
+
+    memcpy(_pVertexDataBegin + offset, vertices, byteCount);
+    _vertexCount += cntVertex;
 
     return DJSW_ERR_NO_ERROR;
 }
@@ -270,7 +293,7 @@ int WINAPI RenderInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     psoDesc.DepthStencilState.DepthEnable = FALSE;
     psoDesc.DepthStencilState.StencilEnable = FALSE;
     psoDesc.SampleMask = UINT_MAX;
-    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; // 이 곳에서 파이프라인 상태를 변경할 수 있음.
     psoDesc.NumRenderTargets = 1;
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     psoDesc.SampleDesc.Count = 1;
@@ -285,36 +308,15 @@ int WINAPI RenderInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     return 1;
 }
 
-int iii = 0;
-
 int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
     // -------------------- 렌더링 --------------------
-    djVertexRGB vertices[6] = {
-        { { -1.0f,  0.5f, 0.0f }, { 1, 0, 0 } },
-        { {  1.0f,  0.5f, 0.0f }, { 0, 1, 0 } },
-        { {  0.0f, -1.0f, 0.0f }, { 0, 0, 1 } },
-        { {  1.0f,  0.5f, 0.0f }, { 0, 1, 0 } },
-        { {  0.5f, -0.5f, 0.0f }, { 1, 1, 0 } },
-        { {  0.0f, -1.0f, 0.0f }, { 0, 0, 1 } }
-    };
-
-    iii = (iii + 1) % 256;
-    vertices[0].position[1] = (iii / 255.0f) * 2.0f - 1.0f;
-
-    //memcpy(_pVertexDataBegin, vertices, sizeof(vertices));
     
     // 커맨드 준비
     _cmdAllocator->Reset();
     _cmdList->Reset(_cmdAllocator.Get(), _pipelineState.Get());
 
-    //CD3DX12_VIEWPORT viewport(100, 100, 1920.0f, 600.0f);
-    //CD3DX12_RECT rect(0, 0, 1920, 600);
-    //CD3DX12_RECT rect(100, 100, 2020, 700);
-
     _cmdList->SetGraphicsRootSignature(_rootSignature.Get());
-    //_cmdList->RSSetViewports(1, &viewport);
-    //_cmdList->RSSetScissorRects(1, &rect);
 
     auto rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(
         _rtvHeap->GetCPUDescriptorHandleForHeapStart(),
@@ -331,19 +333,17 @@ int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     _cmdList->ResourceBarrier(1, &transition1);
 
     _cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+    // 기본 렌더링 색상 칠하기
     //const float clearColor[] = { 0.1f, 0.2f, 0.3f, 1.0f };
     const float clearColor[] = { 0.13f, 0.13f, 0.13f, 1.0f };
     _cmdList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
     _cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    //_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
     _cmdList->IASetVertexBuffers(0, 1, &_vertexBufferView);
 
-    OnGuiUpdate_Core(
-        _cmdList,
-        _swapChainDesc.Width,
-        _swapChainDesc.Height);
-
-    AddVertices(vertices, 6);
+    OnGuiUpdate_Core(_cmdList);
 
     // 실제 그리기 작업을 수행하는 명령
     size_t vertexScaler = 3;

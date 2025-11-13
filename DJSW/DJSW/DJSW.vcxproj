@@ -28,7 +28,9 @@
     <ClCompile Include="audioreverb.cpp" />
     <ClCompile Include="djsw_gui_app.cpp" />
     <ClCompile Include="djsw_gui_app_wave1.cpp" />
-    <ClCompile Include="djsw_gui_core.cpp" />
+    <ClCompile Include="djsw_gui_core_api_internal.cpp" />
+    <ClCompile Include="djsw_gui_core_api_drawer.cpp" />
+    <ClCompile Include="djsw_gui_core_api_view.cpp" />
     <ClCompile Include="LoopAudio.cpp" />
     <ClCompile Include="LoopBase.cpp" />
     <ClCompile Include="LoopHID.cpp" />
@@ -54,7 +56,8 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="djsw_gui_app.h" />
     <ClInclude Include="djsw_gui_app_wave1.h" />
-    <ClInclude Include="djsw_gui_core.h" />
+    <ClInclude Include="djsw_gui_core_api_internal.h" />
+    <ClInclude Include="djsw_gui_core_api.h" />
     <ClInclude Include="HIDControls.h" />
     <ClInclude Include="InputControls.h" />
     <ClInclude Include="LoopAudio.h" />
