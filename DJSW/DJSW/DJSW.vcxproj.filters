@@ -46,6 +46,9 @@
     <Filter Include="헤더 파일\GUIApplication">
       <UniqueIdentifier>{302fb8d8-00c8-480e-b5fe-e673a75136f0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Input">
+      <UniqueIdentifier>{27eb062e-d729-4a34-83da-0a47f761a2b3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="개발환경설정.md" />
@@ -126,6 +129,15 @@
     <ClCompile Include="djsw_gui_core_api_drawer.cpp">
       <Filter>소스 파일\GUICore</Filter>
     </ClCompile>
+    <ClCompile Include="djsw_input_keyboard.cpp">
+      <Filter>소스 파일\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="djsw_input_hid.cpp">
+      <Filter>소스 파일\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="djsw_input_core.cpp">
+      <Filter>소스 파일\Input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dx12.h">
@@ -170,9 +182,6 @@
     <ClInclude Include="HIDControls.h">
       <Filter>헤더 파일\Input</Filter>
     </ClInclude>
-    <ClInclude Include="StandardControls.h">
-      <Filter>헤더 파일\Input</Filter>
-    </ClInclude>
     <ClInclude Include="InputControls.h">
       <Filter>헤더 파일\Input</Filter>
     </ClInclude>
@@ -196,6 +205,12 @@
     </ClInclude>
     <ClInclude Include="djsw_gui_core_api.h">
       <Filter>헤더 파일\GUICore</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyboardControls.h">
+      <Filter>헤더 파일\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_input_keyboard.h">
+      <Filter>헤더 파일\Input</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

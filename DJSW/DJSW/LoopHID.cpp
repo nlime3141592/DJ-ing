@@ -1,5 +1,7 @@
 ﻿#include "LoopHID.h"
 
+#include "djsw_input_keyboard.h"
+
 static hid_device* _hidDevice;
 static BOOL _isHidDeviceConnected;
 
@@ -218,8 +220,11 @@ DWORD WINAPI HIDMain(LPVOID lpParams)
 	VendorHIDInit();
 	StandardHIDInit();
 
+	InputInit_Keyboard();
+
 	while (hidParams->loopBaseParams.interruptNumber != 1)
 	{
+		InputUpdate_Keyboard();
 		VendorHIDUpdate();
 	}
 

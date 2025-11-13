@@ -31,6 +31,9 @@
     <ClCompile Include="djsw_gui_core_api_internal.cpp" />
     <ClCompile Include="djsw_gui_core_api_drawer.cpp" />
     <ClCompile Include="djsw_gui_core_api_view.cpp" />
+    <ClCompile Include="djsw_input_core.cpp" />
+    <ClCompile Include="djsw_input_hid.cpp" />
+    <ClCompile Include="djsw_input_keyboard.cpp" />
     <ClCompile Include="LoopAudio.cpp" />
     <ClCompile Include="LoopBase.cpp" />
     <ClCompile Include="LoopHID.cpp" />
@@ -58,6 +61,7 @@
     <ClInclude Include="djsw_gui_app_wave1.h" />
     <ClInclude Include="djsw_gui_core_api_internal.h" />
     <ClInclude Include="djsw_gui_core_api.h" />
+    <ClInclude Include="djsw_input_keyboard.h" />
     <ClInclude Include="HIDControls.h" />
     <ClInclude Include="InputControls.h" />
     <ClInclude Include="LoopAudio.h" />
@@ -70,7 +74,7 @@
     <ClInclude Include="MiniXML\mxml-private.h" />
     <ClInclude Include="MiniXML\mxml.h" />
     <ClInclude Include="pcmwav.h" />
-    <ClInclude Include="StandardControls.h" />
+    <ClInclude Include="KeyboardControls.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
