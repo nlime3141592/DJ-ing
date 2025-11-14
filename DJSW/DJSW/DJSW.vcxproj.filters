@@ -132,9 +132,6 @@
     <ClCompile Include="djsw_input_keyboard.cpp">
       <Filter>소스 파일\Input</Filter>
     </ClCompile>
-    <ClCompile Include="djsw_input_hid.cpp">
-      <Filter>소스 파일\Input</Filter>
-    </ClCompile>
     <ClCompile Include="djsw_input_core.cpp">
       <Filter>소스 파일\Input</Filter>
     </ClCompile>
@@ -176,13 +173,10 @@
     <ClInclude Include="LoopRender.h">
       <Filter>헤더 파일\Loop</Filter>
     </ClInclude>
-    <ClInclude Include="Timer.h">
+    <ClInclude Include="djsw_util_timer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="HIDControls.h">
-      <Filter>헤더 파일\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="InputControls.h">
+    <ClInclude Include="djsw_input_hid_controls.h">
       <Filter>헤더 파일\Input</Filter>
     </ClInclude>
     <ClInclude Include="LoopBase.h">
@@ -206,10 +200,13 @@
     <ClInclude Include="djsw_gui_core_api.h">
       <Filter>헤더 파일\GUICore</Filter>
     </ClInclude>
-    <ClInclude Include="KeyboardControls.h">
+    <ClInclude Include="djsw_input_keyboard_controls.h">
       <Filter>헤더 파일\Input</Filter>
     </ClInclude>
     <ClInclude Include="djsw_input_keyboard.h">
+      <Filter>헤더 파일\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_input_hid.h">
       <Filter>헤더 파일\Input</Filter>
     </ClInclude>
   </ItemGroup>

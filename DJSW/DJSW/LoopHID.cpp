@@ -1,20 +1,25 @@
 ﻿#include "LoopHID.h"
 
+#include <assert.h>
+
 #include "djsw_input_keyboard.h"
+#include "djsw_input_hid.h"
+
+#define DJSW_MAX_HID_HANDLER_COUNT 16
 
 static hid_device* _hidDevice;
 static BOOL _isHidDeviceConnected;
 
-static uint8_t _hidBuffer[HID_BUFFER_LENGTH];
-static uint8_t _hidKeyStates[HID_KEY_COUNT];
+static uint8_t _hidBuffer[DJSW_HID_BUFFER_LENGTH];
+static uint8_t _hidKeyStates[DJSW_HID_KEY_COUNT];
+static void (*_hidHandlers[DJSW_MAX_HID_HANDLER_COUNT])(uint8_t hidKey, int keyState);
 
-static HIDKeyboardReport* _pKeyboardReport;
-static HIDAnalogReport* _pMixerReport;
-static HIDAnalogReport* _pDeckReport1;
-static HIDAnalogReport* _pDeckReport2;
+static djHidDigitalReport* _pKeyboardReport;
+static djHidAnalogReport* _pMixerReport;
+static djHidAnalogReport* _pDeckReport1;
+static djHidAnalogReport* _pDeckReport2;
 
-static uint8_t _stdHidKeyStates[HID_KEY_COUNT];
-
+// -------------------- HID device communication handling --------------------
 static hid_device* GetDeviceOrNull()
 {
 	hid_device_info* devInfo = hid_enumerate(HID_VID, HID_PID);
@@ -47,49 +52,29 @@ static hid_device* GetDeviceOrNull()
 	return device;
 }
 
-static void HandleVendorHIDKeyStates()
-{
-	for (int i = 0; i < HID_KEY_COUNT; ++i)
-	{
-		_hidKeyStates[i] <<= 1;
-		_stdHidKeyStates[i] <<= 1;
-	}
-
-	for (int i = 0; i < 6; ++i)
-	{
-		uint8_t data = _pKeyboardReport->data[i];
-		_hidKeyStates[data] |= (data != 0);
-	}
-}
-
-static void HandleStandardHIDKeyStates()
-{
-	for (int i = 0; i < HID_KEY_COUNT; ++i)
-	{
-		_stdHidKeyStates[i] <<= 1;
-	}
-}
-
-static void ClearVendorHIDInputs()
+static void ClearKeyStates()
 {
 	memset(_hidBuffer, 0x00, sizeof(_hidBuffer));
 	memset(_hidKeyStates, 0x00, sizeof(_hidKeyStates));
 }
 
-static void VendorHIDInit()
+static void InputInit_HID()
 {
 	_hidDevice = NULL;
 	_isHidDeviceConnected = false;
 
-	ClearVendorHIDInputs();
+	ClearKeyStates();
 
-	_pKeyboardReport = (HIDKeyboardReport*)(_hidBuffer + 1);
-	_pMixerReport = (HIDAnalogReport*)(_hidBuffer + 9);
-	_pDeckReport1 = (HIDAnalogReport*)(_hidBuffer + 17);
-	_pDeckReport2 = (HIDAnalogReport*)(_hidBuffer + 25);
+	_pKeyboardReport = (djHidDigitalReport*)(_hidBuffer + 1);
+	_pMixerReport = (djHidAnalogReport*)(_hidBuffer + 9);
+	_pDeckReport1 = (djHidAnalogReport*)(_hidBuffer + 17);
+	_pDeckReport2 = (djHidAnalogReport*)(_hidBuffer + 25);
+
+	// TODO: 동기화 이슈 주목할 필요 있음.
+	memset(_hidHandlers, 0x00, sizeof(_hidHandlers));
 }
 
-static void VendorHIDUpdate()
+static bool CheckHidDeviceConnection()
 {
 	if (!_hidDevice)
 	{
@@ -97,9 +82,10 @@ static void VendorHIDUpdate()
 
 		if (!_hidDevice)
 		{
-			HandleStandardHIDKeyStates();
-			Sleep(8);
-			return;
+			// TODO: Sleep() 함수가 꼭 필요할까? 고민해보기.
+			//Sleep(8);
+
+			return true;
 		}
 
 		_isHidDeviceConnected = true;
@@ -108,21 +94,41 @@ static void VendorHIDUpdate()
 
 	int result = hid_read(_hidDevice, (uint8_t*)&_hidBuffer, sizeof(_hidBuffer));
 
-	if (result > 0)
-	{
-		HandleVendorHIDKeyStates();
-	}
-	else if (result < 0)
+	if (result < 0)
 	{
 		_hidDevice = NULL;
 		_isHidDeviceConnected = false;
-		ClearVendorHIDInputs();
+		ClearKeyStates();
 
 		OutputDebugStringW(L"HID 장치와의 연결이 끊어졌습니다.\n");
+		return false;
+	}
+	else
+	{
+		return result > 0;
 	}
 }
 
-static void VendorHIDFinal()
+static void ShiftKeyStates()
+{
+	for (int i = 0; i < DJSW_HID_KEY_COUNT; ++i)
+	{
+		_hidKeyStates[i] <<= 1;
+	}
+}
+
+static void InputUpdate_HID()
+{
+	for (int i = 0; i < 6; ++i)
+	{
+		uint8_t data = _pKeyboardReport->data[i];
+
+		if (data != 0)
+			_hidKeyStates[data] |= 0x01;
+	}
+}
+
+static void InputFinal_HID()
 {
 	if (!_hidDevice)
 	{
@@ -132,104 +138,77 @@ static void VendorHIDFinal()
 	}
 }
 
-static void ClearStandardHIDInputs()
+// -------------------- djsw_input_hid.h implementations --------------------
+void SetKeyStateFromExternal(uint8_t hidKey, bool isPressed)
 {
-	memset(_stdHidKeyStates, 0x00, sizeof(_stdHidKeyStates));
+	if (isPressed)
+	{
+		_hidKeyStates[hidKey] |= 0x01;
+	}
 }
 
-static void StandardHIDInit()
+void RegisterHidHandler(void (*handler)(uint8_t hidKey, int keyState), int index)
 {
-	ClearStandardHIDInputs();
+	assert(index >= 0 && index < DJSW_MAX_HID_HANDLER_COUNT);
+
+	_hidHandlers[index] = handler;
 }
 
-static void StandardHIDUpdate()
-{
-	ClearStandardHIDInputs();
-	Sleep(10);
-}
-
-static void StandardHIDFinal()
-{
-	// This block is intentionally left blank.
-}
-
-BOOL IsVendorHIDConnected()
+bool IsHidConnected()
 {
 	return _isHidDeviceConnected;
 }
 
-BOOL GetVendorHIDKeyDown(uint8_t keycode)
+bool GetKeyDown(uint8_t hidKey)
 {
-	return (_hidKeyStates[keycode] & 0x03) == 0x01;
+	return (_hidKeyStates[hidKey] & 0x03) == 0x01;
 }
 
-BOOL GetVendorHIDKey(uint8_t keycode)
+bool GetKey(uint8_t hidKey)
 {
-	return (_hidKeyStates[keycode] & 0x01) == 0x01;
+	return (_hidKeyStates[hidKey] & 0x01) == 0x01;
 }
 
-BOOL GetVendorHIDKeyUp(uint8_t keycode)
+bool GetKeyUp(uint8_t hidKey)
 {
-	return (_hidKeyStates[keycode] & 0x03) == 0x02;
+	return (_hidKeyStates[hidKey] & 0x03) == 0x02;
 }
 
-uint8_t GetAnalogMixer(int32_t idxProperty)
+uint8_t GetAnalogMixer(int index)
 {
-	return _pMixerReport->data[idxProperty];
+	return _pMixerReport->data[index];
 }
 
-uint8_t GetAnalogDeck1(int32_t idxProperty)
+uint8_t GetAnalogDeck1(int index)
 {
-	return _pDeckReport1->data[idxProperty];
+	return _pDeckReport1->data[index];
 }
 
-uint8_t GetAnalogDeck2(int32_t idxProperty)
+uint8_t GetAnalogDeck2(int index)
 {
-	return _pDeckReport2->data[idxProperty];
+	return _pDeckReport2->data[index];
 }
 
-void SetStandardHIDKeyDown(uint8_t keycode)
-{
-	_stdHidKeyStates[keycode] |= 0x01;
-}
-
-void SetStandardHIDKeyUp(uint8_t keycode)
-{
-	_stdHidKeyStates[keycode] &= 0xFE;
-}
-
-BOOL GetStandardHIDKeyDown(uint8_t keycode)
-{
-	return (_stdHidKeyStates[keycode] & 0x03) == 0x01;
-}
-
-BOOL GetStandardHIDKey(uint8_t keycode)
-{
-	return (_stdHidKeyStates[keycode] & 0x01) == 0x01;
-}
-
-BOOL GetStandardHIDKeyUp(uint8_t keycode)
-{
-	return (_stdHidKeyStates[keycode] & 0x03) == 0x02;
-}
-
+// -------------------- LoopHid.h implementations --------------------
 DWORD WINAPI HIDMain(LPVOID lpParams)
 {
 	HIDParams* hidParams = (HIDParams*)lpParams;
 
-	VendorHIDInit();
-	StandardHIDInit();
-
+	InputInit_HID();
 	InputInit_Keyboard();
-
+	
 	while (hidParams->loopBaseParams.interruptNumber != 1)
 	{
-		InputUpdate_Keyboard();
-		VendorHIDUpdate();
+		if (CheckHidDeviceConnection())
+		{
+			ShiftKeyStates();
+			InputUpdate_HID();
+			InputUpdate_Keyboard();
+		}
 	}
 
-	VendorHIDFinal();
-	StandardHIDFinal();
-
+	InputFinal_HID();
+	InputFinal_Keyboard();
+	
 	return 0;
 }
