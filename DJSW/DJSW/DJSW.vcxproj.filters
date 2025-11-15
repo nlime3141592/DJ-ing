@@ -200,5 +200,8 @@
     <ClInclude Include="djsw_input_hid.h">
       <Filter>헤더 파일\Input</Filter>
     </ClInclude>
+    <ClInclude Include="djsw_audio_api.h">
+      <Filter>헤더 파일\Audio</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

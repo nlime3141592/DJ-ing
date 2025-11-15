@@ -54,6 +54,7 @@
     <ClInclude Include="audiofilter.h" />
     <ClInclude Include="audioreverb.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="djsw_audio_api.h" />
     <ClInclude Include="djsw_gui_app.h" />
     <ClInclude Include="djsw_gui_app_wave1.h" />
     <ClInclude Include="djsw_gui_core_api_internal.h" />

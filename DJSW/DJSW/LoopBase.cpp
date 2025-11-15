@@ -82,6 +82,7 @@ int WINAPI LoopUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     }
 
     InputUpdate();
+    AudioInput();
     RenderUpdate(hInstance, NULL, NULL, nCmdShow);
 
     djChronoMCS elapsedTime = CHRONO_LENGTH_MCS(beg, CHRONO_NOW);

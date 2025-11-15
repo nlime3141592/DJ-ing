@@ -1,8 +1,32 @@
 ﻿#include "LoopAudio.h"
 
+#include "djsw_audio_api.h"
+
 AudioDevice _audioDevice;
 AudioChannel _channel0;
 AudioChannel _channel1;
+
+typedef struct
+{
+	uint8_t analogValueInt;
+	float analogValueFloat;
+} djAnalogInterpolation;
+
+static djAnalogInterpolation _analogValues[DJSW_MAX_ANALOG_INTERPOLATION_COUNT];
+
+static void AudioAnalogInterpolation(djAnalogInterpolation* interpolation)
+{
+	float beg = interpolation->analogValueFloat;
+	float end = (float)interpolation->analogValueInt / 255.0f;
+
+	float speed = 0.367879441f; // inverse of exponential == 1/e == 0.367879441f
+	float next = beg + (end - beg) * speed;
+
+	if (next < 10e-4)
+		next = end;
+
+	interpolation->analogValueFloat = next;
+}
 
 static inline void MixSample1(const int16_t* s0, const int16_t* s1, int16_t* out)
 {
@@ -19,6 +43,12 @@ static inline void MixSample1(const int16_t* s0, const int16_t* s1, int16_t* out
 	*out = (int16_t)(32767.0f * t);
 }
 
+static inline void AnalogInterpolationInit(djAnalogInterpolation* interpolation, uint8_t value)
+{
+	interpolation->analogValueInt = value;
+	interpolation->analogValueFloat = (float)value / 255.0f;
+}
+
 static void AudioInit()
 {
 	_audioDevice = AudioDevice();
@@ -27,6 +57,38 @@ static void AudioInit()
 
 	_channel0 = AudioChannel();
 	_channel1 = AudioChannel();
+
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER, DJSW_ANALOG_VALUE_MID);
+
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_VOLUME1, DJSW_ANALOG_VALUE_MAX);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_VOLUME2, DJSW_ANALOG_VALUE_MAX);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_VOLUME3, DJSW_ANALOG_VALUE_MAX);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_VOLUME4, DJSW_ANALOG_VALUE_MAX);
+
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_TEMPO3, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_TEMPO4, DJSW_ANALOG_VALUE_MID);
+
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO1, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_MD1, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_HI1, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_FX1, DJSW_ANALOG_VALUE_MID);
+
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO2, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_MD2, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_HI2, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_FX2, DJSW_ANALOG_VALUE_MID);
+
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO3, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_MD3, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_HI3, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_FX3, DJSW_ANALOG_VALUE_MID);
+
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO4, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_MD4, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_HI4, DJSW_ANALOG_VALUE_MID);
+	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_FX4, DJSW_ANALOG_VALUE_MID);
 
 	// TEST: for Debugging.
 	bool result1 = _channel0.Load("C:\\Test\\habibi.wav");
@@ -68,8 +130,16 @@ static void AudioUpdate()
 		float samples[8] = { 0.0f };
 		int16_t isamples[8] = { 0 };
 
-		_channel0.masterVolume = (float)GetAnalogDeck1(0) / 255.0f;
-		_channel1.masterVolume = (float)GetAnalogDeck2(0) / 255.0f;
+		_channel0.masterVolume = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME1].analogValueFloat;
+		_channel1.masterVolume = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME2].analogValueFloat;
+
+		float xFaderValue0 = 1.0f - _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER].analogValueFloat;
+		float xFaderValue1 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER].analogValueFloat;
+
+		if (xFaderValue0 < 0.25f)
+			_channel0.masterVolume *= xFaderValue0;
+		if (xFaderValue1 < 0.25f)
+			_channel1.masterVolume *= xFaderValue1;
 
 		_channel0.Read2(isamples);
 		_channel1.Read2(isamples + 2);
@@ -105,6 +175,43 @@ static void AudioFinal()
 	_channel1.Unload();
 }
 
+// -------------------- LoopAudio.h implementations --------------------
+void AudioInput()
+{
+	// Digital Inputs
+	// TODO: 디지털 입력을 이 곳에서 처리합니다.
+	
+	// Analog Inputs
+	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER].analogValueInt = GetAnalogMixer(DJSW_IDX_CROSSFADER);
+
+	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME1].analogValueInt = GetAnalogDeck1(DJSW_IDX_VOLUME);
+	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME2].analogValueInt = GetAnalogDeck2(DJSW_IDX_VOLUME);
+
+	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1].analogValueInt = GetAnalogDeck1(DJSW_IDX_TEMPO);
+	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2].analogValueInt = GetAnalogDeck2(DJSW_IDX_TEMPO);
+
+	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO1].analogValueInt = GetAnalogDeck1(DJSW_IDX_EQ_LO);
+	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX1].analogValueInt = GetAnalogDeck1(DJSW_IDX_FX);
+
+	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO2].analogValueInt = GetAnalogDeck2(DJSW_IDX_EQ_LO);
+	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX2].analogValueInt = GetAnalogDeck2(DJSW_IDX_FX);
+
+	// Analog Input Interpolation Logics
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER);
+
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_VOLUME1);
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_VOLUME2);
+
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1);
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2);
+
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO1);
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_FX1);
+
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO2);
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_FX2);
+}
+
 DWORD WINAPI AudioMain(LPVOID lpParams)
 {
 	AudioParams* audioParams = (AudioParams*)lpParams;
@@ -119,4 +226,20 @@ DWORD WINAPI AudioMain(LPVOID lpParams)
 	AudioFinal();
 
 	return 0;
+}
+
+// -------------------- djsw_audio_api.h implementations --------------------
+void SetAnalogValue(uint8_t value, int index)
+{
+	_analogValues[index].analogValueInt = value;
+}
+
+uint8_t GetAnalogValueInt(int index)
+{
+	return _analogValues[index].analogValueInt;
+}
+
+float GetAnalogValueFloat(int index)
+{
+	return _analogValues[index].analogValueFloat;
 }
