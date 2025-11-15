@@ -6,17 +6,7 @@
 #include "djsw_input_hid.h"
 #include "djsw_input_hid_controls.h"
 
-void OnInputHandler(uint8_t hidKey, int keyState)
-{
-    switch (hidKey)
-    {
-    case HID_PAD11:
-        if (keyState == 0x01)
-            OutputDebugStringW(L"Hello, Pad 11 !\n");
-        else if (keyState == 0x02)
-            OutputDebugStringW(L"Bye, Pad 11 !\n");
-    }
-}
+#include <string>
 
 int WINAPI WinMain(
     _In_ HINSTANCE hInstance,
@@ -31,8 +21,6 @@ int WINAPI WinMain(
     assert(hr == S_OK);
 
     LoopInit(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
-    
-    RegisterHidHandler(OnInputHandler, 0);
 
     while (LoopUpdate(hInstance, hPrevInstance, lpCmdLine, nCmdShow))
     {

@@ -12,7 +12,6 @@ static BOOL _isHidDeviceConnected;
 
 static uint8_t _hidBuffer[DJSW_HID_BUFFER_LENGTH];
 static uint8_t _hidKeyStates[DJSW_HID_KEY_COUNT];
-static void (*_hidHandlers[DJSW_MAX_HID_HANDLER_COUNT])(uint8_t hidKey, int keyState);
 
 static djHidDigitalReport* _pKeyboardReport;
 static djHidAnalogReport* _pMixerReport;
@@ -69,9 +68,6 @@ static void InputInit_HID()
 	_pMixerReport = (djHidAnalogReport*)(_hidBuffer + 9);
 	_pDeckReport1 = (djHidAnalogReport*)(_hidBuffer + 17);
 	_pDeckReport2 = (djHidAnalogReport*)(_hidBuffer + 25);
-
-	// TODO: 동기화 이슈 주목할 필요 있음.
-	memset(_hidHandlers, 0x00, sizeof(_hidHandlers));
 }
 
 static bool CheckHidDeviceConnection()
@@ -147,13 +143,6 @@ void SetKeyStateFromExternal(uint8_t hidKey, bool isPressed)
 	}
 }
 
-void RegisterHidHandler(void (*handler)(uint8_t hidKey, int keyState), int index)
-{
-	assert(index >= 0 && index < DJSW_MAX_HID_HANDLER_COUNT);
-
-	_hidHandlers[index] = handler;
-}
-
 bool IsHidConnected()
 {
 	return _isHidDeviceConnected;
@@ -190,25 +179,22 @@ uint8_t GetAnalogDeck2(int index)
 }
 
 // -------------------- LoopHid.h implementations --------------------
-DWORD WINAPI HIDMain(LPVOID lpParams)
+void InputInit()
 {
-	HIDParams* hidParams = (HIDParams*)lpParams;
-
 	InputInit_HID();
 	InputInit_Keyboard();
-	
-	while (hidParams->loopBaseParams.interruptNumber != 1)
-	{
-		if (CheckHidDeviceConnection())
-		{
-			ShiftKeyStates();
-			InputUpdate_HID();
-			InputUpdate_Keyboard();
-		}
-	}
+}
 
+void InputUpdate()
+{
+	CheckHidDeviceConnection();
+	ShiftKeyStates();
+	InputUpdate_HID();
+	InputUpdate_Keyboard();
+}
+
+void InputFinal()
+{
 	InputFinal_HID();
 	InputFinal_Keyboard();
-	
-	return 0;
 }

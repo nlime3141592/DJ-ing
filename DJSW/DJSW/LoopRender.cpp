@@ -3,6 +3,9 @@
 #include "djsw_gui_app.h"
 #include "djsw_gui_core_api_internal.h"
 
+#include "djsw_util_timer.h"
+#include <string>
+
 #define DJSW_TIMER_EVENT_RESIZING 1
 
 #define DJSW_VERTEX_THROUGHPUT 0x10000 // 16-bit address space
@@ -64,12 +67,16 @@ static BOOL _isResizing;
 static void WaitForPreviousFrame()
 {
     const UINT64 currentFenceValue = _fenceValue;
+
     _cmdQueue->Signal(_fence.Get(), currentFenceValue);
+    
     _fenceValue++;
-    if (_fence->GetCompletedValue() < currentFenceValue) {
+    if (_fence->GetCompletedValue() < currentFenceValue)
+    {
         _fence->SetEventOnCompletion(currentFenceValue, _fenceEvent);
         WaitForSingleObject(_fenceEvent, INFINITE);
     }
+
     _frameIndex = _swapChain0->GetCurrentBackBufferIndex();
 }
 
@@ -373,7 +380,8 @@ int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
     _vertexCount = 0;
 
-    _swapChain0->Present(1, 0);
+    //_swapChain0->Present(1, 0); // 수직 동기화 1
+    _swapChain0->Present(0, 0); // 수직 동기화 0 (즉시 렌더링)
     WaitForPreviousFrame();
 
     return 1;

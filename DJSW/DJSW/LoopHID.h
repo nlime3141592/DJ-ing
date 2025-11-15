@@ -33,4 +33,6 @@ typedef struct
 	uint8_t data[8];
 } djHidAnalogReport;
 
-DWORD WINAPI HIDMain(LPVOID lpParams);
+void InputInit();
+void InputUpdate();
+void InputFinal();

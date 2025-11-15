@@ -31,12 +31,10 @@
     <ClCompile Include="djsw_gui_core_api_internal.cpp" />
     <ClCompile Include="djsw_gui_core_api_drawer.cpp" />
     <ClCompile Include="djsw_gui_core_api_view.cpp" />
-    <ClCompile Include="djsw_input_core.cpp" />
     <ClCompile Include="djsw_input_keyboard.cpp" />
     <ClCompile Include="LoopAudio.cpp" />
     <ClCompile Include="LoopBase.cpp" />
     <ClCompile Include="LoopHID.cpp" />
-    <ClCompile Include="LoopMessage.cpp" />
     <ClCompile Include="LoopRender.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MiniXML\mxml-attr.c" />
@@ -67,7 +65,6 @@
     <ClInclude Include="LoopBase.h" />
     <ClInclude Include="LoopHID.h" />
     <ClInclude Include="LoopInterrupt.h" />
-    <ClInclude Include="LoopMessage.h" />
     <ClInclude Include="LoopRender.h" />
     <ClInclude Include="MiniXML\config.h" />
     <ClInclude Include="MiniXML\mxml-private.h" />

@@ -114,9 +114,6 @@
     <ClCompile Include="djsw_gui_app.cpp">
       <Filter>소스 파일\GUIApplication</Filter>
     </ClCompile>
-    <ClCompile Include="LoopMessage.cpp">
-      <Filter>소스 파일\Loop</Filter>
-    </ClCompile>
     <ClCompile Include="djsw_gui_core_api_internal.cpp">
       <Filter>소스 파일\GUICore</Filter>
     </ClCompile>
@@ -130,9 +127,6 @@
       <Filter>소스 파일\GUICore</Filter>
     </ClCompile>
     <ClCompile Include="djsw_input_keyboard.cpp">
-      <Filter>소스 파일\Input</Filter>
-    </ClCompile>
-    <ClCompile Include="djsw_input_core.cpp">
       <Filter>소스 파일\Input</Filter>
     </ClCompile>
   </ItemGroup>
@@ -190,9 +184,6 @@
     </ClInclude>
     <ClInclude Include="djsw_gui_core_api_internal.h">
       <Filter>헤더 파일\GUICore</Filter>
-    </ClInclude>
-    <ClInclude Include="LoopMessage.h">
-      <Filter>헤더 파일\Loop</Filter>
     </ClInclude>
     <ClInclude Include="djsw_gui_app_wave1.h">
       <Filter>헤더 파일\GUIApplication</Filter>

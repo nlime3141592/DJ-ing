@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <stdint.h>
 
@@ -14,7 +14,6 @@
 #define DJSW_IDX_FX 7
 
 void SetKeyStateFromExternal(uint8_t hidKey, bool isPressed);
-void RegisterHidHandler(void (*handler)(uint8_t hidKey, int keyState), int index);
 
 bool IsHidConnected();
 

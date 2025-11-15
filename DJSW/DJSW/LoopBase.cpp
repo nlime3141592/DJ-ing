@@ -2,13 +2,15 @@
 
 #include "LoopHID.h"
 #include "LoopAudio.h"
-#include "LoopMessage.h"
 #include "LoopRender.h"
 
 #include "LoopInterrupt.h"
 
-#define CORE_INDEX_HID 0
-#define CORE_INDEX_AUDIO 1
+#include "djsw_util_timer.h"
+#include <string>
+
+#define CORE_INDEX_AUDIO 0
+#define CORE_INDEX_HID 1
 
 static HIDParams _hidParams;
 static AudioParams _audioParams;
@@ -31,17 +33,6 @@ int WINAPI LoopInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         &defaultSystemAffinityMask
     );
     assert(execResult);
-
-    _hidParams.loopBaseParams.threadAffinityMask = 1ULL << CORE_INDEX_HID;
-    _hidParams.loopBaseParams.interruptNumber = DJSW_INT_NULL;
-    _hidParams.loopBaseParams.threadHandle = CreateThread(
-        NULL,
-        0,
-        HIDMain,
-        &_hidParams,
-        0,
-        &_hidParams.loopBaseParams.threadId);
-    assert(_hidParams.loopBaseParams.threadHandle != NULL);
 
     _audioParams.loopBaseParams.threadAffinityMask = 1ULL << CORE_INDEX_AUDIO;
     _audioParams.loopBaseParams.interruptNumber = DJSW_INT_NULL;
@@ -68,7 +59,7 @@ int WINAPI LoopInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         SetThreadPriority(_hidParams.loopBaseParams.threadHandle, THREAD_PRIORITY_TIME_CRITICAL);
     }
 
-    MessageInit();
+    InputInit();
     RenderInit(hInstance, NULL, NULL, nCmdShow);
 
     return 1;
@@ -77,6 +68,8 @@ int WINAPI LoopInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 int WINAPI LoopUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
     MSG msg;
+
+    djChronoClock beg = CHRONO_NOW;
 
     // Windows Message Queue 기반 메시지 확인
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -88,20 +81,22 @@ int WINAPI LoopUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         DispatchMessage(&msg);
     }
 
-    MessageUpdate();
+    InputUpdate();
     RenderUpdate(hInstance, NULL, NULL, nCmdShow);
+
+    djChronoMCS elapsedTime = CHRONO_LENGTH_MCS(beg, CHRONO_NOW);
+    //OutputDebugStringW(std::to_wstring(elapsedTime).c_str());
+    //OutputDebugStringW(L"\n");
 
     return 1;
 }
 
 int WINAPI LoopFinal(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-    _hidParams.loopBaseParams.interruptNumber = DJSW_INT_LOOPEND;
     _audioParams.loopBaseParams.interruptNumber = DJSW_INT_LOOPEND;
-
-    WaitForSingleObject(_hidParams.loopBaseParams.threadHandle, 1000);
     WaitForSingleObject(_audioParams.loopBaseParams.threadHandle, 1000);
 
+    InputFinal();
     RenderFinal(hInstance, NULL, NULL, nCmdShow);
 
     return 1;
