@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#define DJSW_HID_KEY_COUNT 256
+
 // Analog property indicies for Mixer
 #define DJSW_IDX_CROSSFADER 0
 
@@ -12,6 +14,15 @@
 #define DJSW_IDX_EQ_MD 5
 #define DJSW_IDX_EQ_HI 6
 #define DJSW_IDX_FX 7
+
+class djInputMutex
+{
+public:
+	void (*callback)(void* keyStateBuffer); // DJSW_HID_KEY_COUNT 개의 키 상태를 반환합니다.
+	bool ioFlag;
+
+	djInputMutex();
+};
 
 void SetKeyStateFromExternal(uint8_t hidKey, bool isPressed);
 

@@ -14,7 +14,6 @@
 #define HID_PID 0x8036
 
 #define DJSW_HID_BUFFER_LENGTH 65
-#define DJSW_HID_KEY_COUNT 256
 
 typedef struct
 {

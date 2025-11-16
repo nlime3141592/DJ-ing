@@ -7,6 +7,8 @@
 
 #define DJSW_MAX_HID_HANDLER_COUNT 16
 
+#define DJSW_IO_MUTEX_COUNT 8
+
 static hid_device* _hidDevice;
 static BOOL _isHidDeviceConnected;
 
@@ -17,6 +19,8 @@ static djHidDigitalReport* _pKeyboardReport;
 static djHidAnalogReport* _pMixerReport;
 static djHidAnalogReport* _pDeckReport1;
 static djHidAnalogReport* _pDeckReport2;
+
+static djInputMutex _ioMutecies[8];
 
 // -------------------- HID device communication handling --------------------
 static hid_device* GetDeviceOrNull()
@@ -55,6 +59,14 @@ static void ClearKeyStates()
 {
 	memset(_hidBuffer, 0x00, sizeof(_hidBuffer));
 	memset(_hidKeyStates, 0x00, sizeof(_hidKeyStates));
+}
+
+static void InputInit_Mutex()
+{
+	for (int i = 0; i < DJSW_IO_MUTEX_COUNT; ++i)
+	{
+		_ioMutecies[i] = djInputMutex();
+	}
 }
 
 static void InputInit_HID()
@@ -135,6 +147,18 @@ static void InputFinal_HID()
 }
 
 // -------------------- djsw_input_hid.h implementations --------------------
+djInputMutex::djInputMutex() :
+	callback(NULL),
+	ioFlag(0)
+{
+
+}
+
+void GetMutex(djInputMutex** mutex, int index)
+{
+	*mutex = _ioMutecies + index;
+}
+
 void SetKeyStateFromExternal(uint8_t hidKey, bool isPressed)
 {
 	if (isPressed)
@@ -181,6 +205,7 @@ uint8_t GetAnalogDeck2(int index)
 // -------------------- LoopHid.h implementations --------------------
 void InputInit()
 {
+	InputInit_Mutex();
 	InputInit_HID();
 	InputInit_Keyboard();
 }

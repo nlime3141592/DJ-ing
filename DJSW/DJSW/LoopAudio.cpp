@@ -1,6 +1,7 @@
 ﻿#include "LoopAudio.h"
 
 #include "djsw_audio_api.h"
+#include "djsw_input_hid.h"
 #include "djsw_input_hid_controls.h"
 
 AudioDevice _audioDevice;
