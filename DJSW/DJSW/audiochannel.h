@@ -14,6 +14,8 @@ class AudioChannel
 public:
 	AudioChannel();
 
+	bool IsLoaded();
+
 	bool Load(const char* fileName);
 	bool Unload();
 

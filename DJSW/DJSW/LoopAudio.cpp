@@ -1,6 +1,7 @@
 ﻿#include "LoopAudio.h"
 
 #include "djsw_audio_api.h"
+#include "djsw_input_hid_controls.h"
 
 AudioDevice _audioDevice;
 AudioChannel _channel0;
@@ -95,8 +96,8 @@ static void AudioInit()
 	bool result2 = _channel1.Load("C:\\Test\\bangalore.wav");
 	assert(result1);
 	assert(result2);
-	_channel0.Play();
-	_channel1.Play();
+	//_channel0.Play();
+	//_channel1.Play();
 }
 
 static void AudioUpdate()
@@ -180,21 +181,38 @@ void AudioInput()
 {
 	// Digital Inputs
 	// TODO: 디지털 입력을 이 곳에서 처리합니다.
+	if (GetKeyDown(DJSW_HID_PLAY1))
+	{
+		if (_channel0.isPlaying)
+			_channel0.Pause();
+		else
+			_channel0.Play();
+	}
+	if (GetKeyDown(DJSW_HID_PLAY2))
+	{
+		if (_channel1.isPlaying)
+			_channel1.Pause();
+		else
+			_channel1.Play();
+	}
 	
 	// Analog Inputs
-	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER].analogValueInt = GetAnalogMixer(DJSW_IDX_CROSSFADER);
+	if (IsHidConnected())
+	{
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER].analogValueInt = GetAnalogMixer(DJSW_IDX_CROSSFADER);
 
-	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME1].analogValueInt = GetAnalogDeck1(DJSW_IDX_VOLUME);
-	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME2].analogValueInt = GetAnalogDeck2(DJSW_IDX_VOLUME);
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME1].analogValueInt = GetAnalogDeck1(DJSW_IDX_VOLUME);
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME2].analogValueInt = GetAnalogDeck2(DJSW_IDX_VOLUME);
 
-	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1].analogValueInt = GetAnalogDeck1(DJSW_IDX_TEMPO);
-	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2].analogValueInt = GetAnalogDeck2(DJSW_IDX_TEMPO);
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1].analogValueInt = GetAnalogDeck1(DJSW_IDX_TEMPO);
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2].analogValueInt = GetAnalogDeck2(DJSW_IDX_TEMPO);
 
-	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO1].analogValueInt = GetAnalogDeck1(DJSW_IDX_EQ_LO);
-	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX1].analogValueInt = GetAnalogDeck1(DJSW_IDX_FX);
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO1].analogValueInt = GetAnalogDeck1(DJSW_IDX_EQ_LO);
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX1].analogValueInt = GetAnalogDeck1(DJSW_IDX_FX);
 
-	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO2].analogValueInt = GetAnalogDeck2(DJSW_IDX_EQ_LO);
-	_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX2].analogValueInt = GetAnalogDeck2(DJSW_IDX_FX);
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO2].analogValueInt = GetAnalogDeck2(DJSW_IDX_EQ_LO);
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX2].analogValueInt = GetAnalogDeck2(DJSW_IDX_FX);
+	}
 
 	// Analog Input Interpolation Logics
 	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER);
@@ -242,4 +260,49 @@ uint8_t GetAnalogValueInt(int index)
 float GetAnalogValueFloat(int index)
 {
 	return _analogValues[index].analogValueFloat;
+}
+
+int32_t GetPosition(int channel)
+{
+	switch (channel)
+	{
+	case 0:
+		return _channel0.position;
+	case 1:
+		return _channel1.position;
+	default:
+		return -1;
+	}
+}
+
+void PeekSample(int16_t* out, int channel, int32_t position)
+{
+	switch (channel)
+	{
+	case 0:
+		out[0] = _channel0.wavSamples[position];
+		out[1] = _channel0.wavSamples[position + 1];
+		return;
+	case 1:
+		out[0] = _channel1.wavSamples[position];
+		out[1] = _channel1.wavSamples[position + 1];
+		return;
+	default:
+		out[0] = 0;
+		out[1] = 0;
+		return;
+	}
+}
+
+bool IsAudioLoaded(int channel)
+{
+	switch (channel)
+	{
+	case 0:
+		return _channel0.IsLoaded();
+	case 1:
+		return _channel1.IsLoaded();
+	default:
+		return false;
+	}
 }

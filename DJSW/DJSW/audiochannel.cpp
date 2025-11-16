@@ -1,6 +1,12 @@
 ﻿#include "audiochannel.h"
 
 AudioChannel::AudioChannel() :
+	fileData(NULL),
+	data(NULL),
+	fileSize(0),
+
+	numWavSamples(0),
+	wavSamples(NULL),
 	position(0),
 	isPlaying(false),
 	isMuted(false),
@@ -25,6 +31,11 @@ AudioChannel::AudioChannel() :
 	masterVolume(0.0f)
 {
 
+}
+
+bool AudioChannel::IsLoaded()
+{
+	return numWavSamples > 0;
 }
 
 bool AudioChannel::Load(const char* fileName)
@@ -73,7 +84,18 @@ void AudioChannel::Reset()
 
 bool AudioChannel::Unload()
 {
-	return HeapFree(GetProcessHeap(), 0, fileData);
+	bool result = HeapFree(GetProcessHeap(), 0, fileData);
+
+	fileData = NULL;
+	data = NULL;
+	fileSize = 0;
+
+	numWavSamples = 0;
+	wavSamples = NULL;
+	position = 0;
+	isPlaying = false; // TODO: 동기화 문제를 고려한 변수 설정이 필요함.
+
+	return result;
 }
 
 void AudioChannel::Play()
@@ -93,6 +115,13 @@ void AudioChannel::Read16(int16_t* out)
 
 void AudioChannel::Read2(int16_t* out)
 {
+	if (!isPlaying)
+	{
+		out[0] = 0;
+		out[1] = 0;
+		return;
+	}
+
 	// TODO: 노래가 끝난 뒤 position을 초기화하는 로직이 없어서 이 곳에서 예외가 발생했음. 처리해야 함.
 	int16_t lSample = (int16_t)wavSamples[position++];
 	int16_t rSample = (int16_t)wavSamples[position++];

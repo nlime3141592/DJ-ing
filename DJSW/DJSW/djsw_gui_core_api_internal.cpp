@@ -29,12 +29,13 @@ djView* GetCurrentView()
 
 int iii = 0;
 
-static bool OnEnterViewport(ComPtr<ID3D12GraphicsCommandList> cmdList, djView* view)
+static bool OnEnterViewport(ComPtr<ID3D12GraphicsCommandList> cmdList, djView* view, int viewIndex)
 {
 	if (view == NULL || !view->shouldRender)
 		return false;
 
 	_currentView = view;
+	_idxCurrentView = viewIndex;
 
 	CD3DX12_VIEWPORT viewport(
 		view->viewport.topLeftX,
@@ -63,13 +64,22 @@ void OnGuiUpdate_Core(ComPtr<ID3D12GraphicsCommandList> cmdList)
 {
 	for (int i = 0; i < DJSW_MAX_VIEW_COUNT; ++i)
 	{
-		if (!OnEnterViewport(cmdList, _views[i]))
+		if (!OnEnterViewport(cmdList, _views[i], i))
 			continue;
 
 		// Drawing Pipelines
+		SetMode_Triangle();
 		_views[i]->OnDrawBackground();
 		_views[i]->OnGuiUpdate();
+		DrawCall();
+
+		SetMode_Line();
+		_views[i]->OnDrawWave();
+		DrawCall();
+
+		SetMode_Triangle();
 		_views[i]->OnDrawBounds();
+		DrawCall();
 
 		// Test Draws
 		djVertexRGB vertices[6] = {

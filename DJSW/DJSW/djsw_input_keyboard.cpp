@@ -17,34 +17,39 @@ void InputInit_Keyboard()
 
 void InputUpdate_Keyboard()
 {
-	//int deckFlag = 0;
-	//deckFlag |= GetKey_Keyboard(VK_F1) << 0;
-	//deckFlag |= GetKey_Keyboard(VK_F2) << 1;
-	//deckFlag |= GetKey_Keyboard(VK_F3) << 2;
-	//deckFlag |= GetKey_Keyboard(VK_F4) << 3;
-	//deckFlag |= 1 << (_defaultDeckHandling - 1);
+	// TODO:
+	// 키보드에서 키+덱번호 또는 덱번호+키 조합 모두가 사용 가능한 상태.
+	// 반드시 덱번호+키 순서를 강제할 방안을 마련.
+	for (int i = 0; i < 4; ++i)
+	{
+		if ((GetAsyncKeyState(VK_F1 + i) & 0x8001) == 0)
+			continue;
 
-	SetKeyStateFromExternal(DJSW_HID_PAD11, ((GetAsyncKeyState(DJSW_VK_PAD11) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_PAD12, ((GetAsyncKeyState(DJSW_VK_PAD12) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_PAD13, ((GetAsyncKeyState(DJSW_VK_PAD13) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_PAD14, ((GetAsyncKeyState(DJSW_VK_PAD14) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_PAD15, ((GetAsyncKeyState(DJSW_VK_PAD15) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_PAD16, ((GetAsyncKeyState(DJSW_VK_PAD16) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_PAD17, ((GetAsyncKeyState(DJSW_VK_PAD17) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_PAD18, ((GetAsyncKeyState(DJSW_VK_PAD18) & 0x8001) != 0) ? true : false);
+		uint8_t padOffset = DJSW_HID_PAD11 + i * 0x10 - 1;
+		SetKeyStateFromExternal(padOffset + 1, ((GetAsyncKeyState(DJSW_VK_PAD1) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(padOffset + 2, ((GetAsyncKeyState(DJSW_VK_PAD2) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(padOffset + 3, ((GetAsyncKeyState(DJSW_VK_PAD3) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(padOffset + 4, ((GetAsyncKeyState(DJSW_VK_PAD4) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(padOffset + 5, ((GetAsyncKeyState(DJSW_VK_PAD5) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(padOffset + 6, ((GetAsyncKeyState(DJSW_VK_PAD6) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(padOffset + 7, ((GetAsyncKeyState(DJSW_VK_PAD7) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(padOffset + 8, ((GetAsyncKeyState(DJSW_VK_PAD8) & 0x8001) != 0) ? true : false);
 
-	SetKeyStateFromExternal(DJSW_HID_PADFN11, ((GetAsyncKeyState(DJSW_VK_PADFN11) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_PADFN12, ((GetAsyncKeyState(DJSW_VK_PADFN12) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_PADFN13, ((GetAsyncKeyState(DJSW_VK_PADFN13) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_PADFN14, ((GetAsyncKeyState(DJSW_VK_PADFN14) & 0x8001) != 0) ? true : false);
+		uint8_t padfnOffset = DJSW_HID_PADFN11 + i * 0x30 - 1;
+		SetKeyStateFromExternal(padfnOffset + 1, ((GetAsyncKeyState(DJSW_VK_PADFN1) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(padfnOffset + 2, ((GetAsyncKeyState(DJSW_VK_PADFN2) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(padfnOffset + 3, ((GetAsyncKeyState(DJSW_VK_PADFN3) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(padfnOffset + 4, ((GetAsyncKeyState(DJSW_VK_PADFN4) & 0x8001) != 0) ? true : false);
 
-	SetKeyStateFromExternal(DJSW_HID_PLAY1, ((GetAsyncKeyState(DJSW_VK_SEL1) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_CUE1, ((GetAsyncKeyState(DJSW_VK_SEL1) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_LD1, ((GetAsyncKeyState(DJSW_VK_LD1) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_LD2, ((GetAsyncKeyState(DJSW_VK_LD2) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_LD3, ((GetAsyncKeyState(DJSW_VK_LD3) & 0x8001) != 0) ? true : false);
-	SetKeyStateFromExternal(DJSW_HID_LD4, ((GetAsyncKeyState(DJSW_VK_LD4) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(DJSW_HID_PLAY1 + i, ((GetAsyncKeyState(DJSW_VK_PLAY) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(DJSW_HID_CUE1 + i, ((GetAsyncKeyState(DJSW_VK_CUE) & 0x8001) != 0) ? true : false);
+		SetKeyStateFromExternal(DJSW_HID_LD1 + i, ((GetAsyncKeyState(DJSW_VK_LD) & 0x8001) != 0) ? true : false);
+	}
+
 	SetKeyStateFromExternal(DJSW_HID_SEL1, ((GetAsyncKeyState(DJSW_VK_SEL1) & 0x8001) != 0) ? true : false);
+	SetKeyStateFromExternal(DJSW_HID_SEL2, ((GetAsyncKeyState(DJSW_VK_SEL2) & 0x8001) != 0) ? true : false);
+	SetKeyStateFromExternal(DJSW_HID_SEL3, ((GetAsyncKeyState(DJSW_VK_SEL3) & 0x8001) != 0) ? true : false);
+	SetKeyStateFromExternal(DJSW_HID_SEL4, ((GetAsyncKeyState(DJSW_VK_SEL4) & 0x8001) != 0) ? true : false);
 
 	//SetKeyStateFromExternal(HID_RESET, ((GetAsyncKeyState(DJSW_VK_RESET) & 0x8001) != 0) ? true : false);
 

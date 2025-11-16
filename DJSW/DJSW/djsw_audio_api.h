@@ -43,3 +43,7 @@
 void SetAnalogValue(uint8_t value, int index);
 uint8_t GetAnalogValueInt(int index);
 float GetAnalogValueFloat(int index);
+
+int32_t GetPosition(int channel);
+void PeekSample(int16_t* out, int channel, int32_t position);
+bool IsAudioLoaded(int channel);

@@ -1,4 +1,4 @@
-#include "djsw_gui_core_api.h"
+﻿#include "djsw_gui_core_api.h"
 
 #include <assert.h>
 

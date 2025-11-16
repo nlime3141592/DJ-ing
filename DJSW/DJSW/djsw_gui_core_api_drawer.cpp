@@ -1,6 +1,41 @@
-#include "djsw_gui_core_api.h"
+ï»¿#include "djsw_gui_core_api.h"
 
 #include <assert.h>
+
+void DrawLine(djRectLTWH rect, djColor color)
+{
+	djRectLTRB ltrb;
+	ltrb.left = rect.topLeftX;
+	ltrb.top = rect.topLeftY;
+	ltrb.right = rect.topLeftX + rect.width;
+	ltrb.bottom = rect.topLeftY + rect.height;
+
+	DrawLine(ltrb, color);
+}
+
+void DrawLine(djRectLTRB rect, djColor color)
+{
+	djView* view = GetCurrentView();
+
+	assert(view != NULL);
+
+	float rx = view->viewport.width;
+	float ry = view->viewport.height;
+
+	float l = 2.0f * rect.left / rx - 1.0f;
+	float t = 1.0f - 2.0f * rect.top / ry;
+	float r = 2.0f * rect.right / rx - 1.0f;
+	float b = 1.0f - 2.0f * rect.bottom / ry;
+
+	djVertexRGB vertices[6] =
+	{
+		// ì§ì„  1
+		{ { l, t, 0.0f }, { color.r, color.g, color.b } },  // LT
+		{ { r, b, 0.0f }, { color.r, color.g, color.b } },  // RB
+	};
+
+	AddVertices(vertices, sizeof(djVertexRGB), 2);
+}
 
 void DrawRectangle(djRectLTWH rect, djColor color)
 {
@@ -29,15 +64,15 @@ void DrawRectangle(djRectLTRB rect, djColor color)
 
 	djVertexRGB vertices[6] =
 	{
-		// »ï°¢Çü 1
-		{ { l, t, 0.0f }, { color.r, color.g, color.b } },  // ¿ŞÂÊ À§
-		{ { r, t, 0.0f }, { color.r, color.g, color.b } },  // ¿À¸¥ÂÊ À§
-		{ { l, b, 0.0f }, { color.r, color.g, color.b } },  // ¿ŞÂÊ ¾Æ·¡
+		// ì‚¼ê°í˜• 1
+		{ { l, t, 0.0f }, { color.r, color.g, color.b } },  // ì™¼ìª½ ìœ„
+		{ { r, t, 0.0f }, { color.r, color.g, color.b } },  // ì˜¤ë¥¸ìª½ ìœ„
+		{ { l, b, 0.0f }, { color.r, color.g, color.b } },  // ì™¼ìª½ ì•„ë˜
 
-		// »ï°¢Çü 2
-		{ { r, t, 0.0f }, { color.r, color.g, color.b } },  // ¿À¸¥ÂÊ À§
-		{ { r, b, 0.0f }, { color.r, color.g, color.b } },  // ¿À¸¥ÂÊ ¾Æ·¡
-		{ { l, b, 0.0f }, { color.r, color.g, color.b } },  // ¿ŞÂÊ ¾Æ·¡
+		// ì‚¼ê°í˜• 2
+		{ { r, t, 0.0f }, { color.r, color.g, color.b } },  // ì˜¤ë¥¸ìª½ ìœ„
+		{ { r, b, 0.0f }, { color.r, color.g, color.b } },  // ì˜¤ë¥¸ìª½ ì•„ë˜
+		{ { l, b, 0.0f }, { color.r, color.g, color.b } },  // ì™¼ìª½ ì•„ë˜
 	};
 
 	AddVertices(vertices, sizeof(djVertexRGB), 6);

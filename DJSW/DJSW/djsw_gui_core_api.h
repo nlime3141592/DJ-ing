@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <Windows.h>
 
@@ -59,6 +59,7 @@ public:
     virtual void OnGuiInit() = 0;
     void OnDrawBackground();
     virtual void OnGuiUpdate() = 0;
+    virtual void OnDrawWave() {}
     void OnDrawBounds();
 };
 
@@ -70,5 +71,7 @@ void GetView(djView** view, int index);
 djView* GetCurrentView();
 
 // -------------------- Drawing API Definitions --------------------
+void DrawLine(djRectLTWH rect, djColor color);
+void DrawLine(djRectLTRB rect, djColor color);
 void DrawRectangle(djRectLTWH rect, djColor color);
 void DrawRectangle(djRectLTRB rect, djColor color);

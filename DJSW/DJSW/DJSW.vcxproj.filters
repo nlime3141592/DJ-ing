@@ -117,7 +117,7 @@
     <ClCompile Include="djsw_gui_core_api_internal.cpp">
       <Filter>소스 파일\GUICore</Filter>
     </ClCompile>
-    <ClCompile Include="djsw_gui_app_wave1.cpp">
+    <ClCompile Include="djsw_gui_app_wave.cpp">
       <Filter>소스 파일\GUIApplication</Filter>
     </ClCompile>
     <ClCompile Include="djsw_gui_core_api_view.cpp">
@@ -185,7 +185,7 @@
     <ClInclude Include="djsw_gui_core_api_internal.h">
       <Filter>헤더 파일\GUICore</Filter>
     </ClInclude>
-    <ClInclude Include="djsw_gui_app_wave1.h">
+    <ClInclude Include="djsw_gui_app_wave.h">
       <Filter>헤더 파일\GUIApplication</Filter>
     </ClInclude>
     <ClInclude Include="djsw_gui_core_api.h">

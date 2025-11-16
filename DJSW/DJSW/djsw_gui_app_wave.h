@@ -5,6 +5,9 @@
 class djWaveView : public djView
 {
 public:
+	int idxChannel;
+
 	virtual void OnGuiInit();
 	virtual void OnGuiUpdate();
+	virtual void OnDrawWave();
 };
