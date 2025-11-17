@@ -20,7 +20,7 @@ static djHidAnalogReport* _pMixerReport;
 static djHidAnalogReport* _pDeckReport1;
 static djHidAnalogReport* _pDeckReport2;
 
-static djInputMutex _ioMutecies[8];
+HidMessageQueue hidMessageQueues[DJSW_HID_MESSAGE_QUEUE_COUNT];
 
 // -------------------- HID device communication handling --------------------
 static hid_device* GetDeviceOrNull()
@@ -55,18 +55,26 @@ static hid_device* GetDeviceOrNull()
 	return device;
 }
 
+static void ShiftKeyStates(uint8_t keyStates[DJSW_HID_KEY_COUNT])
+{
+	for (int i = 0; i < DJSW_HID_KEY_COUNT; ++i)
+	{
+		keyStates[i] <<= 1;
+	}
+}
+
+static void CaptureKeyStates(uint8_t keyStates[DJSW_HID_KEY_COUNT])
+{
+	for (int i = 0; i < DJSW_HID_KEY_COUNT; ++i)
+	{
+		keyStates[i] |= _hidKeyStates[i] & 1;
+	}
+}
+
 static void ClearKeyStates()
 {
 	memset(_hidBuffer, 0x00, sizeof(_hidBuffer));
 	memset(_hidKeyStates, 0x00, sizeof(_hidKeyStates));
-}
-
-static void InputInit_Mutex()
-{
-	for (int i = 0; i < DJSW_IO_MUTEX_COUNT; ++i)
-	{
-		_ioMutecies[i] = djInputMutex();
-	}
 }
 
 static void InputInit_HID()
@@ -117,14 +125,6 @@ static bool CheckHidDeviceConnection()
 	}
 }
 
-static void ShiftKeyStates()
-{
-	for (int i = 0; i < DJSW_HID_KEY_COUNT; ++i)
-	{
-		_hidKeyStates[i] <<= 1;
-	}
-}
-
 static void InputUpdate_HID()
 {
 	for (int i = 0; i < 6; ++i)
@@ -133,6 +133,37 @@ static void InputUpdate_HID()
 
 		if (data != 0)
 			_hidKeyStates[data] |= 0x01;
+	}
+}
+
+static void InputPublish(HidMessageQueue* queue)
+{
+	HidMessage message;
+	message.messageType = DJSW_HID_MESSAGE_TYPE_DIGITAL;
+
+	for (int i = 0; i < DJSW_HID_KEY_COUNT; ++i)
+	{
+		int b0 = _hidKeyStates[i] & 0x01;
+		int b1 = _hidKeyStates[i] & 0x02;
+
+		message.hidKey = i;
+
+		if (b0)
+		{
+			if (!b1)
+			{
+				message.message = DJSW_HID_MESSAGE_KEY_DOWN;
+				queue->Push(&message);
+			}
+
+			message.message = DJSW_HID_MESSAGE_KEY_PRESS;
+			queue->Push(&message);
+		}
+		else if (b1)
+		{
+			message.message = DJSW_HID_MESSAGE_KEY_UP;
+			queue->Push(&message);
+		}
 	}
 }
 
@@ -147,18 +178,6 @@ static void InputFinal_HID()
 }
 
 // -------------------- djsw_input_hid.h implementations --------------------
-djInputMutex::djInputMutex() :
-	callback(NULL),
-	ioFlag(0)
-{
-
-}
-
-void GetMutex(djInputMutex** mutex, int index)
-{
-	*mutex = _ioMutecies + index;
-}
-
 void SetKeyStateFromExternal(uint8_t hidKey, bool isPressed)
 {
 	if (isPressed)
@@ -170,6 +189,40 @@ void SetKeyStateFromExternal(uint8_t hidKey, bool isPressed)
 bool IsHidConnected()
 {
 	return _isHidDeviceConnected;
+}
+
+HidMessageQueue::HidMessageQueue() :
+	head(0),
+	tail(0)
+{
+	memset(queue, 0x00, sizeof(queue));
+}
+
+bool HidMessageQueue::Push(HidMessage* message)
+{
+	int t = tail.load(std::memory_order_relaxed);
+	int next = (t + 1) % DJSW_HID_MESSAGE_QUEUE_CAPACITY;
+
+	if (next == head.load(std::memory_order_acquire))
+		return false;
+
+	queue[t] = *message; // 데이터를 먼저 저장
+	tail.store(next, std::memory_order_release); // 인덱스를 나중에 올려줌
+
+	return true;
+}
+
+bool HidMessageQueue::Pop(HidMessage* message)
+{
+	int h = head.load(std::memory_order_relaxed);
+
+	if (h == tail.load(std::memory_order_acquire))
+		return false;
+
+	*message = queue[h];
+	head.store((h + 1) % DJSW_HID_MESSAGE_QUEUE_CAPACITY, std::memory_order_release);
+
+	return true;
 }
 
 bool GetKeyDown(uint8_t hidKey)
@@ -205,7 +258,6 @@ uint8_t GetAnalogDeck2(int index)
 // -------------------- LoopHid.h implementations --------------------
 void InputInit()
 {
-	InputInit_Mutex();
 	InputInit_HID();
 	InputInit_Keyboard();
 }
@@ -213,13 +265,34 @@ void InputInit()
 void InputUpdate()
 {
 	CheckHidDeviceConnection();
-	ShiftKeyStates();
+	ShiftKeyStates(_hidKeyStates);
 	InputUpdate_HID();
 	InputUpdate_Keyboard();
+
+	for (int i = 0; i < DJSW_HID_MESSAGE_QUEUE_COUNT; ++i)
+	{
+		InputPublish(hidMessageQueues + i);
+	}
 }
 
 void InputFinal()
 {
 	InputFinal_HID();
 	InputFinal_Keyboard();
+}
+
+DWORD WINAPI HidMain(LPVOID lpParams)
+{
+	HidParams* hidParams = (HidParams*)lpParams;
+
+	InputInit();
+
+	while (hidParams->loopBaseParams.interruptNumber != 1)
+	{
+		InputUpdate();
+	}
+
+	InputFinal();
+
+	return 1;
 }

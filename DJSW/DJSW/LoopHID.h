@@ -18,7 +18,7 @@
 typedef struct
 {
 	LoopBaseParams loopBaseParams;
-} HIDParams;
+} HidParams;
 
 typedef struct
 {
@@ -35,3 +35,5 @@ typedef struct
 void InputInit();
 void InputUpdate();
 void InputFinal();
+
+DWORD WINAPI HidMain(LPVOID lpParams);

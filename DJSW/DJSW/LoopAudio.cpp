@@ -4,9 +4,9 @@
 #include "djsw_input_hid.h"
 #include "djsw_input_hid_controls.h"
 
-AudioDevice _audioDevice;
-AudioChannel _channel0;
-AudioChannel _channel1;
+static AudioDevice _audioDevice;
+static AudioChannel _channel0;
+static AudioChannel _channel1;
 
 typedef struct
 {
@@ -101,6 +101,66 @@ static void AudioInit()
 	//_channel1.Play();
 }
 
+static void AudioInput_Digital(HidMessage msg)
+{
+	switch (msg.hidKey)
+	{
+	case DJSW_HID_PLAY1:
+		if (msg.message == DJSW_HID_MESSAGE_KEY_DOWN)
+		{
+			if (_channel0.isPlaying)
+				_channel0.Pause();
+			else
+				_channel0.Play();
+		}
+		break;
+	case DJSW_HID_PLAY2:
+		if (msg.message == DJSW_HID_MESSAGE_KEY_DOWN)
+		{
+			if (_channel1.isPlaying)
+				_channel1.Pause();
+			else
+				_channel1.Play();
+		}
+		break;
+	}
+}
+
+static void AudioInput_Analog()
+{
+	if (IsHidConnected())
+	{
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER].analogValueInt = GetAnalogMixer(DJSW_IDX_CROSSFADER);
+
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME1].analogValueInt = GetAnalogDeck1(DJSW_IDX_VOLUME);
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME2].analogValueInt = GetAnalogDeck2(DJSW_IDX_VOLUME);
+
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1].analogValueInt = GetAnalogDeck1(DJSW_IDX_TEMPO);
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2].analogValueInt = GetAnalogDeck2(DJSW_IDX_TEMPO);
+
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO1].analogValueInt = GetAnalogDeck1(DJSW_IDX_EQ_LO);
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX1].analogValueInt = GetAnalogDeck1(DJSW_IDX_FX);
+
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO2].analogValueInt = GetAnalogDeck2(DJSW_IDX_EQ_LO);
+		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX2].analogValueInt = GetAnalogDeck2(DJSW_IDX_FX);
+	}
+
+	// Analog Input Interpolation Logics
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER);
+
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_VOLUME1);
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_VOLUME2);
+
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1);
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2);
+
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO1);
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_FX1);
+
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO2);
+	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_FX2);
+}
+
 static void AudioUpdate()
 {
 	// 1. 버퍼 크기 얻기
@@ -131,6 +191,15 @@ static void AudioUpdate()
 		// TODO: 매 샘플마다 입력 처리가 필요한가?
 		float samples[8] = { 0.0f };
 		int16_t isamples[8] = { 0 };
+
+		HidMessage msg;
+
+		while (hidMessageQueues[DJSW_HID_MESSAGE_QUEUE_IDX_AUDIO].Pop(&msg))
+		{
+			AudioInput_Digital(msg);
+		}
+
+		AudioInput_Analog();
 
 		_channel0.masterVolume = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME1].analogValueFloat;
 		_channel1.masterVolume = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME2].analogValueFloat;
@@ -178,58 +247,6 @@ static void AudioFinal()
 }
 
 // -------------------- LoopAudio.h implementations --------------------
-void AudioInput()
-{
-	// Digital Inputs
-	// TODO: 디지털 입력을 이 곳에서 처리합니다.
-	if (GetKeyDown(DJSW_HID_PLAY1))
-	{
-		if (_channel0.isPlaying)
-			_channel0.Pause();
-		else
-			_channel0.Play();
-	}
-	if (GetKeyDown(DJSW_HID_PLAY2))
-	{
-		if (_channel1.isPlaying)
-			_channel1.Pause();
-		else
-			_channel1.Play();
-	}
-	
-	// Analog Inputs
-	if (IsHidConnected())
-	{
-		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER].analogValueInt = GetAnalogMixer(DJSW_IDX_CROSSFADER);
-
-		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME1].analogValueInt = GetAnalogDeck1(DJSW_IDX_VOLUME);
-		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME2].analogValueInt = GetAnalogDeck2(DJSW_IDX_VOLUME);
-
-		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1].analogValueInt = GetAnalogDeck1(DJSW_IDX_TEMPO);
-		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2].analogValueInt = GetAnalogDeck2(DJSW_IDX_TEMPO);
-
-		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO1].analogValueInt = GetAnalogDeck1(DJSW_IDX_EQ_LO);
-		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX1].analogValueInt = GetAnalogDeck1(DJSW_IDX_FX);
-
-		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO2].analogValueInt = GetAnalogDeck2(DJSW_IDX_EQ_LO);
-		_analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX2].analogValueInt = GetAnalogDeck2(DJSW_IDX_FX);
-	}
-
-	// Analog Input Interpolation Logics
-	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER);
-
-	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_VOLUME1);
-	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_VOLUME2);
-
-	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1);
-	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2);
-
-	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO1);
-	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_FX1);
-
-	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO2);
-	AudioAnalogInterpolation(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_FX2);
-}
 
 DWORD WINAPI AudioMain(LPVOID lpParams)
 {

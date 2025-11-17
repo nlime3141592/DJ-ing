@@ -12,7 +12,7 @@
 #define CORE_INDEX_AUDIO 0
 #define CORE_INDEX_HID 1
 
-static HIDParams _hidParams;
+static HidParams _hidParams;
 static AudioParams _audioParams;
 static RenderParams _renderParams;
 
@@ -45,6 +45,17 @@ int WINAPI LoopInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         &_audioParams.loopBaseParams.threadId);
     assert(_audioParams.loopBaseParams.threadHandle != NULL);
 
+    _hidParams.loopBaseParams.threadAffinityMask = 1ULL << CORE_INDEX_HID;
+    _hidParams.loopBaseParams.interruptNumber = DJSW_INT_NULL;
+    _hidParams.loopBaseParams.threadHandle = CreateThread(
+        NULL,
+        0,
+        HidMain,
+        &_hidParams,
+        0,
+        &_hidParams.loopBaseParams.threadId);
+    assert(_hidParams.loopBaseParams.threadHandle != NULL);
+
     // 실행되는 코어 위치 고정
     if (info.dwNumberOfProcessors >= 2)
     {
@@ -59,7 +70,6 @@ int WINAPI LoopInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         SetThreadPriority(_hidParams.loopBaseParams.threadHandle, THREAD_PRIORITY_TIME_CRITICAL);
     }
 
-    InputInit();
     RenderInit(hInstance, NULL, NULL, nCmdShow);
 
     return 1;
@@ -81,8 +91,6 @@ int WINAPI LoopUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         DispatchMessage(&msg);
     }
 
-    InputUpdate();
-    AudioInput();
     RenderUpdate(hInstance, NULL, NULL, nCmdShow);
 
     djChronoMCS elapsedTime = CHRONO_LENGTH_MCS(beg, CHRONO_NOW);
@@ -95,9 +103,11 @@ int WINAPI LoopUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 int WINAPI LoopFinal(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
     _audioParams.loopBaseParams.interruptNumber = DJSW_INT_LOOPEND;
-    WaitForSingleObject(_audioParams.loopBaseParams.threadHandle, 1000);
+    _hidParams.loopBaseParams.interruptNumber = DJSW_INT_LOOPEND;
 
-    InputFinal();
+    WaitForSingleObject(_audioParams.loopBaseParams.threadHandle, 1000);
+    WaitForSingleObject(_hidParams.loopBaseParams.threadHandle, 1000);
+
     RenderFinal(hInstance, NULL, NULL, nCmdShow);
 
     return 1;
