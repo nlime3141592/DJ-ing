@@ -123,6 +123,82 @@ static void AudioInput_Digital(HidMessage msg)
 				_channel1.Play();
 		}
 		break;
+	case DJSW_HID_PADFN11:
+	case DJSW_HID_PADFN12:
+	case DJSW_HID_PADFN13:
+	case DJSW_HID_PADFN14:
+		if (msg.message == DJSW_HID_MESSAGE_KEY_DOWN)
+		{
+			int number = DJSW_HID_PADFN11 - DJSW_HID_PADFN11 + 1;
+
+			if (_channel0.fxNumber == number)
+				_channel0.fxNumber = 0;
+			else
+				_channel0.fxNumber = number;
+		}
+		break;
+	case DJSW_HID_PADFN21:
+	case DJSW_HID_PADFN22:
+	case DJSW_HID_PADFN23:
+	case DJSW_HID_PADFN24:
+		if (msg.message == DJSW_HID_MESSAGE_KEY_DOWN)
+		{
+			int number = msg.hidKey - DJSW_HID_PADFN21 + 1;
+
+			if (_channel1.fxNumber == number)
+				_channel1.fxNumber = 0;
+			else
+				_channel1.fxNumber = number;
+		}
+		break;
+	case DJSW_HID_PAD11:
+	case DJSW_HID_PAD12:
+	case DJSW_HID_PAD13:
+	case DJSW_HID_PAD14:
+	case DJSW_HID_PAD15:
+	case DJSW_HID_PAD16:
+	case DJSW_HID_PAD17:
+	case DJSW_HID_PAD18:
+		if (msg.message == DJSW_HID_MESSAGE_KEY_PRESS)
+		{
+			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
+
+			// TODO: Pad 액션을 구현합니다.
+		}
+		break;
+	case DJSW_HID_PAD21:
+	case DJSW_HID_PAD22:
+	case DJSW_HID_PAD23:
+	case DJSW_HID_PAD24:
+	case DJSW_HID_PAD25:
+	case DJSW_HID_PAD26:
+	case DJSW_HID_PAD27:
+	case DJSW_HID_PAD28:
+		if (msg.message == DJSW_HID_MESSAGE_KEY_PRESS)
+		{
+			int number = msg.hidKey - DJSW_HID_PAD21 + 1;
+
+			// TODO: Pad 액션을 구현합니다.
+		}
+		break;
+	case DJSW_HID_TSH11:
+	case DJSW_HID_TSH12:
+	case DJSW_HID_TSH13:
+	case DJSW_HID_TSH14:
+		if (msg.message == DJSW_HID_MESSAGE_KEY_DOWN)
+		{
+			int index = msg.hidKey - DJSW_HID_TSH11;
+		}
+		break;
+	case DJSW_HID_TSH21:
+	case DJSW_HID_TSH22:
+	case DJSW_HID_TSH23:
+	case DJSW_HID_TSH24:
+		if (msg.message == DJSW_HID_MESSAGE_KEY_DOWN)
+		{
+			int index = msg.hidKey - DJSW_HID_TSH21;
+		}
+		break;
 	}
 }
 
@@ -246,24 +322,6 @@ static void AudioFinal()
 	_channel1.Unload();
 }
 
-// -------------------- LoopAudio.h implementations --------------------
-
-DWORD WINAPI AudioMain(LPVOID lpParams)
-{
-	AudioParams* audioParams = (AudioParams*)lpParams;
-
-	AudioInit();
-
-	while (audioParams->loopBaseParams.interruptNumber != 1)
-	{
-		AudioUpdate();
-	}
-
-	AudioFinal();
-
-	return 0;
-}
-
 // -------------------- djsw_audio_api.h implementations --------------------
 void SetAnalogValue(uint8_t value, int index)
 {
@@ -323,4 +381,22 @@ bool IsAudioLoaded(int channel)
 	default:
 		return false;
 	}
+}
+
+// -------------------- LoopAudio.h implementations --------------------
+
+DWORD WINAPI AudioMain(LPVOID lpParams)
+{
+	AudioParams* audioParams = (AudioParams*)lpParams;
+
+	AudioInit();
+
+	while (audioParams->loopBaseParams.interruptNumber != 1)
+	{
+		AudioUpdate();
+	}
+
+	AudioFinal();
+
+	return 0;
 }
