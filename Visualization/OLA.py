@@ -25,7 +25,7 @@ def inputSignal1(t):
     return y
 
 def hannWindow(t):
-    y = np.square(np.sin(np.pi * t / windowLength))
+    y = 0.5 - 0.5 * np.cos(2 * np.pi * t / windowLength)
     return y
 
 # sigma(f[x] * g[i - x])
@@ -38,17 +38,13 @@ def conv(f, g, fx0, fx1, gx0, gx1, bufferLength):
     y = np.empty(bufferLength, dtype=float)
 
     for i in range(df + dg - 1):
-        # norm = 0
         for j in range(dg):
             k = i - j
             if k < 0:
                 break
             y[fx0 + i] += f[fx0 + k] * g[gx0 + j]
-            # norm += g[gx0 + j]
-        # y[fx0 + i] /= norm
 
     return y
-
 
 t0 = np.linspace(0, domainLength, domainLength * samplePerSec)
 t1 = np.linspace(0, duration, duration * samplePerSec)
@@ -65,20 +61,20 @@ fig, ax = plt.subplots(2, 3, figsize=(16, 8))
 
 # inputs
 ax[0, 0].plot(t0, y0)
-ax[0, 1].plot(t2, yw)
-ax[0, 2].plot(t0, y1)
+ax[0, 1].plot(t0, y1)
+ax[0, 2].plot(t2, yw)
 
 ax[0, 0].set_title("input 0")
-ax[0, 1].set_title("window, size == 5")
-ax[0, 2].set_title("output 0")
+ax[0, 1].set_title("output 0")
+ax[0, 2].set_title("window, size == 5")
 
 # outputs
 ax[1, 0].plot(t0, y2)
-ax[1, 1].plot(t2, yw)
-ax[1, 2].plot(t0, y3)
+ax[1, 1].plot(t0, y3)
+ax[1, 2].plot(t0,  y1 + y3)
 
 ax[1, 0].set_title("input 1")
-ax[1, 1].set_title("window, size == 5")
-ax[1, 2].set_title("output 1")
+ax[1, 1].set_title("output 1")
+ax[1, 2].set_title("sum of outputs")
 
 plt.show()
