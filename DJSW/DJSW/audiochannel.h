@@ -8,6 +8,8 @@
 #include "audioreverb.h"
 #include "pcmwav.h"
 
+#define DJSW_TEMPO_FRAME_SIZE 512 // (256) * (2 channel)
+
 // stereo channel
 class AudioChannel
 {
@@ -34,18 +36,6 @@ public:
 
 	void SetLoop(int32_t begin, int32_t length);
 	void ClearLoop();
-
-	void OnInputDigital(uint8_t* hidKeyReport);
-	void OnInputAnalog(uint8_t* hidKeyReport);
-
-
-
-
-
-
-
-
-
 
 	// Wave File Data
 	void* fileData;
@@ -91,5 +81,10 @@ public:
 	float masterVolume;
 
 private:
+	int16_t _wsolaBuffer[DJSW_TEMPO_FRAME_SIZE];
 
+	void HanningWindow(int16_t* buffer);
+	int32_t SeekBestOverlapPosition(int16_t* buffer, int32_t bufferIndex, int16_t* input, int32_t toleranceRange);
 };
+
+void InitAudioChannel();

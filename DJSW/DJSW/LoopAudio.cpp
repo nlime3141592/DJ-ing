@@ -57,6 +57,7 @@ static void AudioInit()
 	_audioDevice.Init();
 	_audioDevice.Start();
 
+	InitAudioChannel();
 	_channel0 = AudioChannel();
 	_channel1 = AudioChannel();
 
@@ -288,6 +289,9 @@ static void AudioUpdate()
 		if (xFaderValue1 < 0.25f)
 			_channel1.masterVolume *= xFaderValue1;
 
+		float tmpValue0 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1].analogValueFloat - 0.5f;
+		float tmpValue1 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2].analogValueFloat - 0.5f;
+		
 		_channel0.Read2(isamples);
 		_channel1.Read2(isamples + 2);
 

@@ -1,5 +1,7 @@
 ﻿#include "audiochannel.h"
 
+static float _hanningWindows[DJSW_TEMPO_FRAME_SIZE];
+
 AudioChannel::AudioChannel() :
 	fileData(NULL),
 	data(NULL),
@@ -30,7 +32,7 @@ AudioChannel::AudioChannel() :
 
 	masterVolume(0.0f)
 {
-
+	memset(_wsolaBuffer, 0x00, sizeof(_wsolaBuffer));
 }
 
 bool AudioChannel::IsLoaded()
@@ -115,17 +117,16 @@ void AudioChannel::Read16(int16_t* out)
 
 void AudioChannel::Read2(int16_t* out)
 {
-	if (!isPlaying)
+	if (!isPlaying || position >= numWavSamples)
 	{
 		out[0] = 0;
 		out[1] = 0;
 		return;
 	}
 
-	// TODO: 노래가 끝난 뒤 position을 초기화하는 로직이 없어서 이 곳에서 예외가 발생했음. 처리해야 함.
 	int16_t lSample = (int16_t)wavSamples[position++];
 	int16_t rSample = (int16_t)wavSamples[position++];
-
+	
 	if (xFadeSampleLeft > 0)
 	{
 		float w0 = (float)xFadeSampleLeft / xFadeSampleLength;
@@ -261,4 +262,48 @@ void AudioChannel::ClearLoop()
 {
 	loopBeg = 0;
 	loopLength = 0;
+}
+
+void AudioChannel::HanningWindow(int16_t* buffer)
+{
+	for (int i = 0; i < DJSW_TEMPO_FRAME_SIZE; ++i)
+	{
+		float value = (float)buffer[i] * _hanningWindows[i];
+		buffer[i] = (int16_t)value;
+	}
+}
+
+int32_t AudioChannel::SeekBestOverlapPosition(int16_t* buffer, int32_t bufferIndex, int16_t* input, int32_t toleranceRange)
+{
+	float maxCorrelation = FLT_MIN;
+	int32_t maxOffset = 0;
+
+	for (int32_t i = -toleranceRange; i < toleranceRange; i += 2)
+	{
+		int32_t k = bufferIndex + i;
+		float sumCorrelation = 0.0f;
+
+		for (int32_t j = k; j < DJSW_TEMPO_FRAME_SIZE; ++j)
+		{
+			float a = (float)buffer[j] / 32768.0f;
+			float b = (float)input[j - k] / 32768.0f;
+			sumCorrelation += a * b;
+		}
+
+		if (sumCorrelation > maxCorrelation)
+		{
+			maxCorrelation = sumCorrelation;
+			maxOffset = i;
+		}
+	}
+
+	return maxOffset;
+}
+
+void InitAudioChannel()
+{
+	for (int i = 0; i < DJSW_TEMPO_FRAME_SIZE; ++i)
+	{
+		_hanningWindows[i] = 0.5f - 0.5f * cosf(2.0f * PI_F * (float)i / (float)(DJSW_TEMPO_FRAME_SIZE - 1));
+	}
 }
