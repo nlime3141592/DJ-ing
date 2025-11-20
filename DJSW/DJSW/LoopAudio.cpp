@@ -289,8 +289,15 @@ static void AudioUpdate()
 		if (xFaderValue1 < 0.25f)
 			_channel1.masterVolume *= xFaderValue1;
 
-		float tmpValue0 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1].analogValueFloat - 0.5f;
-		float tmpValue1 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2].analogValueFloat - 0.5f;
+		float tmpValue0 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1].analogValueFloat;
+		float tmpValue1 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2].analogValueFloat;
+
+		tmpValue0 = 2.0f * tmpValue0 - 1.0f;
+		tmpValue1 = 2.0f * tmpValue1 - 1.0f;
+
+		float tmpRange = 64.0f;
+		_channel0.hopDistance = (int32_t)(tmpRange * tmpValue0);
+		_channel1.hopDistance = (int32_t)(tmpRange * tmpValue1);
 		
 		_channel0.Read2(isamples);
 		_channel1.Read2(isamples + 2);

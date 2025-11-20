@@ -49,6 +49,7 @@ public:
 	uint32_t numWavSamples;
 	uint16_t* wavSamples;
 	int32_t position;
+	int32_t olaPosition;
 	bool isPlaying;
 	bool isMuted;
 
@@ -80,11 +81,16 @@ public:
 	// Master Volume
 	float masterVolume;
 
+	int32_t hopDistance;
+	
 private:
+	int32_t _wsolaPrevFrameIndex;
 	int16_t _wsolaBuffer[DJSW_TEMPO_FRAME_SIZE];
 
 	void HanningWindow(int16_t* buffer);
-	int32_t SeekBestOverlapPosition(int16_t* buffer, int32_t bufferIndex, int16_t* input, int32_t toleranceRange);
+	int32_t CrossCorrelation(int16_t* buffer0, int16_t* buffer1, int length);
+	int32_t SeekBestOverlapPosition(int32_t toleranceRange);
+	void WaveformSimilarityOLA();
 };
 
 void InitAudioChannel();

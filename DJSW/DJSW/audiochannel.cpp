@@ -10,6 +10,7 @@ AudioChannel::AudioChannel() :
 	numWavSamples(0),
 	wavSamples(NULL),
 	position(0),
+	olaPosition(0),
 	isPlaying(false),
 	isMuted(false),
 
@@ -30,7 +31,9 @@ AudioChannel::AudioChannel() :
 	loopBeg(0),
 	loopLength(0),
 
-	masterVolume(0.0f)
+	masterVolume(0.0f),
+
+	hopDistance(0)
 {
 	memset(_wsolaBuffer, 0x00, sizeof(_wsolaBuffer));
 }
@@ -102,12 +105,28 @@ bool AudioChannel::Unload()
 
 void AudioChannel::Play()
 {
+	olaPosition = 0;
+
+	int16_t buffer[DJSW_TEMPO_FRAME_SIZE];
+	memcpy(buffer, wavSamples, sizeof(buffer));
+	HanningWindow(buffer);
+
+	int half = DJSW_TEMPO_FRAME_SIZE / 2;
+
+	for (int i = 0; i < half; ++i)
+	{
+		_wsolaBuffer[i] = wavSamples[position + i];
+		_wsolaBuffer[half + i] = buffer[half + i];
+	}
+
 	isPlaying = true;
 }
 
 void AudioChannel::Pause()
 {
 	isPlaying = false;
+	position += olaPosition;
+	olaPosition = 0;
 }
 
 void AudioChannel::Read16(int16_t* out)
@@ -124,8 +143,17 @@ void AudioChannel::Read2(int16_t* out)
 		return;
 	}
 
-	int16_t lSample = (int16_t)wavSamples[position++];
-	int16_t rSample = (int16_t)wavSamples[position++];
+	//int16_t lSample = (int16_t)wavSamples[position++];
+	int16_t lSample = (int16_t)_wsolaBuffer[olaPosition++];
+	//int16_t rSample = (int16_t)wavSamples[position++];
+	int16_t rSample = (int16_t)_wsolaBuffer[olaPosition++];
+
+	if (olaPosition >= DJSW_TEMPO_FRAME_SIZE / 2)
+	{
+		position += DJSW_TEMPO_FRAME_SIZE / 2;
+		WaveformSimilarityOLA();
+		olaPosition = 0;
+	}
 	
 	if (xFadeSampleLeft > 0)
 	{
@@ -273,31 +301,77 @@ void AudioChannel::HanningWindow(int16_t* buffer)
 	}
 }
 
-int32_t AudioChannel::SeekBestOverlapPosition(int16_t* buffer, int32_t bufferIndex, int16_t* input, int32_t toleranceRange)
+int32_t AudioChannel::CrossCorrelation(int16_t* buffer0, int16_t* buffer1, int length)
+{
+	float sum = 0.0f;
+
+	int16_t b0[DJSW_TEMPO_FRAME_SIZE];
+	int16_t b1[DJSW_TEMPO_FRAME_SIZE];
+
+	memcpy(b0, buffer0, sizeof(b0));
+	memcpy(b1, buffer1, sizeof(b1));
+
+	HanningWindow(b0);
+	HanningWindow(b1);
+
+	for (int i = 0; i < length; ++i)
+	{
+		float v0 = (float)b0[i] / 32768.0f;
+		float v1 = (float)b1[i] / 32768.0f;
+
+		sum += v0 * v1;
+	}
+
+	return sum;
+}
+
+int32_t AudioChannel::SeekBestOverlapPosition(int32_t toleranceRange)
 {
 	float maxCorrelation = FLT_MIN;
 	int32_t maxOffset = 0;
 
+	int16_t* prevBuffer = (int16_t*)wavSamples + _wsolaPrevFrameIndex;
+	int16_t* nextBuffer = prevBuffer + (DJSW_TEMPO_FRAME_SIZE / 2 + hopDistance);
+
 	for (int32_t i = -toleranceRange; i < toleranceRange; i += 2)
 	{
-		int32_t k = bufferIndex + i;
-		float sumCorrelation = 0.0f;
+		float correlation = CrossCorrelation(prevBuffer, nextBuffer + i, DJSW_TEMPO_FRAME_SIZE);
 
-		for (int32_t j = k; j < DJSW_TEMPO_FRAME_SIZE; ++j)
+		if (correlation > maxCorrelation)
 		{
-			float a = (float)buffer[j] / 32768.0f;
-			float b = (float)input[j - k] / 32768.0f;
-			sumCorrelation += a * b;
-		}
-
-		if (sumCorrelation > maxCorrelation)
-		{
-			maxCorrelation = sumCorrelation;
+			maxCorrelation = correlation;
 			maxOffset = i;
 		}
 	}
 
 	return maxOffset;
+}
+
+void AudioChannel::WaveformSimilarityOLA()
+{
+	int frameSize = DJSW_TEMPO_FRAME_SIZE;
+	int frameSizeHalf = DJSW_TEMPO_FRAME_SIZE / 2;
+
+	if (position + DJSW_TEMPO_FRAME_SIZE > numWavSamples)
+		frameSize = numWavSamples - position;
+
+	int32_t toleranceRange = 20;
+	int32_t offset = SeekBestOverlapPosition(toleranceRange);
+	
+	int16_t* prevInputBuffer = (int16_t*)wavSamples + _wsolaPrevFrameIndex;
+	int16_t* nextInputBuffer = prevInputBuffer + frameSizeHalf + offset;
+
+	int16_t buffer[DJSW_TEMPO_FRAME_SIZE];
+	memcpy(buffer, nextInputBuffer, sizeof(buffer));
+	HanningWindow(buffer);
+
+	for (int i = 0; i < frameSizeHalf; ++i)
+	{
+		_wsolaBuffer[i] = _wsolaBuffer[i + frameSizeHalf] + buffer[i];
+		_wsolaBuffer[i + frameSizeHalf] = buffer[i + frameSizeHalf];
+	}
+
+	_wsolaPrevFrameIndex += frameSizeHalf;// +offset;
 }
 
 void InitAudioChannel()
