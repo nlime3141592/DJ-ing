@@ -8,7 +8,10 @@
 #include "audioreverb.h"
 #include "pcmwav.h"
 
-#define DJSW_TEMPO_FRAME_SIZE 512 // (256) * (2 channel)
+#define DJSW_WSOLA_FRAME_SIZE 512 // even number, prefer n-power of 2.
+#define DJSW_WSOLA_OVERLAP_SIZE 256 // even number, MUST BE half of frame size
+//#define DJSW_WSOLA_TOLERANCE_RANGE 20 // even number, prefer 10%~30% of overlap size, fixed tolerance range.
+#define DJSW_WSOLA_TEMPO_RANGE 10
 
 // stereo channel
 class AudioChannel
@@ -85,7 +88,7 @@ public:
 	
 private:
 	int32_t _wsolaPrevFrameIndex;
-	int16_t _wsolaBuffer[DJSW_TEMPO_FRAME_SIZE];
+	int16_t _wsolaBuffer[DJSW_WSOLA_FRAME_SIZE];
 
 	void HanningWindow(int16_t* buffer);
 	int32_t CrossCorrelation(int16_t* buffer0, int16_t* buffer1, int length);

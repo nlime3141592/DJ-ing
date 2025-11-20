@@ -1,6 +1,6 @@
 ﻿#include "audiochannel.h"
 
-static float _hanningWindows[DJSW_TEMPO_FRAME_SIZE];
+static float _hanningWindows[DJSW_WSOLA_FRAME_SIZE];
 
 AudioChannel::AudioChannel() :
 	fileData(NULL),
@@ -107,17 +107,19 @@ void AudioChannel::Play()
 {
 	olaPosition = 0;
 
-	int16_t buffer[DJSW_TEMPO_FRAME_SIZE];
+	int16_t buffer[DJSW_WSOLA_FRAME_SIZE];
 	memcpy(buffer, wavSamples, sizeof(buffer));
 	HanningWindow(buffer);
 
-	int half = DJSW_TEMPO_FRAME_SIZE / 2;
+	int half = DJSW_WSOLA_FRAME_SIZE / 2;
 
 	for (int i = 0; i < half; ++i)
 	{
 		_wsolaBuffer[i] = wavSamples[position + i];
 		_wsolaBuffer[half + i] = buffer[half + i];
 	}
+
+	_wsolaPrevFrameIndex = position;
 
 	isPlaying = true;
 }
@@ -148,11 +150,11 @@ void AudioChannel::Read2(int16_t* out)
 	//int16_t rSample = (int16_t)wavSamples[position++];
 	int16_t rSample = (int16_t)_wsolaBuffer[olaPosition++];
 
-	if (olaPosition >= DJSW_TEMPO_FRAME_SIZE / 2)
+	if (olaPosition >= DJSW_WSOLA_OVERLAP_SIZE)
 	{
-		position += DJSW_TEMPO_FRAME_SIZE / 2;
-		WaveformSimilarityOLA();
+		position += DJSW_WSOLA_OVERLAP_SIZE + hopDistance;
 		olaPosition = 0;
+		WaveformSimilarityOLA();
 	}
 	
 	if (xFadeSampleLeft > 0)
@@ -294,7 +296,7 @@ void AudioChannel::ClearLoop()
 
 void AudioChannel::HanningWindow(int16_t* buffer)
 {
-	for (int i = 0; i < DJSW_TEMPO_FRAME_SIZE; ++i)
+	for (int i = 0; i < DJSW_WSOLA_FRAME_SIZE; ++i)
 	{
 		float value = (float)buffer[i] * _hanningWindows[i];
 		buffer[i] = (int16_t)value;
@@ -305,8 +307,8 @@ int32_t AudioChannel::CrossCorrelation(int16_t* buffer0, int16_t* buffer1, int l
 {
 	float sum = 0.0f;
 
-	int16_t b0[DJSW_TEMPO_FRAME_SIZE];
-	int16_t b1[DJSW_TEMPO_FRAME_SIZE];
+	int16_t b0[DJSW_WSOLA_FRAME_SIZE];
+	int16_t b1[DJSW_WSOLA_FRAME_SIZE];
 
 	memcpy(b0, buffer0, sizeof(b0));
 	memcpy(b1, buffer1, sizeof(b1));
@@ -331,11 +333,11 @@ int32_t AudioChannel::SeekBestOverlapPosition(int32_t toleranceRange)
 	int32_t maxOffset = 0;
 
 	int16_t* prevBuffer = (int16_t*)wavSamples + _wsolaPrevFrameIndex;
-	int16_t* nextBuffer = prevBuffer + (DJSW_TEMPO_FRAME_SIZE / 2 + hopDistance);
+	int16_t* nextBuffer = (int16_t*)wavSamples + position;
 
 	for (int32_t i = -toleranceRange; i < toleranceRange; i += 2)
 	{
-		float correlation = CrossCorrelation(prevBuffer, nextBuffer + i, DJSW_TEMPO_FRAME_SIZE);
+		float correlation = CrossCorrelation(prevBuffer, nextBuffer + i, DJSW_WSOLA_FRAME_SIZE);
 
 		if (correlation > maxCorrelation)
 		{
@@ -349,20 +351,20 @@ int32_t AudioChannel::SeekBestOverlapPosition(int32_t toleranceRange)
 
 void AudioChannel::WaveformSimilarityOLA()
 {
-	int frameSize = DJSW_TEMPO_FRAME_SIZE;
-	int frameSizeHalf = DJSW_TEMPO_FRAME_SIZE / 2;
+	int frameSize = DJSW_WSOLA_FRAME_SIZE;
+	int frameSizeHalf = DJSW_WSOLA_OVERLAP_SIZE;
 
-	if (position + DJSW_TEMPO_FRAME_SIZE > numWavSamples)
+	if (position + DJSW_WSOLA_FRAME_SIZE > numWavSamples)
 		frameSize = numWavSamples - position;
 
-	int32_t toleranceRange = 20;
-	int32_t offset = SeekBestOverlapPosition(toleranceRange);
-	
-	int16_t* prevInputBuffer = (int16_t*)wavSamples + _wsolaPrevFrameIndex;
-	int16_t* nextInputBuffer = prevInputBuffer + frameSizeHalf + offset;
+	//int32_t tolerance = DJSW_WSOLA_TOLERANCE_RANGE;
+	int32_t tolerance = (int32_t)(0.2f * (float)hopDistance);
+	int32_t offset = SeekBestOverlapPosition(tolerance);
 
-	int16_t buffer[DJSW_TEMPO_FRAME_SIZE];
-	memcpy(buffer, nextInputBuffer, sizeof(buffer));
+	int16_t* input = (int16_t*)wavSamples + position + offset;
+
+	int16_t buffer[DJSW_WSOLA_FRAME_SIZE];
+	memcpy(buffer, input, sizeof(buffer));
 	HanningWindow(buffer);
 
 	for (int i = 0; i < frameSizeHalf; ++i)
@@ -371,13 +373,13 @@ void AudioChannel::WaveformSimilarityOLA()
 		_wsolaBuffer[i + frameSizeHalf] = buffer[i + frameSizeHalf];
 	}
 
-	_wsolaPrevFrameIndex += frameSizeHalf;// +offset;
+	_wsolaPrevFrameIndex = position + offset;
 }
 
 void InitAudioChannel()
 {
-	for (int i = 0; i < DJSW_TEMPO_FRAME_SIZE; ++i)
+	for (int i = 0; i < DJSW_WSOLA_FRAME_SIZE; ++i)
 	{
-		_hanningWindows[i] = 0.5f - 0.5f * cosf(2.0f * PI_F * (float)i / (float)(DJSW_TEMPO_FRAME_SIZE - 1));
+		_hanningWindows[i] = 0.5f - 0.5f * cosf(2.0f * PI_F * (float)i / (float)(DJSW_WSOLA_FRAME_SIZE - 1));
 	}
 }

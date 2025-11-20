@@ -295,9 +295,9 @@ static void AudioUpdate()
 		tmpValue0 = 2.0f * tmpValue0 - 1.0f;
 		tmpValue1 = 2.0f * tmpValue1 - 1.0f;
 
-		float tmpRange = 64.0f;
-		_channel0.hopDistance = (int32_t)(tmpRange * tmpValue0);
-		_channel1.hopDistance = (int32_t)(tmpRange * tmpValue1);
+		float tmpRange = (float)(DJSW_WSOLA_TEMPO_RANGE);
+		_channel0.hopDistance = (int32_t)(tmpRange * tmpValue0) * 2; // should be odd number
+		_channel1.hopDistance = (int32_t)(tmpRange * tmpValue1) * 2; // should be odd number
 		
 		_channel0.Read2(isamples);
 		_channel1.Read2(isamples + 2);
