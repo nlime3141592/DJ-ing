@@ -53,6 +53,8 @@ static inline void AnalogInterpolationInit(djAnalogInterpolation* interpolation,
 
 static void AudioInit()
 {
+	hidMessageQueues[DJSW_HID_MESSAGE_QUEUE_IDX_AUDIO].bypass = false;
+
 	_audioDevice = AudioDevice();
 	_audioDevice.Init();
 	_audioDevice.Start();

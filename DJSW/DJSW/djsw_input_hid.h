@@ -16,10 +16,11 @@
 #define DJSW_IDX_EQ_HI 6
 #define DJSW_IDX_FX 7
 
-#define DJSW_HID_MESSAGE_QUEUE_COUNT 2
+#define DJSW_HID_MESSAGE_QUEUE_COUNT 4
 #define DJSW_HID_MESSAGE_QUEUE_CAPACITY 1024
 #define DJSW_HID_MESSAGE_QUEUE_IDX_AUDIO 0
 #define DJSW_HID_MESSAGE_QUEUE_IDX_RENDER 1
+#define DJSW_HID_MESSAGE_QUEUE_IDX_DEBUG 2
 
 #define DJSW_HID_MESSAGE_TYPE_DIGITAL 0
 #define DJSW_HID_MESSAGE_TYPE_ANALOG 1
@@ -49,6 +50,8 @@ struct HidMessage
 class HidMessageQueue
 {
 public:
+	bool bypass;
+
 	HidMessageQueue();
 
 	bool Push(HidMessage* message);

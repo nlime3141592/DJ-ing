@@ -138,6 +138,9 @@ static void InputUpdate_HID()
 
 static void InputPublish(HidMessageQueue* queue)
 {
+	if (queue->bypass)
+		return;
+
 	HidMessage message;
 	message.messageType = DJSW_HID_MESSAGE_TYPE_DIGITAL;
 
@@ -193,6 +196,7 @@ bool IsHidConnected()
 }
 
 HidMessageQueue::HidMessageQueue() :
+	bypass(true),
 	head(0),
 	tail(0)
 {
