@@ -33,7 +33,8 @@ AudioChannel::AudioChannel() :
 
 	masterVolume(0.0f),
 
-	hopDistance(0)
+	hopDistance(0),
+	tshDistance(0)
 {
 	memset(_wsolaBuffer, 0x00, sizeof(_wsolaBuffer));
 }
@@ -138,7 +139,19 @@ void AudioChannel::Read16(int16_t* out)
 
 void AudioChannel::Read2(int16_t* out)
 {
-	if (!isPlaying || position >= numWavSamples)
+	if (!isPlaying)
+	{
+		if (tshDistance != 0)
+		{
+			position += tshDistance;
+			tshDistance = 0;
+		}
+
+		out[0] = 0;
+		out[1] = 0;
+		return;
+	}
+	else if (position >= numWavSamples || position < 0)
 	{
 		out[0] = 0;
 		out[1] = 0;
@@ -152,7 +165,8 @@ void AudioChannel::Read2(int16_t* out)
 
 	if (olaPosition >= DJSW_WSOLA_OVERLAP_SIZE)
 	{
-		position += DJSW_WSOLA_OVERLAP_SIZE + hopDistance;
+		position += DJSW_WSOLA_OVERLAP_SIZE + hopDistance + tshDistance;
+		tshDistance = 0;
 		olaPosition = 0;
 		WaveformSimilarityOLA();
 	}
@@ -358,7 +372,7 @@ void AudioChannel::WaveformSimilarityOLA()
 		frameSize = numWavSamples - position;
 
 	//int32_t tolerance = DJSW_WSOLA_TOLERANCE_RANGE;
-	int32_t tolerance = (int32_t)(0.2f * (float)hopDistance);
+	int32_t tolerance = (int32_t)(0.2f * (float)(hopDistance));
 	int32_t offset = SeekBestOverlapPosition(tolerance);
 
 	int16_t* input = (int16_t*)wavSamples + position + offset;

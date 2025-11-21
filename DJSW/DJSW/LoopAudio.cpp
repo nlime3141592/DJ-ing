@@ -104,10 +104,13 @@ static void AudioInit()
 
 static void AudioInput_Digital(HidMessage msg)
 {
+	int lShift = ((msg.modifier & DJSW_HID_MASK_MODIFIER_LEFT_SHIFT) != 0) ? -1 : 1;
+	int rShift = ((msg.modifier & DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT) != 0) ? -1 : 1;
+
 	switch (msg.hidKey)
 	{
 	case DJSW_HID_PLAY1:
-		if (msg.message == DJSW_HID_MESSAGE_KEY_DOWN)
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
 		{
 			if (_channel0.isPlaying)
 				_channel0.Pause();
@@ -116,7 +119,7 @@ static void AudioInput_Digital(HidMessage msg)
 		}
 		break;
 	case DJSW_HID_PLAY2:
-		if (msg.message == DJSW_HID_MESSAGE_KEY_DOWN)
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
 		{
 			if (_channel1.isPlaying)
 				_channel1.Pause();
@@ -128,7 +131,7 @@ static void AudioInput_Digital(HidMessage msg)
 	case DJSW_HID_PADFN12:
 	case DJSW_HID_PADFN13:
 	case DJSW_HID_PADFN14:
-		if (msg.message == DJSW_HID_MESSAGE_KEY_DOWN)
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
 		{
 			int number = DJSW_HID_PADFN11 - DJSW_HID_PADFN11 + 1;
 
@@ -142,7 +145,7 @@ static void AudioInput_Digital(HidMessage msg)
 	case DJSW_HID_PADFN22:
 	case DJSW_HID_PADFN23:
 	case DJSW_HID_PADFN24:
-		if (msg.message == DJSW_HID_MESSAGE_KEY_DOWN)
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
 		{
 			int number = msg.hidKey - DJSW_HID_PADFN21 + 1;
 
@@ -160,7 +163,7 @@ static void AudioInput_Digital(HidMessage msg)
 	case DJSW_HID_PAD16:
 	case DJSW_HID_PAD17:
 	case DJSW_HID_PAD18:
-		if (msg.message == DJSW_HID_MESSAGE_KEY_PRESS)
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_PRESS)
 		{
 			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
 
@@ -175,7 +178,7 @@ static void AudioInput_Digital(HidMessage msg)
 	case DJSW_HID_PAD26:
 	case DJSW_HID_PAD27:
 	case DJSW_HID_PAD28:
-		if (msg.message == DJSW_HID_MESSAGE_KEY_PRESS)
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_PRESS)
 		{
 			int number = msg.hidKey - DJSW_HID_PAD21 + 1;
 
@@ -183,22 +186,28 @@ static void AudioInput_Digital(HidMessage msg)
 		}
 		break;
 	case DJSW_HID_TSH11:
+		_channel0.tshDistance = 2 * lShift;
+		break;
 	case DJSW_HID_TSH12:
+		_channel0.tshDistance = 10 * lShift;
+		break;
 	case DJSW_HID_TSH13:
+		_channel0.tshDistance = 100 * lShift;
+		break;
 	case DJSW_HID_TSH14:
-		if (msg.message == DJSW_HID_MESSAGE_KEY_DOWN)
-		{
-			int index = msg.hidKey - DJSW_HID_TSH11;
-		}
+		_channel0.tshDistance = 1000 * lShift;
 		break;
 	case DJSW_HID_TSH21:
+		_channel1.tshDistance = 2 * rShift;
+		break;
 	case DJSW_HID_TSH22:
+		_channel1.tshDistance = 10 * rShift;
+		break;
 	case DJSW_HID_TSH23:
+		_channel1.tshDistance = 100 * rShift;
+		break;
 	case DJSW_HID_TSH24:
-		if (msg.message == DJSW_HID_MESSAGE_KEY_DOWN)
-		{
-			int index = msg.hidKey - DJSW_HID_TSH21;
-		}
+		_channel1.tshDistance = 1000 * rShift;
 		break;
 	}
 }

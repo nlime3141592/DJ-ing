@@ -152,16 +152,16 @@ static void InputPublish(HidMessageQueue* queue)
 		{
 			if (!b1)
 			{
-				message.message = DJSW_HID_MESSAGE_KEY_DOWN;
+				message.message = DJSW_HID_MASK_MESSAGE_KEY_DOWN;
 				queue->Push(&message);
 			}
 
-			message.message = DJSW_HID_MESSAGE_KEY_PRESS;
+			message.message = DJSW_HID_MASK_MESSAGE_KEY_PRESS;
 			queue->Push(&message);
 		}
 		else if (b1)
 		{
-			message.message = DJSW_HID_MESSAGE_KEY_UP;
+			message.message = DJSW_HID_MASK_MESSAGE_KEY_UP;
 			queue->Push(&message);
 		}
 	}

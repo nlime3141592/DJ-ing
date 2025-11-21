@@ -85,6 +85,7 @@ public:
 	float masterVolume;
 
 	int32_t hopDistance;
+	int32_t tshDistance;
 	
 private:
 	int32_t _wsolaPrevFrameIndex;
