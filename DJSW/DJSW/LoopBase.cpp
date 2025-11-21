@@ -34,8 +34,21 @@ int WINAPI LoopInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     );
     assert(execResult);
 
+    _hidParams.loopBaseParams.threadAffinityMask = 1ULL << CORE_INDEX_HID;
+    _hidParams.loopBaseParams.interruptNumber = DJSW_INT_SYNC;
+    _hidParams.loopBaseParams.threadHandle = CreateThread(
+        NULL,
+        0,
+        HidMain,
+        &_hidParams,
+        0,
+        &_hidParams.loopBaseParams.threadId);
+    assert(_hidParams.loopBaseParams.threadHandle != NULL);
+
+    while (_hidParams.loopBaseParams.interruptNumber != DJSW_INT_NULL);
+
     _audioParams.loopBaseParams.threadAffinityMask = 1ULL << CORE_INDEX_AUDIO;
-    _audioParams.loopBaseParams.interruptNumber = DJSW_INT_NULL;
+    _audioParams.loopBaseParams.interruptNumber = DJSW_INT_SYNC;
     _audioParams.loopBaseParams.threadHandle = CreateThread(
         NULL,
         0,
@@ -45,16 +58,7 @@ int WINAPI LoopInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         &_audioParams.loopBaseParams.threadId);
     assert(_audioParams.loopBaseParams.threadHandle != NULL);
 
-    _hidParams.loopBaseParams.threadAffinityMask = 1ULL << CORE_INDEX_HID;
-    _hidParams.loopBaseParams.interruptNumber = DJSW_INT_NULL;
-    _hidParams.loopBaseParams.threadHandle = CreateThread(
-        NULL,
-        0,
-        HidMain,
-        &_hidParams,
-        0,
-        &_hidParams.loopBaseParams.threadId);
-    assert(_hidParams.loopBaseParams.threadHandle != NULL);
+    while (_audioParams.loopBaseParams.interruptNumber != DJSW_INT_NULL);
 
     // 실행되는 코어 위치 고정
     if (info.dwNumberOfProcessors >= 2)

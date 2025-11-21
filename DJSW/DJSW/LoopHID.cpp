@@ -147,6 +147,7 @@ static void InputPublish(HidMessageQueue* queue)
 		int b1 = _hidKeyStates[i] & 0x02;
 
 		message.hidKey = i;
+		message.modifier = _pKeyboardReport->modifier;
 
 		if (b0)
 		{
@@ -286,6 +287,9 @@ DWORD WINAPI HidMain(LPVOID lpParams)
 	HidParams* hidParams = (HidParams*)lpParams;
 
 	InputInit();
+
+	// 초기화 로직 동기화를 위함.
+	hidParams->loopBaseParams.interruptNumber = DJSW_INT_NULL;
 
 	while (hidParams->loopBaseParams.interruptNumber != 1)
 	{

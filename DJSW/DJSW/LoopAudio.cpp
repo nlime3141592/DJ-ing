@@ -411,6 +411,9 @@ DWORD WINAPI AudioMain(LPVOID lpParams)
 
 	AudioInit();
 
+	// 초기화 로직 동기화를 위함.
+	audioParams->loopBaseParams.interruptNumber = DJSW_INT_NULL;
+
 	while (audioParams->loopBaseParams.interruptNumber != 1)
 	{
 		AudioUpdate();
