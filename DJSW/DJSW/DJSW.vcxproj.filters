@@ -49,6 +49,12 @@
     <Filter Include="소스 파일\Input">
       <UniqueIdentifier>{27eb062e-d729-4a34-83da-0a47f761a2b3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="헤더 파일\Files">
+      <UniqueIdentifier>{ea26b1f3-24f7-46a4-93bd-a78e06124960}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Files">
+      <UniqueIdentifier>{ec2e2abf-b8a5-4291-898d-50f651afb0ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="개발환경설정.md" />
@@ -129,6 +135,9 @@
     <ClCompile Include="djsw_input_keyboard.cpp">
       <Filter>소스 파일\Input</Filter>
     </ClCompile>
+    <ClCompile Include="djsw_file_metadata.cpp">
+      <Filter>소스 파일\Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dx12.h">
@@ -202,6 +211,15 @@
     </ClInclude>
     <ClInclude Include="djsw_audio_api.h">
       <Filter>헤더 파일\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_audiosource.h">
+      <Filter>헤더 파일\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_file_wav.h">
+      <Filter>헤더 파일\Files</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_file_metadata.h">
+      <Filter>헤더 파일\Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

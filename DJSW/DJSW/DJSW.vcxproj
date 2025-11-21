@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -26,6 +26,7 @@
     <ClCompile Include="audiodevice.cpp" />
     <ClCompile Include="audiofilter.cpp" />
     <ClCompile Include="audioreverb.cpp" />
+    <ClCompile Include="djsw_file_metadata.cpp" />
     <ClCompile Include="djsw_gui_app.cpp" />
     <ClCompile Include="djsw_gui_app_wave.cpp" />
     <ClCompile Include="djsw_gui_core_api_internal.cpp" />
@@ -54,7 +55,9 @@
     <ClInclude Include="audiofilter.h" />
     <ClInclude Include="audioreverb.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="djsw_audiosource.h" />
     <ClInclude Include="djsw_audio_api.h" />
+    <ClInclude Include="djsw_file_metadata.h" />
     <ClInclude Include="djsw_gui_app.h" />
     <ClInclude Include="djsw_gui_app_wave.h" />
     <ClInclude Include="djsw_gui_core_api_internal.h" />
@@ -62,6 +65,7 @@
     <ClInclude Include="djsw_input_hid.h" />
     <ClInclude Include="djsw_input_keyboard.h" />
     <ClInclude Include="djsw_input_hid_controls.h" />
+    <ClInclude Include="djsw_file_wav.h" />
     <ClInclude Include="LoopAudio.h" />
     <ClInclude Include="LoopBase.h" />
     <ClInclude Include="LoopHID.h" />

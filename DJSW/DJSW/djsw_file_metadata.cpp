@@ -1,0 +1,114 @@
+﻿#include "djsw_file_metadata.h"
+
+#include <assert.h>
+
+djWavMetaFile::djWavMetaFile() :
+	_metadata({ 0 }),
+	_fileHandle(INVALID_HANDLE_VALUE),
+	_dataChangeCount(0)
+{
+	Init();
+}
+
+void djWavMetaFile::Init()
+{
+	memset(&_metadata, 0x00, sizeof(djWavMetadata));
+
+	_metadata.defaultGridData.bpm = 0.0f;
+	_metadata.defaultGridData.barCount = -1;
+
+	for (int i = 0; i < DJSW_MAX_HOT_CUE_COUNT; ++i)
+	{
+		_metadata.hotCueIndices[i] = -1;
+	}
+}
+
+bool djWavMetaFile::Open(wstring metaFilePath)
+{
+	LPCWSTR filePath = metaFilePath.c_str();
+	
+	HANDLE fileHandle = CreateFileW(
+		filePath,
+		GENERIC_READ | GENERIC_WRITE,
+		0,
+		NULL,
+		OPEN_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL);
+
+	if (fileHandle == INVALID_HANDLE_VALUE)
+		return false;
+
+	DWORD err = GetLastError();
+
+	DWORD rdLength = sizeof(_metadata);
+	DWORD bytesRead = 0;
+
+	switch (err)
+	{
+	case 0: // File create new.
+		_fileHandle = fileHandle;
+		return Save();
+	case ERROR_ALREADY_EXISTS:
+		_fileHandle = fileHandle;
+
+		if (SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+			return false;
+
+		if (!ReadFile(fileHandle, &_metadata, rdLength, &bytesRead, NULL))
+			return false;
+
+		return bytesRead == rdLength;
+	default:
+		return false;
+	}
+}
+
+bool djWavMetaFile::Save()
+{
+	djWavMetadata data = _metadata;
+	DWORD wrLength = sizeof(data);
+	DWORD bytesWrite = 0;
+
+	if (SetFilePointer(_fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+		return false;
+
+	if (!WriteFile(_fileHandle, &data, wrLength, &bytesWrite, NULL))
+		return false;
+
+	return bytesWrite == wrLength;
+}
+
+bool djWavMetaFile::Close()
+{
+	if (_fileHandle == INVALID_HANDLE_VALUE)
+		return false;
+
+	if (!CloseHandle(_fileHandle))
+		return false;
+
+	_fileHandle = INVALID_HANDLE_VALUE;
+	return true;
+}
+
+float djWavMetaFile::GetBpm()
+{
+	return _metadata.defaultGridData.bpm;
+}
+
+int32_t djWavMetaFile::GetSamplesPerBar()
+{
+	return _metadata.defaultGridData.samplesPerBar;
+}
+
+int32_t djWavMetaFile::GetFirstBarIndex()
+{
+	return _metadata.defaultGridData.firstBarIndex;
+}
+
+void djWavMetaFile::SetHotCueIndex(int hotCueNumber, int32_t index)
+{
+	assert(hotCueNumber >= 0 && hotCueNumber < DJSW_MAX_HOT_CUE_COUNT);
+
+	_metadata.hotCueIndices[hotCueNumber] = index;
+}
