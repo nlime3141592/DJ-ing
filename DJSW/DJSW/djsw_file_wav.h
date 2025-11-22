@@ -22,5 +22,7 @@ struct djWavFileHeader
     // data Chunk
     uint32_t dataId;
     uint32_t dataChunkSize;
-    uint16_t samples[];
+    int16_t samples[];
 };
+
+bool IsValidWavFile(djWavFileHeader* header);

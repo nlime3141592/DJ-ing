@@ -1,5 +1,7 @@
 ﻿#include "audiochannel.h"
 
+#include <assert.h>
+
 static float _hanningWindows[DJSW_WSOLA_FRAME_SIZE];
 
 AudioChannel::AudioChannel() :
@@ -67,9 +69,9 @@ bool AudioChannel::Load(const char* fileName)
 	CloseHandle(file);
 	((uint8_t*)fileData)[fileSize] = 0;
 
-	data = (WavFile_PCM*)fileData;
+	data = (djWavFileHeader*)fileData;
 
-	ValidateFile_Debug(data);
+	assert(IsValidWavFile(data));
 
 	numWavSamples = data->dataChunkSize / sizeof(uint16_t);
 	wavSamples = data->samples;

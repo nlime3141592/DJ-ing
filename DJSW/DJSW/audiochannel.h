@@ -6,7 +6,8 @@
 
 #include "audiofilter.h"
 #include "audioreverb.h"
-#include "pcmwav.h"
+#include "djsw_file_wav.h"
+#include "djsw_file_metadata.h"
 
 #define DJSW_WSOLA_FRAME_SIZE 512 // even number, prefer n-power of 2.
 #define DJSW_WSOLA_OVERLAP_SIZE 256 // even number, MUST BE half of frame size
@@ -42,7 +43,7 @@ public:
 
 	// Wave File Data
 	void* fileData;
-	WavFile_PCM* data;
+	djWavFileHeader* data;
 	uint32_t fileSize;
 
 	// Metadata for Audio Source
@@ -50,7 +51,7 @@ public:
 
 	// Sample Data
 	uint32_t numWavSamples;
-	uint16_t* wavSamples;
+	int16_t* wavSamples;
 	int32_t position;
 	int32_t olaPosition;
 	bool isPlaying;
