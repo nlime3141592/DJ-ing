@@ -310,6 +310,11 @@ void AudioChannel::ClearLoop()
 	loopLength = 0;
 }
 
+djAudioSource* AudioChannel::GetSource()
+{
+	return &_audioSource;
+}
+
 void AudioChannel::HanningWindow(int16_t* buffer)
 {
 	for (int i = 0; i < DJSW_WSOLA_FRAME_SIZE; ++i)

@@ -52,6 +52,7 @@ void djWaveView::OnDrawWave()
 
 	djRectLTRB ltrb;
 
+	//if (this->channel->IsLoaded())
 	if (IsAudioLoaded(this->idxChannel))
 	{
 		int origin = GetPosition(this->idxChannel);

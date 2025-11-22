@@ -23,6 +23,10 @@ using namespace std;
 #define DJSW_BAR_COUNT_32_INVERSE -32
 #define DJSW_BAR_COUNT_64_INVERSE -64
 
+#define _DJSW_WSOLA_FRAME_SIZE 256 // even number, prefer n-power of 2.
+#define _DJSW_WSOLA_OVERLAP_SIZE 128 // even number, MUST BE half of frame size
+#define _DJSW_WSOLA_MAX_TOLERANCE 20
+
 class djAudioSource
 {
 public:
@@ -31,7 +35,7 @@ public:
 	bool Unload();
 
 	int32_t GetGlobalCueIndex();
-	int32_t SetGlobalCueIndex();
+	void SetGlobalCueIndex(int32_t index);
 	
 	void SetHotCueIndex(int32_t index);
 	void SetLoop(int32_t loopBarCount, bool shouldQuantize);
@@ -40,9 +44,45 @@ public:
 	void SetTempoRange(float tempoRange);
 	void SetTimeShift(int32_t timeShiftSamples);
 
+	void ReadInit();
+	void ReadSingle(int16_t* out);
+	void Read(int16_t* out);
+
 private:
+	djWavMetaFile* _metaFile;
+	djWavFileHeader* _header;
+	int32_t _audioFileSize;
+
+	int32_t _numWavSamples;
+	int16_t* _wavSamples;
+
+	int32_t _glbPosition;
+	int32_t _olaPosition;
+
+	bool _useGlobalCue;
 	int32_t _glbCueIndex;
+
+	bool _useHotCue;
 	int32_t _hotCueIndex;
+
+	bool _shouldJump;
+	int32_t _jumpIndex;
+
+	bool _useLoop;
 	int32_t _loopIndex;
 	int32_t _loopLength;
+
+	int32_t _hopDistance;
+	int32_t _tshDistance;
+
+	int32_t _wsolaInputSize;
+	int16_t* _wsolaInputBuffer;
+
+	int32_t _wsolaOutputSize;
+	int16_t* _wsolaHanningBuffer;
+	int16_t* _wsolaOutputBuffer;
+
+	int32_t _xFadeSampleLength = 100; // Tunable.
+	int32_t _xFadeBeg;
+	int32_t _xFadeSampleLeft;
 };

@@ -1,6 +1,7 @@
 ﻿#include "djsw_file_metadata.h"
 
 #include <assert.h>
+//#include <Shlwapi.h>
 
 djWavMetaFile::djWavMetaFile() :
 	_metadata({ 0 }),
@@ -91,14 +92,42 @@ bool djWavMetaFile::Close()
 	return true;
 }
 
+void djWavMetaFile::SetDefaultGridData(djWavGridData* data)
+{
+	_metadata.defaultGridData = *data;
+}
+
+bool djWavMetaFile::SetWavFile(wstring wavFilePath)
+{
+	LPCWSTR filePath = wavFilePath.c_str();
+
+	//if (!PathFileExistsW(filePath)) return false;
+
+	int len = WideCharToMultiByte(
+		CP_UTF8, // UTF-8로 변환
+		0,
+		filePath,
+		-1, // null 포함
+		_metadata.wavFilePath,
+		MAX_PATH,
+		NULL,
+		NULL
+	);
+
+	if (len == 0)
+		return false;
+
+	return true;
+}
+
+char* djWavMetaFile::GetWavFilePath()
+{
+	return _metadata.wavFilePath;
+}
+
 float djWavMetaFile::GetBpm()
 {
 	return _metadata.defaultGridData.bpm;
-}
-
-int32_t djWavMetaFile::GetSamplesPerBar()
-{
-	return _metadata.defaultGridData.samplesPerBar;
 }
 
 int32_t djWavMetaFile::GetFirstBarIndex()

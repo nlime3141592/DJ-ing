@@ -1,11 +1,13 @@
 ﻿#pragma once
 
+#include "audiochannel.h"
 #include "djsw_gui_app.h"
 
 class djWaveView : public djView
 {
 public:
 	int idxChannel;
+	AudioChannel* channel;
 
 	virtual void OnGuiInit();
 	virtual void OnGuiUpdate();

@@ -405,6 +405,19 @@ bool IsAudioLoaded(int channel)
 	}
 }
 
+AudioChannel* GetChannel(int index)
+{
+	switch (index)
+	{
+	case 0:
+		return &_channel0;
+	case 1:
+		return &_channel1;
+	default:
+		return NULL;
+	}
+}
+
 // -------------------- LoopAudio.h implementations --------------------
 
 DWORD WINAPI AudioMain(LPVOID lpParams)

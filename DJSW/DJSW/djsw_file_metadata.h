@@ -4,6 +4,8 @@
 #include <string>
 #include <Windows.h>
 
+#include "djsw_file_wav.h"
+
 #define DJSW_MAX_HOT_CUE_COUNT 16
 #define DJSW_MAX_CUSTOM_GRID_COUNT 64
 #define DJSW_MAX_CUSTOM_GRID_INDEX_COUNT 256
@@ -15,7 +17,7 @@ using namespace std;
 struct djWavGridData
 {
 	float bpm;
-	int32_t samplesPerBar;
+	int32_t reserved0; // 마디당 샘플 수 == fs * channel * 240 / bpm
 	int32_t firstBarIndex;
 	int32_t barCount;
 };
@@ -45,8 +47,11 @@ public:
 	bool Save();
 	bool Close();
 
+	void SetDefaultGridData(djWavGridData* data);
+	bool SetWavFile(wstring wavFilePath);
+	char* GetWavFilePath();
+	
 	float GetBpm();
-	int32_t GetSamplesPerBar();
 	int32_t GetFirstBarIndex();
 	
 	void SetHotCueIndex(int hotCueNumber, int32_t index);

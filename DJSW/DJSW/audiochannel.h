@@ -6,6 +6,7 @@
 
 #include "audiofilter.h"
 #include "audioreverb.h"
+#include "djsw_audiosource.h"
 #include "djsw_file_wav.h"
 #include "djsw_file_metadata.h"
 
@@ -87,8 +88,12 @@ public:
 
 	int32_t hopDistance;
 	int32_t tshDistance;
+
+	djAudioSource* GetSource();
 	
 private:
+	djAudioSource _audioSource;
+	
 	int32_t _wsolaPrevFrameIndex;
 	int16_t _wsolaBuffer[DJSW_WSOLA_FRAME_SIZE];
 
