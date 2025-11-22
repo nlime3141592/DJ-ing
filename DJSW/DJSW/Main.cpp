@@ -1,13 +1,11 @@
-﻿#include <Windows.h>
+﻿#include <assert.h>
+#include <Windows.h>
 
-#include <assert.h>
 #include "LoopBase.h"
 
-#include "djsw_file_metadata.h"
-#include "djsw_input_hid.h"
-#include "djsw_input_hid_controls.h"
-
-#include <string>
+#ifdef _DEBUG
+#include "djsw_testing_main.h"
+#endif
 
 int WINAPI WinMain(
     _In_ HINSTANCE hInstance,
@@ -23,40 +21,22 @@ int WINAPI WinMain(
 
     LoopInit(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 
-    // if bypass true, then, hid loop doesn't push input event.
-    hidMessageQueues[DJSW_HID_MESSAGE_QUEUE_IDX_DEBUG].bypass = false;
-
-    djWavMetaFile metafile = djWavMetaFile();
+#ifdef _DEBUG
+    TestInit(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+#endif
 
     while (LoopUpdate(hInstance, hPrevInstance, lpCmdLine, nCmdShow))
     {
-        // Debug logic here.
-        HidMessage hidmsg;
-
-        while (hidMessageQueues[DJSW_HID_MESSAGE_QUEUE_IDX_DEBUG].Pop(&hidmsg))
-        {
-            switch (hidmsg.hidKey)
-            {
-            case DJSW_HID_SPLIT1:
-                if (hidmsg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
-                {
-                    metafile.Open(L"C:\\Test\\meta.djmeta");
-                    OutputDebugStringW(L"File Opened.\n");
-                }
-                break;
-            case DJSW_HID_SPLIT2:
-                if (hidmsg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
-                {
-                    metafile.SetHotCueIndex(2, 3456);
-                    metafile.Save();
-                    metafile.Close();
-                    OutputDebugStringW(L"File Closed.\n");
-                }
-            }
-        }
+#ifdef _DEBUG
+        TestUpdate(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+#endif
     }
     
     LoopFinal(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+
+#ifdef _DEBUG
+    TestFinal(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+#endif
 
     return 0;
 }
