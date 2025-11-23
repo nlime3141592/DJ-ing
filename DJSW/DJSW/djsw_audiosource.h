@@ -76,11 +76,17 @@ private:
 	int32_t _tshDistance;
 
 	int32_t _wsolaInputSize;
+	int32_t _wsolaSelectedTolerance;
 	int16_t* _wsolaInputBuffer;
+	void LoadInputBuffer(int32_t hop);
 
 	int32_t _wsolaOutputSize;
-	int16_t* _wsolaHanningBuffer;
+	int16_t* _wsolaHannedValueBuffer;
+	int16_t* _wsolaHanningWindowBuffer;
+	void ApplyHanningWindow(int16_t* buffer, int32_t length);
 	int16_t* _wsolaOutputBuffer;
+	float GetCrossCorrelation(int16_t* a, int16_t* b);
+	int32_t SeekBestOverlapPosition(int32_t tolerance);
 
 	int32_t _xFadeSampleLength = 100; // Tunable.
 	int32_t _xFadeBeg;
