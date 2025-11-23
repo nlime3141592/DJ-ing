@@ -54,7 +54,8 @@ public:
 	float GetBpm();
 	int32_t GetFirstBarIndex();
 	
-	void SetHotCueIndex(int hotCueNumber, int32_t index);
+	void SetHotCue(int hotCueIndex, int32_t position);
+	int32_t GetHotCue(int hotCueIndex);
 
 private:
 	djWavMetadata _metadata;

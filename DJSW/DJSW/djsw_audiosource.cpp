@@ -68,8 +68,8 @@ wstring djAudioSource::CreateMetadata(wstring wavPath)
 {
 	wstring metaFilePath = wavPath + L".djmeta";
 
-	_metaFile->Init();
 	_metaFile->Open(metaFilePath);
+	_metaFile->Init();
 	_metaFile->SetWavFile(wavPath);
 	_metaFile->Close();
 
@@ -235,36 +235,32 @@ void djAudioSource::Jump(int32_t jumpIndex)
 	_shouldJump = true;
 }
 
-void djAudioSource::ClearLoop()
-{
-	_useLoop = false;
-	_loopIndex = 0;
-	_loopLength = 0;
-}
-
 void djAudioSource::SetLoop(int32_t loopBarCount, bool shouldQuantize)
 {
 	//int32_t samplesPerBar = GetSamplesPerBar(_header->sampleRate, _header->numChannels, _metaFile->GetBpm());
 	int32_t samplesPerBar = GetSamplesPerBar(_header->sampleRate, _header->numChannels, 126.0f); // TEST BPM.
 
-	if (loopBarCount > 0)
-	{
-		_useLoop = true;
-		_loopLength = samplesPerBar * loopBarCount;
-	}
-	else if (loopBarCount < 0)
-	{
-		_useLoop = true;
-		_loopLength = samplesPerBar / (-loopBarCount);
-	}
-	else
+	if (loopBarCount == DJSW_BAR_COUNT_0 || loopBarCount == _loopBarCount)
 	{
 		_useLoop = false;
+		_loopBarCount = 0;
 		_loopLength = 0;
 		_loopIndex = -1;
 		return;
 	}
-
+	if (loopBarCount > 0)
+	{
+		_loopBarCount = loopBarCount;
+		_loopLength = samplesPerBar * loopBarCount;
+		_useLoop = true;
+	}
+	if (loopBarCount < 0)
+	{
+		_loopBarCount = loopBarCount;
+		_loopLength = samplesPerBar / (-loopBarCount);
+		_useLoop = true;
+	}
+	
 	int32_t position = _glbPosition + _olaPosition;
 
 	if (shouldQuantize)
@@ -301,14 +297,39 @@ void djAudioSource::SetTimeShift(int32_t timeShiftSamples)
 	_tshDistance = timeShiftSamples * _header->numChannels;
 }
 
+djWavMetaFile* djAudioSource::GetWavMetaFile()
+{
+	return _metaFile;
+}
+
+djWavFileHeader* djAudioSource::GetWavHeader()
+{
+	return _header;
+}
+
+void djAudioSource::ClearHotCue(int hotCueIndex)
+{
+	_metaFile->SetHotCue(hotCueIndex, -1);
+	//_metaFile->Save();
+}
+
+void djAudioSource::SetHotCue(int hotCueIndex)
+{
+	_metaFile->SetHotCue(hotCueIndex, _glbPosition + _olaPosition);
+	//_metaFile->Save();
+}
+
+int32_t djAudioSource::GetHotCue(int hotCueIndex)
+{
+	return _metaFile->GetHotCue(hotCueIndex);
+}
+
 void djAudioSource::ReadInit()
 {
 	_glbPosition = LoadInputBuffer(_wsolaInputBuffer0, _glbPosition);
 
 	memcpy(_wsolaOutputBuffer, _wsolaInputBuffer0 + _DJSW_WSOLA_MAX_TOLERANCE * _header->numChannels, _wsolaOutputSize);
 	ApplyHanningWindow(_wsolaOutputBuffer, _wsolaHannBufferSize / 2, _wsolaHannBufferSize / 2);
-
-	_wsolaSelectedTolerance = 0;
 }
 
 void djAudioSource::ReadSingle(int16_t* out)

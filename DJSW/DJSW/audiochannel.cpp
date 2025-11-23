@@ -87,8 +87,8 @@ bool AudioChannel::IsPlaying()
 bool AudioChannel::Load2(wstring wavFilePath)
 {
 	_audioSource = djAudioSource();
-	wstring metaFilePath = _audioSource.CreateMetadata(wavFilePath);
-	_audioSource.Load(metaFilePath);
+	//wstring metaFilePath = _audioSource.CreateMetadata(wavFilePath);
+	_audioSource.Load(wavFilePath + L".djmeta");
 	return true;
 }
 

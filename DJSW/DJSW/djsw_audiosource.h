@@ -48,11 +48,14 @@ public:
 	void SetGlobalCueIndex(int32_t index);
 	
 	bool IsLoop();
-	void ClearLoop();
 	void SetLoop(int32_t loopBarCount, bool shouldQuantize);
-
+	
 	void Jump(int32_t jumpIndex);
 
+	void ClearHotCue(int hotCueIndex);
+	void SetHotCue(int hotCueIndex);
+	int32_t GetHotCue(int hotCueIndex);
+	
 	void SetTempoWeight(float weight);
 	void SetTempoRange(float tempoRange);
 	void SetTimeShift(int32_t timeShiftSamples);
@@ -67,6 +70,10 @@ public:
 	void Pause();
 
 	void SetHopDistance(int32_t hopDistance);
+
+	// TODO: 웬만하면 사용하지 않는 방향으로 코딩하고, 코딩 후 사용하지 않는다면 삭제하기.
+	djWavMetaFile* GetWavMetaFile();
+	djWavFileHeader* GetWavHeader();
 
 private:
 	djWavMetaFile* _metaFile;
@@ -88,6 +95,7 @@ private:
 	int32_t _jumpIndex;
 
 	bool _useLoop;
+	int32_t _loopBarCount;
 	int32_t _loopIndex;
 	int32_t _loopLength;
 

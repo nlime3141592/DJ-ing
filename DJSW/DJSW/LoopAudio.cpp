@@ -108,11 +108,72 @@ static void AudioInit()
 	_channel1.Load2(L"C:\\Test\\bangalore.wav");
 }
 
+static void PadButtonAction(
+	HidMessage* msg,
+	int32_t shiftMask,
+	int32_t channel,
+	int32_t index,
+	int32_t loopBarCount,
+	bool quantize)
+{
+	AudioChannel* pChannel = GetChannel(channel);
+
+	if (msg->message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+	{
+		switch (pChannel->fxNumber)
+		{
+		case 0:
+			// Do anything.
+			break;
+		case 1: // Hot Cue Performance
+			if ((msg->modifier & shiftMask) != 0)
+				pChannel->GetSource()->ClearHotCue(index);
+			else if (pChannel->GetSource()->GetHotCue(index) < 0)
+				pChannel->GetSource()->SetHotCue(index);
+			else
+			{
+				pChannel->GetSource()->Jump(pChannel->GetSource()->GetHotCue(index));
+				pChannel->GetSource()->Play();
+			}
+			break;
+		case 2: // Loop Effect
+			pChannel->GetSource()->SetLoop(loopBarCount, quantize);
+			break;
+		case 3: // FX Effect
+			// Do anything.
+			break;
+		case 4:
+			// Do anything.
+			break;
+		default:
+			assert(false);
+			break;
+		}
+	}
+}
+
+static void TimeShiftButtonAction(
+	HidMessage* msg,
+	int32_t shiftMask,
+	int32_t channel,
+	int32_t index,
+	int32_t shiftSamples)
+{
+	AudioChannel* pChannel = GetChannel(channel);
+
+	int direction = 1;
+
+	if ((msg->modifier & shiftMask) != 0)
+		direction = -1;
+
+	if (msg->message == DJSW_HID_MASK_MESSAGE_KEY_PRESS)
+	{
+		pChannel->GetSource()->SetTimeShift(shiftSamples * direction);
+	}
+}
+
 static void AudioInput_Digital(HidMessage msg)
 {
-	int lShift = ((msg.modifier & DJSW_HID_MASK_MODIFIER_LEFT_SHIFT) != 0) ? -1 : 1;
-	int rShift = ((msg.modifier & DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT) != 0) ? -1 : 1;
-
 	switch (msg.hidKey)
 	{
 	case DJSW_HID_PLAY1:
@@ -148,7 +209,6 @@ static void AudioInput_Digital(HidMessage msg)
 
 			OutputDebugStringW((L"fxNumber0 == " + to_wstring(_channel0.fxNumber) + L"\n").c_str());
 		}
-		
 		break;
 	case DJSW_HID_PADFN21:
 	case DJSW_HID_PADFN22:
@@ -167,158 +227,220 @@ static void AudioInput_Digital(HidMessage msg)
 		}
 		break;
 	case DJSW_HID_PAD11:
-		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
-		{
-			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
-
-			// TODO: Pad 액션을 구현합니다.
-			if (_channel0.fxNumber == 1)
-			{
-				_channel0.GetSource()->Jump(0);
-			}
-			if (_channel0.fxNumber == 2)
-			{
-				if (_channel0.GetSource()->IsLoop())
-				{
-					_channel0.GetSource()->ClearLoop();
-				}
-				else
-				{
-					_channel0.GetSource()->SetLoop(4, false);
-				}
-			}
-		}
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			0,
+			DJSW_BAR_COUNT_1,
+			false);
 		break;
 	case DJSW_HID_PAD12:
-		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
-		{
-			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
-
-			// TODO: Pad 액션을 구현합니다.
-			if (_channel0.fxNumber == 1)
-			{
-				_channel0.GetSource()->Jump(44100 * 2 * 15);
-			}
-		}
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			1,
+			DJSW_BAR_COUNT_2,
+			false);
 		break;
 	case DJSW_HID_PAD13:
-		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
-		{
-			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
-
-			// TODO: Pad 액션을 구현합니다.
-			if (_channel0.fxNumber == 1)
-			{
-				_channel0.GetSource()->Jump(44100 * 2 * 58);
-			}
-		}
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			2,
+			DJSW_BAR_COUNT_4,
+			false);
 		break;
 	case DJSW_HID_PAD14:
-		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
-		{
-			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
-
-			// TODO: Pad 액션을 구현합니다.
-			if (_channel0.fxNumber == 1)
-			{
-				_channel0.GetSource()->Jump(44100 * 2 * 120);
-			}
-		}
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			3,
+			DJSW_BAR_COUNT_8,
+			false);
 		break;
 	case DJSW_HID_PAD15:
-		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
-		{
-			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
-
-			// TODO: Pad 액션을 구현합니다.
-			if (_channel0.fxNumber == 1)
-			{
-
-			}
-		}
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			4,
+			DJSW_BAR_COUNT_2_INVERSE,
+			false);
 		break;
 	case DJSW_HID_PAD16:
-		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
-		{
-			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
-
-			// TODO: Pad 액션을 구현합니다.
-			if (_channel0.fxNumber == 1)
-			{
-
-			}
-		}
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			5,
+			DJSW_BAR_COUNT_4_INVERSE,
+			false);
 		break;
 	case DJSW_HID_PAD17:
-		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
-		{
-			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
-
-			// TODO: Pad 액션을 구현합니다.
-			if (_channel0.fxNumber == 1)
-			{
-
-			}
-		}
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			6,
+			DJSW_BAR_COUNT_8_INVERSE,
+			false);
 		break;
 	case DJSW_HID_PAD18:
-		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
-		{
-			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
-
-			// TODO: Pad 액션을 구현합니다.
-			if (_channel0.fxNumber == 1)
-			{
-
-			}
-		}
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			7,
+			DJSW_BAR_COUNT_16_INVERSE,
+			false);
 		break;
 	case DJSW_HID_PAD21:
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			0,
+			DJSW_BAR_COUNT_1,
+			false);
+		break;
 	case DJSW_HID_PAD22:
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			1,
+			DJSW_BAR_COUNT_2,
+			false);
+		break;
 	case DJSW_HID_PAD23:
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			2,
+			DJSW_BAR_COUNT_4,
+			false);
+		break;
 	case DJSW_HID_PAD24:
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			3,
+			DJSW_BAR_COUNT_8,
+			false);
+		break;
 	case DJSW_HID_PAD25:
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			4,
+			DJSW_BAR_COUNT_2_INVERSE,
+			false);
+		break;
 	case DJSW_HID_PAD26:
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			5,
+			DJSW_BAR_COUNT_4_INVERSE,
+			false);
+		break;
 	case DJSW_HID_PAD27:
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			6,
+			DJSW_BAR_COUNT_8_INVERSE,
+			false);
+		break;
 	case DJSW_HID_PAD28:
-		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_PRESS)
-		{
-			int number = msg.hidKey - DJSW_HID_PAD21 + 1;
-
-			// TODO: Pad 액션을 구현합니다.
-		}
+		PadButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			7,
+			DJSW_BAR_COUNT_16_INVERSE,
+			false);
 		break;
 	case DJSW_HID_TSH11:
-		//_channel0.tshDistance = 2 * lShift;
-		_channel0.GetSource()->SetTimeShift(2 * lShift);
+		TimeShiftButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			0,
+			1
+		);
 		break;
 	case DJSW_HID_TSH12:
-		//_channel0.tshDistance = 10 * lShift;
-		_channel0.GetSource()->SetTimeShift(10 * lShift);
+		TimeShiftButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			1,
+			10
+		);
 		break;
 	case DJSW_HID_TSH13:
-		//_channel0.tshDistance = 100 * lShift;
-		_channel0.GetSource()->SetTimeShift(100 * lShift);
+		TimeShiftButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			2,
+			100
+		);
 		break;
 	case DJSW_HID_TSH14:
-		//_channel0.tshDistance = 1000 * lShift;
-		_channel0.GetSource()->SetTimeShift(1000 * lShift);
+		TimeShiftButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			3,
+			1000
+		);
 		break;
 	case DJSW_HID_TSH21:
-		//_channel1.tshDistance = 2 * rShift;
-		_channel1.GetSource()->SetTimeShift(2 * lShift);
+		TimeShiftButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			0,
+			1
+		);
 		break;
 	case DJSW_HID_TSH22:
-		//_channel1.tshDistance = 10 * rShift;
-		_channel1.GetSource()->SetTimeShift(10 * lShift);
+		TimeShiftButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			1,
+			10
+		);
 		break;
 	case DJSW_HID_TSH23:
-		//_channel1.tshDistance = 100 * rShift;
-		_channel1.GetSource()->SetTimeShift(100 * lShift);
+		TimeShiftButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			2,
+			100
+		);
 		break;
 	case DJSW_HID_TSH24:
-		//_channel1.tshDistance = 1000 * rShift;
-		_channel1.GetSource()->SetTimeShift(1000 * lShift);
+		TimeShiftButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			3,
+			1000
+		);
 		break;
 	}
 }
@@ -381,8 +503,6 @@ static void AudioUpdate()
 	assert(hr == S_OK);
 
 	// 5. 샘플 쓰기
-
-	// 4-channel SIMD Processing (AVX2 Instruction Set Needs.)
 	for (UINT32 frameIndex = 0; frameIndex < numFramesToWrite; ++frameIndex)
 	{
 		// TODO: 매 샘플마다 입력 처리가 필요한가?
@@ -416,13 +536,10 @@ static void AudioUpdate()
 		tmpValue1 = 1.0f - 2.0f * tmpValue1;
 
 		float tmpRange = (float)(DJSW_WSOLA_TEMPO_RANGE);
-		//_channel0.hopDistance = (int32_t)(tmpRange * tmpValue0) * 2; // should be odd number
-		//_channel1.hopDistance = (int32_t)(tmpRange * tmpValue1) * 2; // should be odd number
+		
 		_channel0.GetSource()->SetHopDistance((int32_t)(tmpRange * tmpValue0) * 2);
 		_channel1.GetSource()->SetHopDistance((int32_t)(tmpRange * tmpValue1) * 2);
 		
-		//_channel0.Read2(isamples);
-		//_channel1.Read2(isamples + 2);
 		_channel0.Read16(isamples);
 		_channel1.Read16(isamples + 2);
 

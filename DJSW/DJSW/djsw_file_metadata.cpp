@@ -13,6 +13,8 @@ djWavMetaFile::djWavMetaFile() :
 
 void djWavMetaFile::Init()
 {
+	memset(&_metadata, 0x00, sizeof(_metadata));
+
 	_metadata.defaultGridData.bpm = 0.0f;
 	_metadata.defaultGridData.barCount = -1;
 
@@ -135,9 +137,14 @@ int32_t djWavMetaFile::GetFirstBarIndex()
 	return _metadata.defaultGridData.firstBarIndex;
 }
 
-void djWavMetaFile::SetHotCueIndex(int hotCueNumber, int32_t index)
+void djWavMetaFile::SetHotCue(int hotCueIndex, int32_t position)
 {
-	assert(hotCueNumber >= 0 && hotCueNumber < DJSW_MAX_HOT_CUE_COUNT);
+	assert(hotCueIndex >= 0 && hotCueIndex < DJSW_MAX_HOT_CUE_COUNT);
 
-	_metadata.hotCueIndices[hotCueNumber] = index;
+	_metadata.hotCueIndices[hotCueIndex] = position;
+}
+
+int32_t djWavMetaFile::GetHotCue(int hotCueIndex)
+{
+	return _metadata.hotCueIndices[hotCueIndex];
 }
