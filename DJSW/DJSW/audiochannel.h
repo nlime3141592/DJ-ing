@@ -13,7 +13,7 @@
 #define DJSW_WSOLA_FRAME_SIZE 512 // even number, prefer n-power of 2.
 #define DJSW_WSOLA_OVERLAP_SIZE 256 // even number, MUST BE half of frame size
 //#define DJSW_WSOLA_TOLERANCE_RANGE 20 // even number, prefer 10%~30% of overlap size, fixed tolerance range.
-#define DJSW_WSOLA_TEMPO_RANGE 10
+#define DJSW_WSOLA_TEMPO_RANGE 5
 
 // stereo channel
 class AudioChannel
@@ -22,6 +22,7 @@ public:
 	AudioChannel();
 
 	bool IsLoaded();
+	bool IsPlaying();
 
 	bool Load(const char* fileName);
 	bool Unload();
@@ -36,7 +37,6 @@ public:
 	void ReadPass2(int16_t* out);
 	void Read(int16_t* out);
 
-	void Jump(int32_t sampleJumpingTo, int32_t whatSampleJumpingFrom);
 	void JumpImmediate(int32_t sampleJumpingTo);
 
 	void SetLoop(int32_t begin, int32_t length);
@@ -90,6 +90,13 @@ public:
 	int32_t tshDistance;
 
 	djAudioSource* GetSource();
+
+
+
+
+
+
+	bool Load2(wstring wavFilePath);
 	
 private:
 	djAudioSource _audioSource;

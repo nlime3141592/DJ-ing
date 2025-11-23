@@ -13,8 +13,6 @@ djWavMetaFile::djWavMetaFile() :
 
 void djWavMetaFile::Init()
 {
-	memset(&_metadata, 0x00, sizeof(djWavMetadata));
-
 	_metadata.defaultGridData.bpm = 0.0f;
 	_metadata.defaultGridData.barCount = -1;
 
@@ -82,6 +80,8 @@ bool djWavMetaFile::Save()
 
 bool djWavMetaFile::Close()
 {
+	Save();
+
 	if (_fileHandle == INVALID_HANDLE_VALUE)
 		return false;
 

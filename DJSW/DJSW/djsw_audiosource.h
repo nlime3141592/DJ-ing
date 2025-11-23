@@ -27,9 +27,19 @@ using namespace std;
 #define _DJSW_WSOLA_OVERLAP_SIZE 128 // even number, MUST BE half of frame size
 #define _DJSW_WSOLA_MAX_TOLERANCE 20
 
+#define DJSW_CROSSFADE_SAMPLE_LENGTH 100
+
+#define DJSW_SAMPLE_DATA_TYPE int16_t
+#define DJSW_BYTES_PER_SAMPLE sizeof(DJSW_SAMPLE_DATA_TYPE)
+
+typedef DJSW_SAMPLE_DATA_TYPE* djSamplePtr_t;
+
 class djAudioSource
 {
 public:
+	djAudioSource();
+	~djAudioSource();
+
 	wstring CreateMetadata(wstring wavPath);
 	bool Load(wstring metadataPath);
 	bool Unload();
@@ -37,8 +47,11 @@ public:
 	int32_t GetGlobalCueIndex();
 	void SetGlobalCueIndex(int32_t index);
 	
-	void SetHotCueIndex(int32_t index);
+	bool IsLoop();
+	void ClearLoop();
 	void SetLoop(int32_t loopBarCount, bool shouldQuantize);
+
+	void Jump(int32_t jumpIndex);
 
 	void SetTempoWeight(float weight);
 	void SetTempoRange(float tempoRange);
@@ -47,6 +60,13 @@ public:
 	void ReadInit();
 	void ReadSingle(int16_t* out);
 	void Read(int16_t* out);
+
+	bool IsPlaying();
+
+	void Play();
+	void Pause();
+
+	void SetHopDistance(int32_t hopDistance);
 
 private:
 	djWavMetaFile* _metaFile;
@@ -59,11 +79,10 @@ private:
 	int32_t _glbPosition;
 	int32_t _olaPosition;
 
+	bool _isPlaying;
+
 	bool _useGlobalCue;
 	int32_t _glbCueIndex;
-
-	bool _useHotCue;
-	int32_t _hotCueIndex;
 
 	bool _shouldJump;
 	int32_t _jumpIndex;
@@ -76,19 +95,22 @@ private:
 	int32_t _tshDistance;
 
 	int32_t _wsolaInputSize;
-	int32_t _wsolaSelectedTolerance;
-	int16_t* _wsolaInputBuffer;
-	void LoadInputBuffer(int32_t hop);
+	int16_t* _wsolaInputBuffer0;
+	int16_t* _wsolaInputBuffer1;
+	int32_t LoadInputBuffer(int16_t* inputBuffer, int32_t originPosition);
+
+	int32_t _wsolaHannBufferSize;
+	int16_t* _wsolaHannedValueBuffer;
+	float* _wsolaHanningWindowBuffer;
+	void ApplyHanningWindow(int16_t* buffer, int32_t begin, int32_t length);
 
 	int32_t _wsolaOutputSize;
-	int16_t* _wsolaHannedValueBuffer;
-	int16_t* _wsolaHanningWindowBuffer;
-	void ApplyHanningWindow(int16_t* buffer, int32_t length);
 	int16_t* _wsolaOutputBuffer;
-	float GetCrossCorrelation(int16_t* a, int16_t* b);
+
+	int32_t _wsolaSelectedTolerance;
+	float GetCrossCorrelation(int16_t* a, int16_t* b, int32_t length);
 	int32_t SeekBestOverlapPosition(int32_t tolerance);
 
-	int32_t _xFadeSampleLength = 100; // Tunable.
 	int32_t _xFadeBeg;
 	int32_t _xFadeSampleLeft;
 };

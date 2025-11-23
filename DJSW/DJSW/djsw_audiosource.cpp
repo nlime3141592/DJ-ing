@@ -4,9 +4,93 @@
 
 #include "djsw_audio_analyzer.h"
 
+djAudioSource::djAudioSource() :
+	_metaFile(new djWavMetaFile()),
+	_header(NULL),
+	_audioFileSize(0),
+
+	_numWavSamples(0),
+	_wavSamples(NULL),
+
+	_glbPosition(0),
+	_olaPosition(0),
+
+	_isPlaying(false),
+
+	_useGlobalCue(false),
+	_glbCueIndex(0),
+
+	_shouldJump(false),
+	_jumpIndex(0),
+
+	_useLoop(false),
+	_loopIndex(0),
+	_loopLength(0),
+	
+	_hopDistance(0),
+	_tshDistance(0),
+
+	_wsolaInputSize(0),
+	_wsolaInputBuffer0(NULL),
+	_wsolaInputBuffer1(NULL),
+
+	_wsolaHannBufferSize(0),
+	_wsolaHannedValueBuffer(NULL),
+	_wsolaHanningWindowBuffer(NULL),
+
+	_wsolaOutputSize(0),
+	_wsolaOutputBuffer(NULL),
+
+	_wsolaSelectedTolerance(0),
+
+	_xFadeBeg(0),
+	_xFadeSampleLeft(0)
+{
+
+}
+
+djAudioSource::~djAudioSource()
+{
+	delete[] _metaFile;
+}
+
+bool djAudioSource::IsLoop()
+{
+	return _useLoop;
+}
+
+bool djAudioSource::IsPlaying()
+{
+	return _isPlaying;
+}
+
 wstring djAudioSource::CreateMetadata(wstring wavPath)
 {
-	return NULL;
+	wstring metaFilePath = wavPath + L".djmeta";
+
+	_metaFile->Init();
+	_metaFile->Open(metaFilePath);
+	_metaFile->SetWavFile(wavPath);
+	_metaFile->Close();
+
+	return metaFilePath;
+}
+
+void djAudioSource::Play()
+{
+	_olaPosition = 0;
+	_wsolaSelectedTolerance = 0;
+	ReadInit();
+
+	_isPlaying = true;
+}
+
+void djAudioSource::Pause()
+{
+	_isPlaying = false;
+
+	_glbPosition += _olaPosition;
+	_olaPosition = 0;
 }
 
 bool djAudioSource::Load(wstring metaFilePath)
@@ -52,14 +136,30 @@ bool djAudioSource::Load(wstring metaFilePath)
 	assert(IsValidWavFile(_header));
 
 	// 3. Post processing.
-	_numWavSamples = _header->dataChunkSize / sizeof(int16_t);
+	_numWavSamples = _header->dataChunkSize / DJSW_BYTES_PER_SAMPLE;
 	_wavSamples = _header->samples;
 
-	_wsolaInputSize = _header->numChannels * sizeof(int16_t) * (_DJSW_WSOLA_FRAME_SIZE + 2 * _DJSW_WSOLA_MAX_TOLERANCE);
-	_wsolaInputBuffer = (int16_t*)HeapAlloc(GetProcessHeap(), 0, _wsolaInputSize);
+	// TODO: 일반적인 경우, 전체 배열을 쓰려면 HeapAlloc으로 할당한 바이트 수와 memcpy에 쓸 바이트 수가 같아야 하는데, 나는 계산상 차이가 있는지 2배 차이나게 해야 동작하는 상황이다. 점검 필요.
+	_wsolaInputSize = _header->numChannels * (_DJSW_WSOLA_FRAME_SIZE + 2 * _DJSW_WSOLA_MAX_TOLERANCE);
+	_wsolaInputBuffer0 = (djSamplePtr_t)HeapAlloc(GetProcessHeap(), 0, _wsolaInputSize * DJSW_BYTES_PER_SAMPLE);
+	_wsolaInputBuffer1 = (djSamplePtr_t)HeapAlloc(GetProcessHeap(), 0, _wsolaInputSize * DJSW_BYTES_PER_SAMPLE);
 
-	_wsolaOutputSize = _header->numChannels * sizeof(int16_t) * _DJSW_WSOLA_FRAME_SIZE;
-	_wsolaOutputBuffer = (int16_t*)HeapAlloc(GetProcessHeap(), 0, _wsolaOutputSize);
+	_wsolaHannBufferSize = _header->numChannels * _DJSW_WSOLA_FRAME_SIZE;
+	_wsolaHannedValueBuffer = (djSamplePtr_t)HeapAlloc(GetProcessHeap(), 0, _wsolaHannBufferSize * DJSW_BYTES_PER_SAMPLE);
+	_wsolaHanningWindowBuffer = (float*)HeapAlloc(GetProcessHeap(), 0, _wsolaHannBufferSize * sizeof(float));
+
+	for (int32_t i = 0; i < _DJSW_WSOLA_FRAME_SIZE; ++i)
+	{
+		float hannValue = 0.5f - 0.5f * cosf(2.0f * 3.14159265358979323846f * (float)i / (float)(_DJSW_WSOLA_FRAME_SIZE - 1));
+
+		for (int32_t j = 0; j < _header->numChannels; ++j)
+		{
+			_wsolaHanningWindowBuffer[i * _header->numChannels + j] = hannValue;
+		}
+	}
+
+	_wsolaOutputSize = _header->numChannels * _DJSW_WSOLA_FRAME_SIZE;
+	_wsolaOutputBuffer = (djSamplePtr_t)HeapAlloc(GetProcessHeap(), 0, _wsolaOutputSize * DJSW_BYTES_PER_SAMPLE);
 
 	return true;
 }
@@ -73,19 +173,48 @@ bool djAudioSource::Unload()
 		_metaFile = NULL;
 	}
 	
-	if (!HeapFree(GetProcessHeap(), 0, _header))
-		return false;
-
+	HeapFree(GetProcessHeap(), 0, _header);
 	_header = NULL;
 	_audioFileSize = 0;
 
 	_numWavSamples = 0;
 	_wavSamples = NULL;
 
+	_glbPosition = 0;
+	_olaPosition = 0;
+
+	_isPlaying = false;
+
+	_useGlobalCue = false;
 	_glbCueIndex = 0;
-	_hotCueIndex = 0;
+
+	_shouldJump = false;
+	_jumpIndex = 0;
+
+	_useLoop = false;
 	_loopIndex = 0;
 	_loopLength = 0;
+
+	_hopDistance = 0;
+	_tshDistance = 0;
+
+	_wsolaInputSize = 0;
+	HeapFree(GetProcessHeap(), 0, _wsolaInputBuffer0);
+	_wsolaInputBuffer0 = NULL;
+
+	HeapFree(GetProcessHeap(), 0, _wsolaHannedValueBuffer);
+	HeapFree(GetProcessHeap(), 0, _wsolaHanningWindowBuffer);
+	_wsolaHannedValueBuffer = NULL;
+	_wsolaHanningWindowBuffer = NULL;
+
+	_wsolaOutputSize = 0;
+	HeapFree(GetProcessHeap(), 0, _wsolaOutputBuffer);
+	_wsolaOutputBuffer = NULL;
+
+	_wsolaSelectedTolerance = 0;
+
+	_xFadeBeg = 0;
+	_xFadeSampleLeft = 0;
 
 	return true;
 }
@@ -100,14 +229,23 @@ void djAudioSource::SetGlobalCueIndex(int32_t index)
 	_glbCueIndex = index;
 }
 
-void djAudioSource::SetHotCueIndex(int32_t index)
+void djAudioSource::Jump(int32_t jumpIndex)
 {
-	_hotCueIndex = index;
+	_jumpIndex = jumpIndex;
+	_shouldJump = true;
+}
+
+void djAudioSource::ClearLoop()
+{
+	_useLoop = false;
+	_loopIndex = 0;
+	_loopLength = 0;
 }
 
 void djAudioSource::SetLoop(int32_t loopBarCount, bool shouldQuantize)
 {
-	int32_t samplesPerBar = GetSamplesPerBar(_header->sampleRate, _header->numChannels, _metaFile->GetBpm());
+	//int32_t samplesPerBar = GetSamplesPerBar(_header->sampleRate, _header->numChannels, _metaFile->GetBpm());
+	int32_t samplesPerBar = GetSamplesPerBar(_header->sampleRate, _header->numChannels, 126.0f); // TEST BPM.
 
 	if (loopBarCount > 0)
 	{
@@ -165,58 +303,45 @@ void djAudioSource::SetTimeShift(int32_t timeShiftSamples)
 
 void djAudioSource::ReadInit()
 {
-	for (int32_t i = 0; i < _wsolaInputSize; ++i)
-	{
+	_glbPosition = LoadInputBuffer(_wsolaInputBuffer0, _glbPosition);
 
-	}
+	memcpy(_wsolaOutputBuffer, _wsolaInputBuffer0 + _DJSW_WSOLA_MAX_TOLERANCE * _header->numChannels, _wsolaOutputSize);
+	ApplyHanningWindow(_wsolaOutputBuffer, _wsolaHannBufferSize / 2, _wsolaHannBufferSize / 2);
+
+	_wsolaSelectedTolerance = 0;
 }
 
 void djAudioSource::ReadSingle(int16_t* out)
 {
-	// 1. 즉시 점프 발생 (Global/Hot Cue)
+	// 1. 즉시 점프 로직 (Global/Hot Cue)
 	if (_shouldJump)
 	{
 		_xFadeBeg = _glbPosition + _olaPosition;
-		_xFadeSampleLeft = _xFadeSampleLength;
+		_xFadeSampleLeft = DJSW_CROSSFADE_SAMPLE_LENGTH;
 
-		// 입력 버퍼를 적절히 수정해야 함.
-		_glbPosition = _jumpIndex - _olaPosition;
-		LoadInputBuffer(0);
+		_glbPosition = _jumpIndex;
+		_olaPosition = 0;
+		
+		ReadInit();
 
-		// 윈도우를 적용하지 않는 신호 샘플
-		for (int32_t i = _olaPosition * _header->numChannels; i < _DJSW_WSOLA_OVERLAP_SIZE * _header->numChannels; ++i)
-		{
-			_wsolaOutputBuffer[i] = _wsolaInputBuffer[i + _DJSW_WSOLA_MAX_TOLERANCE * _header->numChannels];
-		}
-
-		memcpy(_wsolaHannedValueBuffer, _wsolaInputBuffer + _DJSW_WSOLA_MAX_TOLERANCE * _header->numChannels, _DJSW_WSOLA_FRAME_SIZE * _header->numChannels);
-		ApplyHanningWindow(_wsolaHannedValueBuffer, _DJSW_WSOLA_FRAME_SIZE * _header->numChannels);
-
-		// 윈도우를 적용하는 신호 샘플
-		for (int32_t i = _DJSW_WSOLA_OVERLAP_SIZE * _header->numChannels; i < _DJSW_WSOLA_FRAME_SIZE * _header->numChannels; ++i)
-		{
-			_wsolaOutputBuffer[i] = _wsolaHannedValueBuffer[i];
-		}
-
-		_wsolaSelectedTolerance = 0;
 		_shouldJump = false;
 	}
 
-	// 2. 템포 변경 로직
-	if (_olaPosition >= _DJSW_WSOLA_OVERLAP_SIZE * _header->numChannels)
+	// 2. 시간축 스케일링 로직
+	if (_olaPosition >= _wsolaOutputSize / 2)
 	{
-		int32_t hop = _hopDistance + _tshDistance;
+		int32_t hop = (_hopDistance + _tshDistance) * _header->numChannels;
 
 		if (_useLoop)
 			hop %= _loopLength;
 
 		// 입력 버퍼를 적절히 수정해야 함.
-		_glbPosition += _DJSW_WSOLA_OVERLAP_SIZE + hop;
+		_glbPosition += (_wsolaOutputSize / 2) + hop;
 		_tshDistance = 0;
 		_olaPosition = 0;
-		LoadInputBuffer(hop);
+		_glbPosition = LoadInputBuffer(_wsolaInputBuffer1, _glbPosition);
 
-		// 윈도우를 적용하는 신호 샘플
+		// 위상 보정 offset을 얻어냄.
 		int32_t tolerance = (int32_t)(0.2f * (float)hop);
 
 		if (tolerance < -_DJSW_WSOLA_MAX_TOLERANCE * _header->numChannels)
@@ -224,26 +349,73 @@ void djAudioSource::ReadSingle(int16_t* out)
 		if (tolerance > _DJSW_WSOLA_MAX_TOLERANCE * _header->numChannels)
 			tolerance = _DJSW_WSOLA_MAX_TOLERANCE * _header->numChannels;
 
-		// 위상 보정 offset을 얻어냄
 		int32_t offset = SeekBestOverlapPosition(tolerance);
 		
-		// _wsolaHanningBuffer에 Hann Window 적용
-		memcpy(_wsolaHannedValueBuffer, _wsolaInputBuffer + _DJSW_WSOLA_MAX_TOLERANCE * _header->numChannels + offset, _DJSW_WSOLA_FRAME_SIZE * _header->numChannels);
-		ApplyHanningWindow(_wsolaHannedValueBuffer, _DJSW_WSOLA_FRAME_SIZE * _header->numChannels);
+		// _wsolaHannedValueBuffer에 Hann Window 적용
+		memcpy(_wsolaHannedValueBuffer, _wsolaInputBuffer1 + _DJSW_WSOLA_MAX_TOLERANCE * _header->numChannels + offset, _wsolaHannBufferSize * sizeof(int16_t));
 
-		for (int32_t i = 0; i < _DJSW_WSOLA_OVERLAP_SIZE * _header->numChannels; ++i)
+		// 윈도우를 적용하는 신호 샘플
+		// TODO: 왜 Window 함수만 적용하면 소리가 이상해지는지 이유 점검.
+		ApplyHanningWindow(_wsolaHannedValueBuffer, 0, _wsolaHannBufferSize);
+
+		for (int32_t i = 0; i < _wsolaOutputSize / 2; ++i)
 		{
-			_wsolaOutputBuffer[i] = _wsolaOutputBuffer[i + _DJSW_WSOLA_OVERLAP_SIZE * _header->numChannels] + _wsolaHannedValueBuffer[i];
-			_wsolaOutputBuffer[i + _DJSW_WSOLA_OVERLAP_SIZE * _header->numChannels] = _wsolaOutputBuffer[i + _DJSW_WSOLA_OVERLAP_SIZE * _header->numChannels];
+			_wsolaOutputBuffer[i] = _wsolaOutputBuffer[i + _wsolaOutputSize / 2] + _wsolaHannedValueBuffer[i];
+			_wsolaOutputBuffer[i + _wsolaOutputSize / 2] = _wsolaHannedValueBuffer[i + _wsolaOutputSize / 2];
 		}
 
+		memcpy(_wsolaInputBuffer0, _wsolaInputBuffer1, _wsolaInputSize);
 		_wsolaSelectedTolerance = offset;
 	}
 
 	// 3. 최종 샘플 출력
-	for (int32_t i = 0; i < _header->numChannels; ++i)
+	// NOTE: 조건을 for문 안에서 검사하면 출력 도중 _isPlaying이 변경되는 경우, 샘플의 원자성이 깨짐.
+	// TODO: 코드 사이즈를 줄일 수 있을까?
+	if (_isPlaying)
 	{
-		out[i] = _wsolaOutputBuffer[_olaPosition++];
+		int32_t position = _glbPosition + _olaPosition;
+
+		if (position < 0)
+		{
+			for (int32_t i = 0; i < _header->numChannels; ++i)
+			{
+				out[i] = 0.0f;
+				++_olaPosition;
+			}
+		}
+		else if (position < _numWavSamples)
+		{
+			for (int32_t i = 0; i < _header->numChannels; ++i)
+			{
+				out[i] = _wsolaOutputBuffer[_olaPosition++];
+			}
+		}
+		else
+		{
+			_isPlaying = false;
+
+			for (int32_t i = 0; i < _header->numChannels; ++i)
+			{
+				out[i] = 0.0f;
+			}
+		}
+	}
+	else
+	{
+		if (_glbPosition + _tshDistance >= _numWavSamples)
+		{
+			_glbPosition = _numWavSamples;
+		}
+		else
+		{
+			_glbPosition += _tshDistance;
+			_tshDistance = 0;
+		}
+
+		for (int32_t i = 0; i < _header->numChannels; ++i)
+		{
+			out[i] = 0.0f;
+		}
 	}
 }
 
@@ -252,17 +424,20 @@ void djAudioSource::Read(int16_t* out)
 	
 }
 
-void djAudioSource::LoadInputBuffer(int32_t hop)
+void djAudioSource::SetHopDistance(int32_t hopDistance)
 {
-	// hopDistance, tshDistance를 고려해 glbPosition을 갱신하며 _wsolaInputBuffer에 내용을 채워야 함.
-		// 입력 버퍼를 적절히 수정해야 함.
-	int32_t inputLength = _header->numChannels * (_DJSW_WSOLA_FRAME_SIZE + 2 * _DJSW_WSOLA_MAX_TOLERANCE);
-	int32_t i = _glbPosition - _DJSW_WSOLA_MAX_TOLERANCE * _header->numChannels;
+	_hopDistance = hopDistance;
+}
+
+int32_t djAudioSource::LoadInputBuffer(int16_t* inputBuffer, int32_t originPosition)
+{
+	int32_t i = originPosition - _DJSW_WSOLA_MAX_TOLERANCE * _header->numChannels;
+	int32_t j = i;
 	int32_t k = 0;
 	
-	while (k < inputLength)
+	while (k < _wsolaInputSize)
 	{
-		int32_t j = i;
+		j = i;
 
 		// 루프 경계에서 샘플 처리
 		if (_useLoop)
@@ -274,23 +449,25 @@ void djAudioSource::LoadInputBuffer(int32_t hop)
 			if (j == 0)
 			{
 				_xFadeBeg = _loopIndex + _loopLength;
-				_xFadeSampleLeft = _xFadeSampleLength;
+				_xFadeSampleLeft = DJSW_CROSSFADE_SAMPLE_LENGTH * _header->numChannels;
 			}
 
 			j += _loopIndex;
 		}
 
 		// 단일 샘플 처리
-		if (j < 0 || j >= _numWavSamples)
-			_wsolaInputBuffer[k] = _wavSamples[j];
+		if (j >= 0 && j < _numWavSamples)
+			inputBuffer[k] = _wavSamples[j];
+		else
+			inputBuffer[k] = 0.0f;
 
 		// 크로스페이드 샘플 처리
 		if (_xFadeSampleLeft > 0)
 		{
-			float w0 = (float)_xFadeSampleLeft / _xFadeSampleLength;
+			float w0 = (float)_xFadeSampleLeft / (DJSW_CROSSFADE_SAMPLE_LENGTH * _header->numChannels);
 			float w1 = 1.0f - w0;
 
-			int32_t d0 = _xFadeSampleLength - _xFadeSampleLeft;
+			int32_t d0 = DJSW_CROSSFADE_SAMPLE_LENGTH - _xFadeSampleLeft;
 			int32_t d1 = _xFadeSampleLeft;
 
 			int32_t i0 = _xFadeBeg + d0;
@@ -304,46 +481,52 @@ void djAudioSource::LoadInputBuffer(int32_t hop)
 			if (i1 >= 0 && i1 < _numWavSamples)
 				s1 = _wavSamples[i1];
 
-			_wsolaInputBuffer[k] = w0 * s0 + w1 * s1;
+			inputBuffer[k] = w0 * s0 + w1 * s1;
 
 			--_xFadeSampleLeft;
 		}
 
-		_olaPosition = 0;
 		++i;
 		++k;
 	}
+
+	// next global position.
+	if (_useLoop)
+		originPosition = _loopIndex + (originPosition - _loopIndex) % _loopLength;
+
+	if (originPosition < _numWavSamples)
+		return originPosition;
+	else
+		return _numWavSamples;
 }
 
-void djAudioSource::ApplyHanningWindow(int16_t* buffer, int32_t length)
+void djAudioSource::ApplyHanningWindow(int16_t* buffer, int32_t begin, int32_t length)
 {
-	for (int i = 0; i < length; ++i)
+	for (int32_t i = 0; i < length; ++i)
 	{
-		buffer[i] *= _wsolaHanningWindowBuffer[i];
+		float value = (float)buffer[begin + i] * _wsolaHanningWindowBuffer[begin + i];
+		buffer[begin + i] = (int16_t)value;
 	}
 }
 
-float djAudioSource::GetCrossCorrelation(int16_t* a, int16_t* b)
+float djAudioSource::GetCrossCorrelation(int16_t* a, int16_t* b, int32_t length)
 {
 	float sum_a = 0.0f;
 	float sum_b = 0.0f;
 	float sum_m = 0.0f;
 
-	int16_t a0[_DJSW_WSOLA_FRAME_SIZE];
-	int16_t b0[_DJSW_WSOLA_FRAME_SIZE];
-
-	memcpy(a0, a, _DJSW_WSOLA_FRAME_SIZE);
-	memcpy(b0, b, _DJSW_WSOLA_FRAME_SIZE);
-
 	for (int32_t i = 0; i < _DJSW_WSOLA_FRAME_SIZE; ++i)
 	{
-		float v0 = (float)a0[i] / 32768.0f;
-		float v1 = (float)b0[i] / 32768.0f;
+		float v0 = (float)a[i] / 32768.0f;
+		float v1 = (float)b[i] / 32768.0f;
 
 		sum_a += (v0 * v0);
 		sum_b += (v1 * v1);
 		sum_m += (v0 * v1);
 	}
+
+	if (sum_a == 0.0f || sum_b == 0.0f)
+		return 0.0f;
 
 	return sum_m / sqrtf(sum_a * sum_b);
 }
@@ -353,13 +536,16 @@ int32_t djAudioSource::SeekBestOverlapPosition(int32_t tolerance)
 	float maxCorr = FLT_MIN;
 	int32_t maxOffset = 0;
 
-	int16_t* prevBuffer = _wavSamples + _wsolaSelectedTolerance;
-	int16_t* nextBuffer = _wavSamples + _glbPosition;
+	int32_t cT = _DJSW_WSOLA_MAX_TOLERANCE * _header->numChannels;
+	int32_t cO = _DJSW_WSOLA_OVERLAP_SIZE * _header->numChannels;
+
+	int16_t* prevBuffer = _wsolaInputBuffer0 + cT + _wsolaSelectedTolerance + cO;
+	int16_t* nextBuffer = _wsolaInputBuffer1 + cT;
 
 	for (int32_t i = -tolerance * _header->numChannels; i <= tolerance * _header->numChannels; i += _header->numChannels)
 	{
-		float corr = GetCrossCorrelation(prevBuffer, nextBuffer + i);
-
+		float corr = GetCrossCorrelation(prevBuffer, nextBuffer + i, cO);
+		
 		if (corr > maxCorr)
 		{
 			maxCorr = corr;

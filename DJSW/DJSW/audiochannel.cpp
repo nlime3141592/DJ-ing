@@ -79,6 +79,19 @@ bool AudioChannel::Load(const char* fileName)
 	return true;
 }
 
+bool AudioChannel::IsPlaying()
+{
+	return _audioSource.IsPlaying();
+}
+
+bool AudioChannel::Load2(wstring wavFilePath)
+{
+	_audioSource = djAudioSource();
+	wstring metaFilePath = _audioSource.CreateMetadata(wavFilePath);
+	_audioSource.Load(metaFilePath);
+	return true;
+}
+
 void AudioChannel::Reset()
 {
 	xFadeBeg = 0;
@@ -108,7 +121,9 @@ bool AudioChannel::Unload()
 
 void AudioChannel::Play()
 {
-	olaPosition = 0;
+	_audioSource.Play();
+
+	/*olaPosition = 0;
 
 	int16_t buffer[DJSW_WSOLA_FRAME_SIZE];
 	memcpy(buffer, wavSamples, sizeof(buffer));
@@ -124,19 +139,24 @@ void AudioChannel::Play()
 
 	_wsolaPrevFrameIndex = position;
 
-	isPlaying = true;
+	isPlaying = true;*/
 }
 
 void AudioChannel::Pause()
 {
-	isPlaying = false;
+	_audioSource.Pause();
+
+	/*isPlaying = false;
+	
 	position += olaPosition;
-	olaPosition = 0;
+	olaPosition = 0;*/
 }
 
 void AudioChannel::Read16(int16_t* out)
 {
-	// return 16;
+	_audioSource.ReadSingle(out);
+	out[0] = (int16_t)((float)out[0] * masterVolume);
+	out[1] = (int16_t)((float)out[1] * masterVolume);
 }
 
 void AudioChannel::Read2(int16_t* out)
@@ -283,11 +303,6 @@ void AudioChannel::Read(int16_t* out)
 	}
 
 	Read2(out);
-}
-
-void AudioChannel::Jump(int32_t sampleJumpingTo, int32_t whatSampleJumpingFrom)
-{
-	assert(position <= whatSampleJumpingFrom);
 }
 
 void AudioChannel::JumpImmediate(int32_t sampleJumpingTo)

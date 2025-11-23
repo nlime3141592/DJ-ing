@@ -96,12 +96,16 @@ static void AudioInit()
 	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_FX4, DJSW_ANALOG_VALUE_MID);
 
 	// TEST: for Debugging.
-	bool result1 = _channel0.Load("C:\\Test\\habibi.wav");
-	bool result2 = _channel1.Load("C:\\Test\\bangalore.wav");
-	assert(result1);
-	assert(result2);
+	//bool result1 = _channel0.Load("C:\\Test\\habibi.wav");
+	//bool result2 = _channel1.Load("C:\\Test\\bangalore.wav");
+	//bool result2 = _channel1.Load("C:\\Test\\starflight.wav");
+	//assert(result1);
+	//assert(result2);
 	//_channel0.Play();
 	//_channel1.Play();
+
+	_channel0.Load2(L"C:\\Test\\habibi.wav");
+	_channel1.Load2(L"C:\\Test\\bangalore.wav");
 }
 
 static void AudioInput_Digital(HidMessage msg)
@@ -114,7 +118,7 @@ static void AudioInput_Digital(HidMessage msg)
 	case DJSW_HID_PLAY1:
 		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
 		{
-			if (_channel0.isPlaying)
+			if (_channel0.IsPlaying())
 				_channel0.Pause();
 			else
 				_channel0.Play();
@@ -123,7 +127,7 @@ static void AudioInput_Digital(HidMessage msg)
 	case DJSW_HID_PLAY2:
 		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
 		{
-			if (_channel1.isPlaying)
+			if (_channel1.IsPlaying())
 				_channel1.Pause();
 			else
 				_channel1.Play();
@@ -135,13 +139,16 @@ static void AudioInput_Digital(HidMessage msg)
 	case DJSW_HID_PADFN14:
 		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
 		{
-			int number = DJSW_HID_PADFN11 - DJSW_HID_PADFN11 + 1;
+			int number = msg.hidKey - DJSW_HID_PADFN11 + 1;
 
 			if (_channel0.fxNumber == number)
 				_channel0.fxNumber = 0;
 			else
 				_channel0.fxNumber = number;
+
+			OutputDebugStringW((L"fxNumber0 == " + to_wstring(_channel0.fxNumber) + L"\n").c_str());
 		}
+		
 		break;
 	case DJSW_HID_PADFN21:
 	case DJSW_HID_PADFN22:
@@ -155,21 +162,115 @@ static void AudioInput_Digital(HidMessage msg)
 				_channel1.fxNumber = 0;
 			else
 				_channel1.fxNumber = number;
+
+			OutputDebugStringW((L"fxNumber1 == " + to_wstring(_channel1.fxNumber) + L"\n").c_str());
 		}
 		break;
 	case DJSW_HID_PAD11:
-	case DJSW_HID_PAD12:
-	case DJSW_HID_PAD13:
-	case DJSW_HID_PAD14:
-	case DJSW_HID_PAD15:
-	case DJSW_HID_PAD16:
-	case DJSW_HID_PAD17:
-	case DJSW_HID_PAD18:
-		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_PRESS)
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
 		{
 			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
 
 			// TODO: Pad 액션을 구현합니다.
+			if (_channel0.fxNumber == 1)
+			{
+				_channel0.GetSource()->Jump(0);
+			}
+			if (_channel0.fxNumber == 2)
+			{
+				if (_channel0.GetSource()->IsLoop())
+				{
+					_channel0.GetSource()->ClearLoop();
+				}
+				else
+				{
+					_channel0.GetSource()->SetLoop(4, false);
+				}
+			}
+		}
+		break;
+	case DJSW_HID_PAD12:
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+		{
+			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
+
+			// TODO: Pad 액션을 구현합니다.
+			if (_channel0.fxNumber == 1)
+			{
+				_channel0.GetSource()->Jump(44100 * 2 * 15);
+			}
+		}
+		break;
+	case DJSW_HID_PAD13:
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+		{
+			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
+
+			// TODO: Pad 액션을 구현합니다.
+			if (_channel0.fxNumber == 1)
+			{
+				_channel0.GetSource()->Jump(44100 * 2 * 58);
+			}
+		}
+		break;
+	case DJSW_HID_PAD14:
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+		{
+			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
+
+			// TODO: Pad 액션을 구현합니다.
+			if (_channel0.fxNumber == 1)
+			{
+				_channel0.GetSource()->Jump(44100 * 2 * 120);
+			}
+		}
+		break;
+	case DJSW_HID_PAD15:
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+		{
+			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
+
+			// TODO: Pad 액션을 구현합니다.
+			if (_channel0.fxNumber == 1)
+			{
+
+			}
+		}
+		break;
+	case DJSW_HID_PAD16:
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+		{
+			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
+
+			// TODO: Pad 액션을 구현합니다.
+			if (_channel0.fxNumber == 1)
+			{
+
+			}
+		}
+		break;
+	case DJSW_HID_PAD17:
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+		{
+			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
+
+			// TODO: Pad 액션을 구현합니다.
+			if (_channel0.fxNumber == 1)
+			{
+
+			}
+		}
+		break;
+	case DJSW_HID_PAD18:
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+		{
+			int number = msg.hidKey - DJSW_HID_PAD11 + 1;
+
+			// TODO: Pad 액션을 구현합니다.
+			if (_channel0.fxNumber == 1)
+			{
+
+			}
 		}
 		break;
 	case DJSW_HID_PAD21:
@@ -188,28 +289,36 @@ static void AudioInput_Digital(HidMessage msg)
 		}
 		break;
 	case DJSW_HID_TSH11:
-		_channel0.tshDistance = 2 * lShift;
+		//_channel0.tshDistance = 2 * lShift;
+		_channel0.GetSource()->SetTimeShift(2 * lShift);
 		break;
 	case DJSW_HID_TSH12:
-		_channel0.tshDistance = 10 * lShift;
+		//_channel0.tshDistance = 10 * lShift;
+		_channel0.GetSource()->SetTimeShift(10 * lShift);
 		break;
 	case DJSW_HID_TSH13:
-		_channel0.tshDistance = 100 * lShift;
+		//_channel0.tshDistance = 100 * lShift;
+		_channel0.GetSource()->SetTimeShift(100 * lShift);
 		break;
 	case DJSW_HID_TSH14:
-		_channel0.tshDistance = 1000 * lShift;
+		//_channel0.tshDistance = 1000 * lShift;
+		_channel0.GetSource()->SetTimeShift(1000 * lShift);
 		break;
 	case DJSW_HID_TSH21:
-		_channel1.tshDistance = 2 * rShift;
+		//_channel1.tshDistance = 2 * rShift;
+		_channel1.GetSource()->SetTimeShift(2 * lShift);
 		break;
 	case DJSW_HID_TSH22:
-		_channel1.tshDistance = 10 * rShift;
+		//_channel1.tshDistance = 10 * rShift;
+		_channel1.GetSource()->SetTimeShift(10 * lShift);
 		break;
 	case DJSW_HID_TSH23:
-		_channel1.tshDistance = 100 * rShift;
+		//_channel1.tshDistance = 100 * rShift;
+		_channel1.GetSource()->SetTimeShift(100 * lShift);
 		break;
 	case DJSW_HID_TSH24:
-		_channel1.tshDistance = 1000 * rShift;
+		//_channel1.tshDistance = 1000 * rShift;
+		_channel1.GetSource()->SetTimeShift(1000 * lShift);
 		break;
 	}
 }
@@ -303,15 +412,19 @@ static void AudioUpdate()
 		float tmpValue0 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1].analogValueFloat;
 		float tmpValue1 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2].analogValueFloat;
 
-		tmpValue0 = 2.0f * tmpValue0 - 1.0f;
-		tmpValue1 = 2.0f * tmpValue1 - 1.0f;
+		tmpValue0 = 1.0f - 2.0f * tmpValue0;
+		tmpValue1 = 1.0f - 2.0f * tmpValue1;
 
 		float tmpRange = (float)(DJSW_WSOLA_TEMPO_RANGE);
-		_channel0.hopDistance = (int32_t)(tmpRange * tmpValue0) * 2; // should be odd number
-		_channel1.hopDistance = (int32_t)(tmpRange * tmpValue1) * 2; // should be odd number
+		//_channel0.hopDistance = (int32_t)(tmpRange * tmpValue0) * 2; // should be odd number
+		//_channel1.hopDistance = (int32_t)(tmpRange * tmpValue1) * 2; // should be odd number
+		_channel0.GetSource()->SetHopDistance((int32_t)(tmpRange * tmpValue0) * 2);
+		_channel1.GetSource()->SetHopDistance((int32_t)(tmpRange * tmpValue1) * 2);
 		
-		_channel0.Read2(isamples);
-		_channel1.Read2(isamples + 2);
+		//_channel0.Read2(isamples);
+		//_channel1.Read2(isamples + 2);
+		_channel0.Read16(isamples);
+		_channel1.Read16(isamples + 2);
 
 		MixSample1(isamples + 0, isamples + 2, buffer + 0);
 		MixSample1(isamples + 1, isamples + 3, buffer + 1);
