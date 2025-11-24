@@ -36,10 +36,12 @@
     <ClCompile Include="djsw_gui_core_api_drawer.cpp" />
     <ClCompile Include="djsw_gui_core_api_view.cpp" />
     <ClCompile Include="djsw_input_keyboard.cpp" />
+    <ClCompile Include="djsw_job_api.cpp" />
     <ClCompile Include="djsw_testing_main.cpp" />
     <ClCompile Include="LoopAudio.cpp" />
     <ClCompile Include="LoopBase.cpp" />
     <ClCompile Include="LoopHID.cpp" />
+    <ClCompile Include="LoopJob.cpp" />
     <ClCompile Include="LoopRender.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MiniXML\mxml-attr.c" />
@@ -70,11 +72,13 @@
     <ClInclude Include="djsw_input_keyboard.h" />
     <ClInclude Include="djsw_input_hid_controls.h" />
     <ClInclude Include="djsw_file_wav.h" />
+    <ClInclude Include="djsw_job_api.h" />
+    <ClInclude Include="djsw_message_queue.h" />
     <ClInclude Include="djsw_testing_main.h" />
     <ClInclude Include="LoopAudio.h" />
     <ClInclude Include="LoopBase.h" />
     <ClInclude Include="LoopHID.h" />
-    <ClInclude Include="LoopInterrupt.h" />
+    <ClInclude Include="LoopJob.h" />
     <ClInclude Include="LoopRender.h" />
     <ClInclude Include="MiniXML\config.h" />
     <ClInclude Include="MiniXML\mxml-private.h" />

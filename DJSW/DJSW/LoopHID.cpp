@@ -20,7 +20,7 @@ static djHidAnalogReport* _pMixerReport;
 static djHidAnalogReport* _pDeckReport1;
 static djHidAnalogReport* _pDeckReport2;
 
-HidMessageQueue hidMessageQueues[DJSW_HID_MESSAGE_QUEUE_COUNT];
+djMessageQueue<HidMessage> hidMessageQueues[DJSW_HID_MESSAGE_QUEUE_COUNT];
 
 // -------------------- HID device communication handling --------------------
 static hid_device* GetDeviceOrNull()
@@ -136,7 +136,7 @@ static void InputUpdate_HID()
 	}
 }
 
-static void InputPublish(HidMessageQueue* queue)
+static void InputPublish(djMessageQueue<HidMessage>* queue)
 {
 	if (queue->bypass)
 		return;
@@ -193,41 +193,6 @@ void SetKeyStateFromExternal(uint8_t hidKey, bool isPressed)
 bool IsHidConnected()
 {
 	return _isHidDeviceConnected;
-}
-
-HidMessageQueue::HidMessageQueue() :
-	bypass(true),
-	head(0),
-	tail(0)
-{
-	memset(queue, 0x00, sizeof(queue));
-}
-
-bool HidMessageQueue::Push(HidMessage* message)
-{
-	int t = tail.load(std::memory_order_relaxed);
-	int next = (t + 1) % DJSW_HID_MESSAGE_QUEUE_CAPACITY;
-
-	if (next == head.load(std::memory_order_acquire))
-		return false;
-
-	queue[t] = *message; // 데이터를 먼저 저장
-	tail.store(next, std::memory_order_release); // 인덱스를 나중에 올려줌
-
-	return true;
-}
-
-bool HidMessageQueue::Pop(HidMessage* message)
-{
-	int h = head.load(std::memory_order_relaxed);
-
-	if (h == tail.load(std::memory_order_acquire))
-		return false;
-
-	*message = queue[h];
-	head.store((h + 1) % DJSW_HID_MESSAGE_QUEUE_CAPACITY, std::memory_order_release);
-
-	return true;
 }
 
 bool GetKeyDown(uint8_t hidKey)

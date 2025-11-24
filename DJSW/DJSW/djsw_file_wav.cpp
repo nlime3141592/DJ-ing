@@ -1,5 +1,45 @@
 ﻿#include "djsw_file_wav.h"
 
+#include <Windows.h>
+
+bool LoadWavFile(char* wavFilePath, djWavFileHeader** header, int32_t* fileSize)
+{
+	HANDLE audioFile = CreateFileA(
+		wavFilePath,
+		GENERIC_READ,
+		0,
+		NULL,
+		OPEN_EXISTING,
+		0,
+		NULL);
+
+	if (audioFile == INVALID_HANDLE_VALUE)
+		return false;
+
+	DWORD audioFileSize = GetFileSize(audioFile, 0);
+
+	if (!audioFileSize)
+		return false;
+
+	void* audioFileData = HeapAlloc(GetProcessHeap(), 0, audioFileSize + 1);
+
+	if (!audioFileData)
+		return false;
+
+	if (!ReadFile(audioFile, audioFileData, audioFileSize, &audioFileSize, NULL))
+		return false;
+
+	CloseHandle(audioFile);
+
+	// TODO: 왜 마지막에 NULL 바이트를 넣어주는지 이유 파악하기.
+	((uint8_t*)audioFileData)[audioFileSize] = 0;
+
+	*header = (djWavFileHeader*)audioFileData;
+	*fileSize = audioFileSize;
+
+	return true;
+}
+
 bool IsValidWavFile(djWavFileHeader* header)
 {
 	// Check the Chunk IDs to make sure we loaded the file correctly

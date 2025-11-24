@@ -93,6 +93,11 @@ void djAudioSource::Pause()
 	_olaPosition = 0;
 }
 
+char* djAudioSource::GetWavFilePath()
+{
+	return _metaFile->GetWavFilePath();
+}
+
 bool djAudioSource::Load(wstring metaFilePath)
 {
 	// 1. Load Meta File
@@ -100,38 +105,8 @@ bool djAudioSource::Load(wstring metaFilePath)
 		return false;
 
 	// 2. Load Audio File
-	HANDLE audioFile = CreateFileA(
-		_metaFile->GetWavFilePath(),
-		GENERIC_READ,
-		0,
-		NULL,
-		OPEN_EXISTING,
-		0,
-		NULL);
-
-	if (audioFile == INVALID_HANDLE_VALUE)
+	if (!LoadWavFile(_metaFile->GetWavFilePath(), &_header, &_audioFileSize))
 		return false;
-
-	DWORD audioFileSize = GetFileSize(audioFile, 0);
-
-	if (!audioFileSize)
-		return false;
-
-	void* audioFileData = HeapAlloc(GetProcessHeap(), 0, audioFileSize + 1);
-
-	if (!audioFileData)
-		return false;
-
-	if (!ReadFile(audioFile, audioFileData, audioFileSize, &audioFileSize, NULL))
-		return false;
-
-	CloseHandle(audioFile);
-
-	// TODO: 왜 마지막에 NULL 바이트를 넣어주는지 이유 파악하기.
-	((uint8_t*)audioFileData)[audioFileSize] = 0;
-
-	_header = (djWavFileHeader*)audioFileData;
-	_audioFileSize = audioFileSize;
 
 	assert(IsValidWavFile(_header));
 
@@ -154,6 +129,7 @@ bool djAudioSource::Load(wstring metaFilePath)
 
 		for (int32_t j = 0; j < _header->numChannels; ++j)
 		{
+#pragma warning(disable: 6011)
 			_wsolaHanningWindowBuffer[i * _header->numChannels + j] = hannValue;
 		}
 	}

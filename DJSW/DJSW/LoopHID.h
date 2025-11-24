@@ -5,7 +5,6 @@
 
 #include "hidapi.h"
 #include "LoopBase.h"
-#include "LoopInterrupt.h"
 
 #include "djsw_input_hid.h"
 #include "djsw_input_keyboard.h"

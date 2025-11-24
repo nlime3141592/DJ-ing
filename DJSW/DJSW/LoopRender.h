@@ -14,7 +14,6 @@
 #include "djsw_errorcode.h"
 
 #include "LoopBase.h"
-#include "LoopInterrupt.h"
 #include "LoopHID.h"
 
 using namespace Microsoft::WRL;

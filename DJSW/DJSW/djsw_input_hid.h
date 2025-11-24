@@ -3,6 +3,8 @@
 #include <atomic>
 #include <stdint.h>
 
+#include "djsw_message_queue.h"
+
 #define DJSW_HID_KEY_COUNT 256
 
 // Analog property indicies for Mixer
@@ -47,23 +49,7 @@ struct HidMessage
 	uint8_t message;
 };
 
-class HidMessageQueue
-{
-public:
-	bool bypass;
-
-	HidMessageQueue();
-
-	bool Push(HidMessage* message);
-	bool Pop(HidMessage* message);
-
-private:
-	HidMessage queue[DJSW_HID_MESSAGE_QUEUE_CAPACITY];
-	std::atomic<int> head;
-	std::atomic<int> tail;
-};
-
-extern HidMessageQueue hidMessageQueues[DJSW_HID_MESSAGE_QUEUE_COUNT];
+extern djMessageQueue<HidMessage> hidMessageQueues[DJSW_HID_MESSAGE_QUEUE_COUNT];
 
 void SetKeyStateFromExternal(uint8_t hidKey, bool isPressed);
 

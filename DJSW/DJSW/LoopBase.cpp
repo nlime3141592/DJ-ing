@@ -1,10 +1,9 @@
 ﻿#include "LoopBase.h"
 
-#include "LoopHID.h"
 #include "LoopAudio.h"
+#include "LoopHID.h"
+#include "LoopJob.h"
 #include "LoopRender.h"
-
-#include "LoopInterrupt.h"
 
 #include "djsw_util_timer.h"
 #include <string>
@@ -12,6 +11,7 @@
 #define CORE_INDEX_AUDIO 0
 #define CORE_INDEX_HID 1
 
+static JobParams _jobParams;
 static HidParams _hidParams;
 static AudioParams _audioParams;
 static RenderParams _renderParams;
@@ -33,6 +33,18 @@ int WINAPI LoopInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         &defaultSystemAffinityMask
     );
     assert(execResult);
+
+    _jobParams.loopBaseParams.threadAffinityMask = 0;
+    _jobParams.loopBaseParams.interruptNumber = DJSW_INT_SYNC;
+    _jobParams.loopBaseParams.threadHandle = CreateThread(
+        NULL,
+        0,
+        JobMain,
+        &_jobParams,
+        0,
+        &_jobParams.loopBaseParams.threadId);
+
+    while (_jobParams.loopBaseParams.interruptNumber != DJSW_INT_NULL);
 
     _hidParams.loopBaseParams.threadAffinityMask = 1ULL << CORE_INDEX_HID;
     _hidParams.loopBaseParams.interruptNumber = DJSW_INT_SYNC;

@@ -3,6 +3,10 @@
 #include <Windows.h>
 #include <stdint.h>
 
+#define DJSW_INT_NULL 0
+#define DJSW_INT_LOOPEND 1
+#define DJSW_INT_SYNC -1
+
 typedef struct
 {
 	HANDLE threadHandle;

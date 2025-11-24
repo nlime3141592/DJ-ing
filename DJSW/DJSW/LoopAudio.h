@@ -8,7 +8,6 @@
 #include "audiochannel.h"
 #include "LoopBase.h"
 #include "LoopHID.h"
-#include "LoopInterrupt.h"
 
 typedef struct
 {

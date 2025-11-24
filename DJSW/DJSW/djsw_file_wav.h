@@ -25,4 +25,5 @@ struct djWavFileHeader
     int16_t samples[];
 };
 
+bool LoadWavFile(char* wavFilePath, djWavFileHeader** header, int32_t* fileSize);
 bool IsValidWavFile(djWavFileHeader* header);

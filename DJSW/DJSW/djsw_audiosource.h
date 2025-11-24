@@ -70,6 +70,7 @@ public:
 	void Pause();
 
 	void SetHopDistance(int32_t hopDistance);
+	char* GetWavFilePath();
 
 	// TODO: 웬만하면 사용하지 않는 방향으로 코딩하고, 코딩 후 사용하지 않는다면 삭제하기.
 	djWavMetaFile* GetWavMetaFile();
