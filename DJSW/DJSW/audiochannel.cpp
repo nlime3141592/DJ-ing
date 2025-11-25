@@ -7,6 +7,7 @@
 #define DJSW_EQ_HIGH_F 5000.0f
 
 AudioChannel::AudioChannel() :
+	padNumber(0),
 	fxNumber(0),
 	fxReverbL(SchroederReverb()),
 	fxReverbR(SchroederReverb()),

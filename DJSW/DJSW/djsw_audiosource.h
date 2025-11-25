@@ -73,7 +73,7 @@ public:
 	char* GetWavFilePath();
 
 private:
-	djWavMetaFile* _metaFile;
+	djWavMetaFile _metaFile;
 	djWavFileHeader* _header;
 	int32_t _audioFileSize;
 

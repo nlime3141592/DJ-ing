@@ -37,7 +37,7 @@ static bool JobFinal0()
         djWavGridData data = analyzer0.result;
 
         std::wstring message = L"";
-        message += L"BPM: ";
+        message += L"analyzer-0 BPM: ";
         message += std::to_wstring(data.bpm);
         message += L", Offset: ";
         message += std::to_wstring(data.firstBarIndex);
@@ -51,6 +51,40 @@ static bool JobFinal0()
         return true;
     }
     
+    return false;
+}
+
+static bool JobInit1()
+{
+    return analyzer1.Init();
+}
+
+static bool JobUpdate1()
+{
+    return analyzer1.Analyze();
+}
+
+static bool JobFinal1()
+{
+    if (analyzer1.Final())
+    {
+        djWavGridData data = analyzer1.result;
+
+        std::wstring message = L"";
+        message += L"analyzer-1 BPM: ";
+        message += std::to_wstring(data.bpm);
+        message += L", Offset: ";
+        message += std::to_wstring(data.firstBarIndex);
+        message += L", ErrorCode: ";
+        message += std::to_wstring(job1.error);
+        message += L"\n";
+        OutputDebugStringW(message.c_str());
+
+        analyzer1.Release();
+
+        return true;
+    }
+
     return false;
 }
 
@@ -84,8 +118,8 @@ int WINAPI TestUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
                 analyzer0 = djAnalyzeJob(
                     channel->GetSource()->GetWavFilePath(),
-                    127.0f, // bpmMin
-                    127.0f, // bpmMax
+                    96.0f, // bpmMin
+                    140.0f, // bpmMax
                     0.25f // bpmUnit
                 );
 
@@ -105,14 +139,14 @@ int WINAPI TestUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
                 analyzer1 = djAnalyzeJob(
                     channel->GetSource()->GetWavFilePath(),
-                    127.0f, // bpmMin
-                    127.0f, // bpmMax
+                    96.0f, // bpmMin
+                    140.0f, // bpmMax
                     0.25f // bpmUnit
                 );
 
-                job1.functions[DJSW_JOB_STATE_INIT].store(JobInit0, std::memory_order_release);
-                job1.functions[DJSW_JOB_STATE_UPDATE].store(JobUpdate0, std::memory_order_release);
-                job1.functions[DJSW_JOB_STATE_FINAL].store(JobFinal0, std::memory_order_release);
+                job1.functions[DJSW_JOB_STATE_INIT].store(JobInit1, std::memory_order_release);
+                job1.functions[DJSW_JOB_STATE_UPDATE].store(JobUpdate1, std::memory_order_release);
+                job1.functions[DJSW_JOB_STATE_FINAL].store(JobFinal1, std::memory_order_release);
 
                 jobQueues[0].Push(&job1);
 

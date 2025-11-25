@@ -99,6 +99,19 @@ static void AudioInit()
 	_channel1.Load(L"C:\\Test\\bangalore.wav");
 }
 
+static void GlobalCueButtonAction(
+	HidMessage* msg,
+	int32_t shiftMask,
+	int32_t channel,
+	int32_t index,
+	bool quantize)
+{
+	if (msg->message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+	{
+
+	}
+}
+
 static void PadButtonAction(
 	HidMessage* msg,
 	int32_t shiftMask,
@@ -118,6 +131,19 @@ static void PadButtonAction(
 			break;
 		case 1: // Hot Cue Performance
 			if ((msg->modifier & shiftMask) != 0)
+			{
+				pChannel->GetSource()->SetHotCue(index);
+				OutputDebugStringW((L"_metaFile.hotCueIndices[0] - 0 == " + to_wstring(pChannel->GetSource()->GetHotCue(0)) + L"\n").c_str());
+			}
+			else
+			{
+				int32_t position = pChannel->GetSource()->GetHotCue(index);
+				pChannel->GetSource()->Jump(position);
+				OutputDebugStringW((L"_metaFile.hotCueIndices[0] - 1 == " + to_wstring(pChannel->GetSource()->GetHotCue(0)) + L"\n").c_str());
+				//pChannel->GetSource()->Play();
+			}
+
+			/*if ((msg->modifier & shiftMask) != 0)
 				pChannel->GetSource()->ClearHotCue(index);
 			else if (pChannel->GetSource()->GetHotCue(index) < 0)
 				pChannel->GetSource()->SetHotCue(index);
@@ -125,7 +151,7 @@ static void PadButtonAction(
 			{
 				pChannel->GetSource()->Jump(pChannel->GetSource()->GetHotCue(index));
 				pChannel->GetSource()->Play();
-			}
+			}*/
 			break;
 		case 2: // Loop Effect
 			pChannel->GetSource()->SetLoop(loopBarCount, quantize);

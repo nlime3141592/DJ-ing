@@ -5,7 +5,8 @@
 #include "djsw_audio_analyzer.h"
 
 djAudioSource::djAudioSource() :
-	_metaFile(new djWavMetaFile()),
+	//_metaFile(new djWavMetaFile()),
+	_metaFile(),
 	_header(NULL),
 	_audioFileSize(0),
 
@@ -47,12 +48,12 @@ djAudioSource::djAudioSource() :
 	_xFadeBeg(0),
 	_xFadeSampleLeft(0)
 {
-
+	
 }
 
 djAudioSource::~djAudioSource()
 {
-	delete[] _metaFile;
+	//delete _metaFile;
 }
 
 bool djAudioSource::IsLoop()
@@ -69,10 +70,10 @@ wstring djAudioSource::CreateMetadata(wstring wavPath)
 {
 	wstring metaFilePath = wavPath + L".djmeta";
 
-	_metaFile->Open(metaFilePath);
-	_metaFile->Init();
-	_metaFile->SetWavFile(wavPath);
-	_metaFile->Close();
+	_metaFile.Open(metaFilePath);
+	_metaFile.Init();
+	_metaFile.SetWavFile(wavPath);
+	_metaFile.Close();
 
 	return metaFilePath;
 }
@@ -96,7 +97,7 @@ void djAudioSource::Pause()
 
 char* djAudioSource::GetWavFilePath()
 {
-	return _metaFile->GetWavFilePath();
+	return _metaFile.GetWavFilePath();
 }
 
 bool djAudioSource::IsLoaded()
@@ -107,11 +108,11 @@ bool djAudioSource::IsLoaded()
 bool djAudioSource::Load(wstring metaFilePath)
 {
 	// 1. Load Meta File
-	if (!_metaFile->Open(metaFilePath))
+	if (!_metaFile.Open(metaFilePath))
 		return false;
 
 	// 2. Load Audio File
-	if (!LoadWavFile(_metaFile->GetWavFilePath(), &_header, &_audioFileSize))
+	if (!LoadWavFile(_metaFile.GetWavFilePath(), &_header, &_audioFileSize))
 		return false;
 
 	assert(IsValidWavFile(_header));
@@ -122,11 +123,11 @@ bool djAudioSource::Load(wstring metaFilePath)
 
 	// TODO: 일반적인 경우, 전체 배열을 쓰려면 HeapAlloc으로 할당한 바이트 수와 memcpy에 쓸 바이트 수가 같아야 하는데, 나는 계산상 차이가 있는지 2배 차이나게 해야 동작하는 상황이다. 점검 필요.
 	_wsolaInputSize = _header->numChannels * (_DJSW_WSOLA_FRAME_SIZE + 2 * _DJSW_WSOLA_MAX_TOLERANCE);
-	_wsolaInputBuffer0 = (djSamplePtr_t)HeapAlloc(GetProcessHeap(), 0, _wsolaInputSize * DJSW_BYTES_PER_SAMPLE);
-	_wsolaInputBuffer1 = (djSamplePtr_t)HeapAlloc(GetProcessHeap(), 0, _wsolaInputSize * DJSW_BYTES_PER_SAMPLE);
+	_wsolaInputBuffer0 = (int16_t*)HeapAlloc(GetProcessHeap(), 0, _wsolaInputSize * sizeof(int16_t));
+	_wsolaInputBuffer1 = (int16_t*)HeapAlloc(GetProcessHeap(), 0, _wsolaInputSize * sizeof(int16_t));
 
 	_wsolaHannBufferSize = _header->numChannels * _DJSW_WSOLA_FRAME_SIZE;
-	_wsolaHannedValueBuffer = (djSamplePtr_t)HeapAlloc(GetProcessHeap(), 0, _wsolaHannBufferSize * DJSW_BYTES_PER_SAMPLE);
+	_wsolaHannedValueBuffer = (int16_t*)HeapAlloc(GetProcessHeap(), 0, _wsolaHannBufferSize * sizeof(int16_t));
 	_wsolaHanningWindowBuffer = (float*)HeapAlloc(GetProcessHeap(), 0, _wsolaHannBufferSize * sizeof(float));
 
 	for (int32_t i = 0; i < _DJSW_WSOLA_FRAME_SIZE; ++i)
@@ -141,19 +142,18 @@ bool djAudioSource::Load(wstring metaFilePath)
 	}
 
 	_wsolaOutputSize = _header->numChannels * _DJSW_WSOLA_FRAME_SIZE;
-	_wsolaOutputBuffer = (djSamplePtr_t)HeapAlloc(GetProcessHeap(), 0, _wsolaOutputSize * DJSW_BYTES_PER_SAMPLE);
+	_wsolaOutputBuffer = (int16_t*)HeapAlloc(GetProcessHeap(), 0, _wsolaOutputSize * sizeof(int16_t));
 
 	return true;
 }
 
 bool djAudioSource::Unload()
 {
-	if (_metaFile != NULL)
-	{
-		_metaFile->Save();
-		_metaFile->Close();
-		_metaFile = NULL;
-	}
+	if (!IsLoaded())
+		return false;
+
+	_metaFile.Save();
+	_metaFile.Close();
 	
 	HeapFree(GetProcessHeap(), 0, _header);
 	_header = NULL;
@@ -220,7 +220,7 @@ void djAudioSource::Jump(int32_t jumpIndex)
 
 void djAudioSource::SetLoop(int32_t loopBarCount, bool shouldQuantize)
 {
-	//int32_t samplesPerBar = GetSamplesPerBar(_header->sampleRate, _header->numChannels, _metaFile->GetBpm());
+	//int32_t samplesPerBar = GetSamplesPerBar(_header->sampleRate, _header->numChannels, _metaFile.GetBpm());
 	int32_t samplesPerBar = GetSamplesPerBar(_header->sampleRate, _header->numChannels, 126.0f); // TEST BPM.
 
 	if (loopBarCount == DJSW_BAR_COUNT_0 || loopBarCount == _loopBarCount)
@@ -248,7 +248,7 @@ void djAudioSource::SetLoop(int32_t loopBarCount, bool shouldQuantize)
 
 	if (shouldQuantize)
 	{
-		int32_t idxLeft = _metaFile->GetFirstBarIndex() + position / samplesPerBar;
+		int32_t idxLeft = _metaFile.GetFirstBarIndex() + position / samplesPerBar;
 		int32_t idxRight = idxLeft + samplesPerBar;
 
 		int32_t distLeft = position - idxLeft;
@@ -272,17 +272,18 @@ void djAudioSource::SetTimeShiftDistance(int32_t timeShiftSamples)
 
 void djAudioSource::ClearHotCue(int hotCueIndex)
 {
-	_metaFile->SetHotCue(hotCueIndex, -1);
+	_metaFile.SetHotCue(hotCueIndex, -1);
 }
 
 void djAudioSource::SetHotCue(int hotCueIndex)
 {
-	_metaFile->SetHotCue(hotCueIndex, _glbPosition + _olaPosition);
+	_metaFile.SetHotCue(hotCueIndex, _glbPosition + _olaPosition);
 }
 
 int32_t djAudioSource::GetHotCue(int hotCueIndex)
 {
-	return _metaFile->GetHotCue(hotCueIndex);
+	int32_t position = _metaFile.GetHotCue(hotCueIndex);
+	return position;
 }
 
 void djAudioSource::ReadInit()
@@ -503,6 +504,7 @@ int32_t djAudioSource::LoadInputBuffer(int16_t* inputBuffer, int32_t originPosit
 				s1 = _wavSamples[i1];
 
 			inputBuffer[k] = w0 * s0 + w1 * s1;
+			//OutputDebugStringW((L"2 - k == " + to_wstring(k) + L", hotCueIndices[0] == " + to_wstring(_metaFile.GetHotCue(0)) + L"\n").c_str());
 
 			--_xFadeSampleLeft;
 		}
