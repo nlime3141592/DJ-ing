@@ -111,7 +111,7 @@ static void PadButtonAction(
 
 	if (msg->message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
 	{
-		switch (pChannel->fxNumber)
+		switch (pChannel->padNumber)
 		{
 		case 0:
 			// Do anything.
@@ -131,7 +131,10 @@ static void PadButtonAction(
 			pChannel->GetSource()->SetLoop(loopBarCount, quantize);
 			break;
 		case 3: // FX Effect
-			// Do anything.
+			if (pChannel->fxNumber == index + 1)
+				pChannel->fxNumber = 0;
+			else
+				pChannel->fxNumber = index + 1;
 			break;
 		case 4:
 			// Do anything.
@@ -193,12 +196,14 @@ static void AudioInput_Digital(HidMessage msg)
 		{
 			int number = msg.hidKey - DJSW_HID_PADFN11 + 1;
 
-			if (_channel0.fxNumber == number)
-				_channel0.fxNumber = 0;
-			else
-				_channel0.fxNumber = number;
+			_channel0.fxNumber = 0;
 
-			OutputDebugStringW((L"fxNumber0 == " + to_wstring(_channel0.fxNumber) + L"\n").c_str());
+			if (_channel0.padNumber == number)
+				_channel0.padNumber = 0;
+			else
+				_channel0.padNumber = number;
+
+			OutputDebugStringW((L"padNumber0 == " + to_wstring(_channel0.padNumber) + L"\n").c_str());
 		}
 		break;
 	case DJSW_HID_PADFN21:
@@ -209,12 +214,14 @@ static void AudioInput_Digital(HidMessage msg)
 		{
 			int number = msg.hidKey - DJSW_HID_PADFN21 + 1;
 
-			if (_channel1.fxNumber == number)
-				_channel1.fxNumber = 0;
-			else
-				_channel1.fxNumber = number;
+			_channel1.fxNumber = 0;
 
-			OutputDebugStringW((L"fxNumber1 == " + to_wstring(_channel1.fxNumber) + L"\n").c_str());
+			if (_channel1.padNumber == number)
+				_channel1.padNumber = 0;
+			else
+				_channel1.padNumber = number;
+
+			OutputDebugStringW((L"padNumber1 == " + to_wstring(_channel1.padNumber) + L"\n").c_str());
 		}
 		break;
 	case DJSW_HID_PAD11:
@@ -433,6 +440,18 @@ static void AudioInput_Digital(HidMessage msg)
 			1000
 		);
 		break;
+	case DJSW_HID_MUTE1:
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+		{
+			_channel0.mute = 1.0f - _channel0.mute;
+		}
+		break;
+	case DJSW_HID_MUTE2:
+		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+		{
+			_channel1.mute = 1.0f - _channel1.mute;
+		}
+		break;
 	}
 }
 
@@ -531,11 +550,11 @@ static void AudioUpdate()
 		_channel0.GetSource()->SetHopDistance((int32_t)(tmpRange * tmpValue0) * 2);
 		_channel1.GetSource()->SetHopDistance((int32_t)(tmpRange * tmpValue1) * 2);
 
-		_channel0.fx1 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO1].analogValueFloat;
-		_channel0.fx2 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX1].analogValueFloat;
+		_channel0.fx1 = 1.0f - _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO1].analogValueFloat;
+		_channel0.fx2 = 1.0f - _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX1].analogValueFloat;
 
-		_channel1.fx1 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO2].analogValueFloat;
-		_channel1.fx2 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX2].analogValueFloat;
+		_channel1.fx1 = 1.0f - _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO2].analogValueFloat;
+		_channel1.fx2 = 1.0f - _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX2].analogValueFloat;
 		
 		_channel0.Read(isamples);
 		_channel1.Read(isamples + 2);

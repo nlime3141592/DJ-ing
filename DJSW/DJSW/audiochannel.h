@@ -25,6 +25,7 @@ public:
 	void Read(int16_t* out);
 
 	// Pad FX
+	int32_t padNumber;
 	int32_t fxNumber;
 	SchroederReverb fxReverbL;
 	SchroederReverb fxReverbR;
@@ -39,6 +40,7 @@ public:
 
 	// Master Volume
 	float masterVolume;
+	float mute;
 	float fx1;
 	float fx2;
 

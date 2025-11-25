@@ -2,6 +2,10 @@
 
 #include <assert.h>
 
+#define DJSW_EQ_LOW_F 200.0f
+#define DJSW_EQ_MID_F 1000.0f
+#define DJSW_EQ_HIGH_F 5000.0f
+
 AudioChannel::AudioChannel() :
 	fxNumber(0),
 	fxReverbL(SchroederReverb()),
@@ -15,26 +19,25 @@ AudioChannel::AudioChannel() :
 	eqHighR(Biquad()),
 
 	masterVolume(0.0f),
+	mute(1.0f),
 	fx1(0.0f),
 	fx2(0.0f)
 {
 	float fs = 44100.0f;
-	eqLowL.fs = fs;
-	eqLowR.fs = fs;
-	eqMidL.fs = fs;
-	eqMidR.fs = fs;
-	eqHighL.fs = fs;
-	eqHighR.fs = fs;
+	
+	InitParamsLPF(&eqLowL, DJSW_EQ_LOW_F, fs);
+	InitParamsLPF(&eqLowR, DJSW_EQ_LOW_F, fs);
+	InitParamsBPF(&eqMidL, DJSW_EQ_MID_F, fs);
+	InitParamsBPF(&eqMidR, DJSW_EQ_MID_F, fs);
+	InitParamsHPF(&eqHighL, DJSW_EQ_HIGH_F, fs);
+	InitParamsHPF(&eqHighR, DJSW_EQ_HIGH_F, fs);
 
-	float fLow = 200.0f;
-	float fMid = 1000.0f;
-	float fHigh = 5000.0f;
-	eqLowL.f = fLow;
-	eqLowR.f = fLow;
-	eqMidL.f = fMid;
-	eqMidR.f = fMid;
-	eqHighL.f = fHigh;
-	eqHighR.f = fHigh;
+	SetParamsLPF_Safe(&eqLowL, INV_SQRT_2, DJSW_EQ_LOW_F, fs);
+	SetParamsLPF_Safe(&eqLowR, INV_SQRT_2, DJSW_EQ_LOW_F, fs);
+	SetParamsBPF_Safe(&eqMidL, INV_SQRT_2, DJSW_EQ_MID_F, fs);
+	SetParamsBPF_Safe(&eqMidR, INV_SQRT_2, DJSW_EQ_MID_F, fs);
+	SetParamsHPF_Safe(&eqHighL, INV_SQRT_2, DJSW_EQ_HIGH_F, fs);
+	SetParamsHPF_Safe(&eqHighR, INV_SQRT_2, DJSW_EQ_HIGH_F, fs);
 }
 
 bool AudioChannel::Load(wstring wavFilePath)
@@ -51,15 +54,22 @@ bool AudioChannel::Unload()
 	return false;
 }
 
+static float MapExp(float t, float min, float max)
+{
+	return min * powf(max / min, t);
+}
+
 void AudioChannel::Read(int16_t* out)
 {
 	_audioSource.Read(out);
 
-	out[0] = (int16_t)((float)out[0] * masterVolume);
-	out[1] = (int16_t)((float)out[1] * masterVolume);
-
-	eqLowL.gain = fx1;
-	eqLowR.gain = fx1;
+	float fs = 44100.0f;
+	float fLow = MapExp(1.0f - fx1, DJSW_EQ_LOW_F, 20000.0f);
+	float qMid = MapExp(fx2, 0.3f, 10.0f);
+	float fHigh = MapExp(fx2, 20.0f, DJSW_EQ_HIGH_F);
+	
+	SetParamsLPF_Safe(&eqLowL, INV_SQRT_2, fLow, fs);
+	SetParamsLPF_Safe(&eqLowR, INV_SQRT_2, fLow, fs);
 	out[0] = BiquadConvolution(&eqLowL, out[0]);
 	out[1] = BiquadConvolution(&eqLowR, out[1]);
 
@@ -68,14 +78,14 @@ void AudioChannel::Read(int16_t* out)
 	case 0:
 		break;
 	case 1:
-		eqMidL.gain = fx2;
-		eqMidR.gain = fx2;
+		SetParamsBPF_Safe(&eqMidL, qMid, DJSW_EQ_MID_F, fs);
+		SetParamsBPF_Safe(&eqMidR, qMid, DJSW_EQ_MID_F, fs);
 		out[0] = BiquadConvolution(&eqMidL, out[0]);
 		out[1] = BiquadConvolution(&eqMidR, out[1]);
 		break;
 	case 2:
-		eqHighL.gain = fx2;
-		eqHighR.gain = fx2;
+		SetParamsHPF_Safe(&eqHighL, INV_SQRT_2, fHigh, fs);
+		SetParamsHPF_Safe(&eqHighR, INV_SQRT_2, fHigh, fs);
 		out[0] = BiquadConvolution(&eqHighL, out[0]);
 		out[1] = BiquadConvolution(&eqHighR, out[1]);
 		break;
@@ -98,6 +108,9 @@ void AudioChannel::Read(int16_t* out)
 	default:
 		break;
 	}
+
+	out[0] *= masterVolume * mute;
+	out[1] *= masterVolume * mute;
 }
 
 djAudioSource* AudioChannel::GetSource()
