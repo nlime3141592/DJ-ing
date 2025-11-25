@@ -4,17 +4,6 @@
 
 #include "djsw_file_metadata.h"
 
-typedef struct djAudioAnalyzerParams
-{
-	float bpmMin;
-	float bpmMax;
-	float bpmUnit;
-	int32_t sampleCount;
-	int32_t sampleRate;
-	int32_t channelCount;
-	int16_t* samples;
-};
-
 class djAnalyzeJob
 {
 public:

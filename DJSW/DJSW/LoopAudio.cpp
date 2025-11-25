@@ -95,17 +95,8 @@ static void AudioInit()
 	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_EQ_HI4, DJSW_ANALOG_VALUE_MID);
 	AnalogInterpolationInit(_analogValues + DJSW_IDX_ANALOG_INTERPOLATION_FX4, DJSW_ANALOG_VALUE_MID);
 
-	// TEST: for Debugging.
-	//bool result1 = _channel0.Load("C:\\Test\\habibi.wav");
-	//bool result2 = _channel1.Load("C:\\Test\\bangalore.wav");
-	//bool result2 = _channel1.Load("C:\\Test\\starflight.wav");
-	//assert(result1);
-	//assert(result2);
-	//_channel0.Play();
-	//_channel1.Play();
-
-	_channel0.Load2(L"C:\\Test\\habibi.wav");
-	_channel1.Load2(L"C:\\Test\\bangalore.wav");
+	_channel0.Load(L"C:\\Test\\habibi.wav");
+	_channel1.Load(L"C:\\Test\\bangalore.wav");
 }
 
 static void PadButtonAction(
@@ -168,7 +159,7 @@ static void TimeShiftButtonAction(
 
 	if (msg->message == DJSW_HID_MASK_MESSAGE_KEY_PRESS)
 	{
-		pChannel->GetSource()->SetTimeShift(shiftSamples * direction);
+		pChannel->GetSource()->SetTimeShiftDistance(shiftSamples * direction);
 	}
 }
 
@@ -179,19 +170,19 @@ static void AudioInput_Digital(HidMessage msg)
 	case DJSW_HID_PLAY1:
 		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
 		{
-			if (_channel0.IsPlaying())
-				_channel0.Pause();
+			if (_channel0.GetSource()->IsPlaying())
+				_channel0.GetSource()->Pause();
 			else
-				_channel0.Play();
+				_channel0.GetSource()->Play();
 		}
 		break;
 	case DJSW_HID_PLAY2:
 		if (msg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
 		{
-			if (_channel1.IsPlaying())
-				_channel1.Pause();
+			if (_channel1.GetSource()->IsPlaying())
+				_channel1.GetSource()->Pause();
 			else
-				_channel1.Play();
+				_channel1.GetSource()->Play();
 		}
 		break;
 	case DJSW_HID_PADFN11:
@@ -539,9 +530,15 @@ static void AudioUpdate()
 		
 		_channel0.GetSource()->SetHopDistance((int32_t)(tmpRange * tmpValue0) * 2);
 		_channel1.GetSource()->SetHopDistance((int32_t)(tmpRange * tmpValue1) * 2);
+
+		_channel0.fx1 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO1].analogValueFloat;
+		_channel0.fx2 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX1].analogValueFloat;
+
+		_channel1.fx1 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_EQ_LO2].analogValueFloat;
+		_channel1.fx2 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_FX2].analogValueFloat;
 		
-		_channel0.Read16(isamples);
-		_channel1.Read16(isamples + 2);
+		_channel0.Read(isamples);
+		_channel1.Read(isamples + 2);
 
 		MixSample1(isamples + 0, isamples + 2, buffer + 0);
 		MixSample1(isamples + 1, isamples + 3, buffer + 1);
@@ -588,51 +585,6 @@ uint8_t GetAnalogValueInt(int index)
 float GetAnalogValueFloat(int index)
 {
 	return _analogValues[index].analogValueFloat;
-}
-
-int32_t GetPosition(int channel)
-{
-	switch (channel)
-	{
-	case 0:
-		return _channel0.position;
-	case 1:
-		return _channel1.position;
-	default:
-		return -1;
-	}
-}
-
-void PeekSample(int16_t* out, int channel, int32_t position)
-{
-	switch (channel)
-	{
-	case 0:
-		out[0] = _channel0.wavSamples[position];
-		out[1] = _channel0.wavSamples[position + 1];
-		return;
-	case 1:
-		out[0] = _channel1.wavSamples[position];
-		out[1] = _channel1.wavSamples[position + 1];
-		return;
-	default:
-		out[0] = 0;
-		out[1] = 0;
-		return;
-	}
-}
-
-bool IsAudioLoaded(int channel)
-{
-	switch (channel)
-	{
-	case 0:
-		return _channel0.IsLoaded();
-	case 1:
-		return _channel1.IsLoaded();
-	default:
-		return false;
-	}
 }
 
 AudioChannel* GetChannel(int index)

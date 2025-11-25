@@ -24,6 +24,7 @@ djAudioSource::djAudioSource() :
 	_jumpIndex(0),
 
 	_useLoop(false),
+	_loopBarCount(0),
 	_loopIndex(0),
 	_loopLength(0),
 	
@@ -96,6 +97,11 @@ void djAudioSource::Pause()
 char* djAudioSource::GetWavFilePath()
 {
 	return _metaFile->GetWavFilePath();
+}
+
+bool djAudioSource::IsLoaded()
+{
+	return _header != NULL;
 }
 
 bool djAudioSource::Load(wstring metaFilePath)
@@ -176,6 +182,7 @@ bool djAudioSource::Unload()
 
 	_wsolaInputSize = 0;
 	HeapFree(GetProcessHeap(), 0, _wsolaInputBuffer0);
+	HeapFree(GetProcessHeap(), 0, _wsolaInputBuffer1);
 	_wsolaInputBuffer0 = NULL;
 
 	HeapFree(GetProcessHeap(), 0, _wsolaHannedValueBuffer);
@@ -258,41 +265,19 @@ void djAudioSource::SetLoop(int32_t loopBarCount, bool shouldQuantize)
 	}
 }
 
-void djAudioSource::SetTempoWeight(float weight)
-{
-
-}
-
-void djAudioSource::SetTempoRange(float tempoRange)
-{
-
-}
-
-void djAudioSource::SetTimeShift(int32_t timeShiftSamples)
+void djAudioSource::SetTimeShiftDistance(int32_t timeShiftSamples)
 {
 	_tshDistance = timeShiftSamples * _header->numChannels;
-}
-
-djWavMetaFile* djAudioSource::GetWavMetaFile()
-{
-	return _metaFile;
-}
-
-djWavFileHeader* djAudioSource::GetWavHeader()
-{
-	return _header;
 }
 
 void djAudioSource::ClearHotCue(int hotCueIndex)
 {
 	_metaFile->SetHotCue(hotCueIndex, -1);
-	//_metaFile->Save();
 }
 
 void djAudioSource::SetHotCue(int hotCueIndex)
 {
 	_metaFile->SetHotCue(hotCueIndex, _glbPosition + _olaPosition);
-	//_metaFile->Save();
 }
 
 int32_t djAudioSource::GetHotCue(int hotCueIndex)
@@ -308,7 +293,7 @@ void djAudioSource::ReadInit()
 	ApplyHanningWindow(_wsolaOutputBuffer, _wsolaHannBufferSize / 2, _wsolaHannBufferSize / 2);
 }
 
-void djAudioSource::ReadSingle(int16_t* out)
+void djAudioSource::Read(int16_t* out)
 {
 	// 1. 즉시 점프 로직 (Global/Hot Cue)
 	if (_shouldJump)
@@ -416,14 +401,53 @@ void djAudioSource::ReadSingle(int16_t* out)
 	}
 }
 
-void djAudioSource::Read(int16_t* out)
+void djAudioSource::Peek(int32_t scale, int32_t offset, int32_t idxChannel, int16_t* outMin, int16_t* outMax)
 {
+	assert(scale > 0);
+	assert(idxChannel >= 0 && idxChannel < _header->numChannels);
+
+	int16_t min = 0x7FFF;
+	int16_t max = 0x8000;
+
+	// NOTE: 괄호 및 연산 순서 주의.
+	int32_t position = scale * ((_glbPosition + _olaPosition + offset * _header->numChannels) / scale);
+	int32_t beg = position;
+	int32_t end = position + scale * _header->numChannels;
+
+	if (beg < 0)
+		beg = 0;
+	if (end >= _numWavSamples - _header->numChannels)
+		end = _numWavSamples - _header->numChannels;
 	
+	if (end <= beg)
+	{
+		*outMin = 0;
+		*outMax = 0;
+		return;
+	}
+
+	for (int32_t i = beg; i <= end; i += _header->numChannels)
+	{
+		int16_t sample = _wavSamples[i + idxChannel];
+
+		if (sample < min)
+			min = sample;
+		if (sample > max)
+			max = sample;
+	}
+
+	*outMin = min;
+	*outMax = max;
 }
 
 void djAudioSource::SetHopDistance(int32_t hopDistance)
 {
 	_hopDistance = hopDistance;
+}
+
+int16_t djAudioSource::GetNumChannels()
+{
+	return _header->numChannels;
 }
 
 int32_t djAudioSource::LoadInputBuffer(int16_t* inputBuffer, int32_t originPosition)

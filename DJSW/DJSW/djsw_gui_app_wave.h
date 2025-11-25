@@ -6,7 +6,6 @@
 class djWaveView : public djView
 {
 public:
-	int idxChannel;
 	AudioChannel* channel;
 
 	virtual void OnGuiInit();

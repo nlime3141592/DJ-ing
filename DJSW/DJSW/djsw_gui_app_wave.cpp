@@ -52,57 +52,28 @@ void djWaveView::OnDrawWave()
 
 	djRectLTRB ltrb;
 
-	//if (this->channel->IsLoaded())
-	if (IsAudioLoaded(this->idxChannel))
-	{
-		int origin = GetPosition(this->idxChannel);
-		int numChannel = 2;
-		origin = origin - origin % numChannel;
+	djAudioSource* audioSource = this->channel->GetSource();
 
+	if (audioSource->IsLoaded())
+	{
 		for (int i = 0; i < w; ++i)
 		{
-			int pl = origin + numChannel * scale * (i - xHalf);
-
-			if (pl < 0)
-				continue;
-
-			sum[0] = 0;
-			sum[1] = 0;
-
-			float min0 = 32767.0f;
-			float max0 = -32768.0f;
-			float min1 = 32767.0f;
-			float max1 = -32768.0f;
-
-			for (int j = 0; j < scale; ++j)
+			for (int32_t j = 0; j < audioSource->GetNumChannels(); ++j)
 			{
-				PeekSample(out, this->idxChannel, pl + numChannel * j);
+				int16_t min;
+				int16_t max;
 
-				if (out[0] < min0)
-					min0 = out[0];
-				else if (out[0] > max0)
-					max0 = out[0];
+				audioSource->Peek(scale, scale * (i - xHalf), j, &min, &max);
 
-				if (out[1] < min1)
-					min1 = out[1];
-				else if (out[1] > max1)
-					max1 = out[1];
+				ltrb.left = i;
+				ltrb.right = ltrb.left;
+
+				float yMin = yHalf - (min / 32767.0f) * yHalf * amplitude;
+				float yMax = yHalf - (max / 32767.0f) * yHalf * amplitude;
+				ltrb.top = yMin;
+				ltrb.bottom = yMax;
+				DrawLine(ltrb, color[j]);
 			}
-
-			ltrb.left = i;
-			ltrb.right = ltrb.left;
-
-			float yMin = yHalf - (min0 / 32767.0f) * yHalf * amplitude;
-			float yMax = yHalf - (max0 / 32767.0f) * yHalf * amplitude;
-			ltrb.top = yMin;
-			ltrb.bottom = yMax;
-			DrawLine(ltrb, color[0]);
-
-			yMin = yHalf - (min1 / 32767.0f) * yHalf * amplitude;
-			yMax = yHalf - (max1 / 32767.0f) * yHalf * amplitude;
-			ltrb.top = yMin;
-			ltrb.bottom = yMax;
-			DrawLine(ltrb, color[1]);
 		}
 	}
 

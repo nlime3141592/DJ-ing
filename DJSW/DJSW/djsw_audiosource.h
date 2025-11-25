@@ -41,6 +41,7 @@ public:
 	~djAudioSource();
 
 	wstring CreateMetadata(wstring wavPath);
+	bool IsLoaded();
 	bool Load(wstring metadataPath);
 	bool Unload();
 
@@ -56,25 +57,20 @@ public:
 	void SetHotCue(int hotCueIndex);
 	int32_t GetHotCue(int hotCueIndex);
 	
-	void SetTempoWeight(float weight);
-	void SetTempoRange(float tempoRange);
-	void SetTimeShift(int32_t timeShiftSamples);
-
 	void ReadInit();
-	void ReadSingle(int16_t* out);
 	void Read(int16_t* out);
+	void Peek(int32_t scale, int32_t offset, int32_t idxChannel, int16_t* outMin, int16_t* outMax);
 
 	bool IsPlaying();
 
 	void Play();
 	void Pause();
 
+	void SetTimeShiftDistance(int32_t timeShiftSamples);
 	void SetHopDistance(int32_t hopDistance);
-	char* GetWavFilePath();
 
-	// TODO: 웬만하면 사용하지 않는 방향으로 코딩하고, 코딩 후 사용하지 않는다면 삭제하기.
-	djWavMetaFile* GetWavMetaFile();
-	djWavFileHeader* GetWavHeader();
+	int16_t GetNumChannels();
+	char* GetWavFilePath();
 
 private:
 	djWavMetaFile* _metaFile;

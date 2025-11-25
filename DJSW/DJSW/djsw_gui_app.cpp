@@ -1,5 +1,6 @@
 ﻿#include "djsw_gui_app.h"
 
+#include "djsw_audio_api.h"
 #include "djsw_gui_app_wave.h"
 
 static djWaveView _waveView1;
@@ -14,7 +15,7 @@ static void OnGuiInit_WaveView1()
 	_waveView1.viewport.width = 2560;
 	_waveView1.viewport.height = 360;
 
-	_waveView1.idxChannel = 0;
+	_waveView1.channel = GetChannel(0);
 
 	SetView(&_waveView1, 0);
 }
@@ -28,7 +29,7 @@ static void OnGuiInit_WaveView2()
 	_waveView2.viewport.width = 2560;
 	_waveView2.viewport.height = 360;
 
-	_waveView2.idxChannel = 1;
+	_waveView2.channel = GetChannel(1);
 
 	SetView(&_waveView2, 1);
 }

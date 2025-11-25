@@ -101,37 +101,28 @@ int WINAPI TestUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         case DJSW_HID_SPLIT2:
             if (hidmsg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
             {
-                djAudioAnalyzerParams params;
-                
-                params.bpmMin = 125.0f;
-                params.bpmMax = 135.0f;
-                params.bpmUnit = 0.25f;
-                params.channelCount = 2;
-                params.sampleRate = 44100;
-
-                params.sampleCount = 0;
-                params.samples = 0;
-
                 AudioChannel* channel = GetChannel(1);
-                params.sampleCount = channel->numWavSamples;
-                params.samples = channel->wavSamples;
 
-                //AnalyzeGridData(&params, &grid2);
+                analyzer1 = djAnalyzeJob(
+                    channel->GetSource()->GetWavFilePath(),
+                    127.0f, // bpmMin
+                    127.0f, // bpmMax
+                    0.25f // bpmUnit
+                );
 
-                std::wstring message = L"";
-                message += L"BPM: ";
-                message += std::to_wstring(grid2.bpm);
-                message += L", Offset: ";
-                message += std::to_wstring(grid2.firstBarIndex);
-                message += L"\n";
-                OutputDebugStringW(message.c_str());
+                job1.functions[DJSW_JOB_STATE_INIT].store(JobInit0, std::memory_order_release);
+                job1.functions[DJSW_JOB_STATE_UPDATE].store(JobUpdate0, std::memory_order_release);
+                job1.functions[DJSW_JOB_STATE_FINAL].store(JobFinal0, std::memory_order_release);
+
+                jobQueues[0].Push(&job1);
+
+                OutputDebugStringW(L"Push OK - 1\n");
             }
             break;
         case DJSW_HID_LD2:
             if (hidmsg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
             {
-                AudioChannel* channel = GetChannel(1);
-                channel->JumpImmediate(grid2.firstBarIndex);
+                // Do anything.
             }
             break;
         default:

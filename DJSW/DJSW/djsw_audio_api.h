@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "audiochannel.h"
+
 #define DJSW_MAX_ANALOG_INTERPOLATION_COUNT 32
 
 #define DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER 0
@@ -44,9 +46,4 @@ void SetAnalogValue(uint8_t value, int index);
 uint8_t GetAnalogValueInt(int index);
 float GetAnalogValueFloat(int index);
 
-int32_t GetPosition(int channel);
-void PeekSample(int16_t* out, int channel, int32_t position);
-bool IsAudioLoaded(int channel);
-
-// TEST
 AudioChannel* GetChannel(int index);
