@@ -72,6 +72,11 @@ public:
 	int16_t GetNumChannels();
 	char* GetWavFilePath();
 
+	int32_t GetPosition();
+
+	void PlayGlobalCue();
+	void PauseGlobalCue();
+
 private:
 	djWavMetaFile _metaFile;
 	djWavFileHeader* _header;

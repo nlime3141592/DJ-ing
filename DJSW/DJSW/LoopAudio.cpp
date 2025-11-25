@@ -106,9 +106,38 @@ static void GlobalCueButtonAction(
 	int32_t index,
 	bool quantize)
 {
-	if (msg->message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
-	{
+	AudioChannel* pChannel = GetChannel(channel);
 
+	if (pChannel->GetSource()->IsPlaying())
+	{
+		if (msg->message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+		{
+			pChannel->GetSource()->Pause();
+			pChannel->GetSource()->Jump(pChannel->GetSource()->GetGlobalCueIndex());
+		}
+	}
+	else
+	{
+		if (msg->message == DJSW_HID_MASK_MESSAGE_KEY_UP)
+		{
+			pChannel->GetSource()->PauseGlobalCue();
+			pChannel->GetSource()->Jump(pChannel->GetSource()->GetGlobalCueIndex());
+		}
+		if (msg->message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
+		{
+			if (pChannel->GetSource()->GetPosition() == pChannel->GetSource()->GetGlobalCueIndex())
+			{
+				pChannel->GetSource()->PlayGlobalCue();
+			}
+			else
+			{
+				int32_t position = pChannel->GetSource()->GetPosition();
+
+				// TODO: 위치가 샘플 범위 밖을 벗어나지 않도록 조건문 추가하기.
+
+				pChannel->GetSource()->SetGlobalCueIndex(position);
+			}
+		}
 	}
 }
 
@@ -213,6 +242,22 @@ static void AudioInput_Digital(HidMessage msg)
 			else
 				_channel1.GetSource()->Play();
 		}
+		break;
+	case DJSW_HID_CUE1:
+		GlobalCueButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_LEFT_SHIFT,
+			0,
+			0,
+			false);
+		break;
+	case DJSW_HID_CUE2:
+		GlobalCueButtonAction(
+			&msg,
+			DJSW_HID_MASK_MODIFIER_RIGHT_SHIFT,
+			1,
+			0,
+			false);
 		break;
 	case DJSW_HID_PADFN11:
 	case DJSW_HID_PADFN12:

@@ -66,6 +66,11 @@ bool djAudioSource::IsPlaying()
 	return _isPlaying;
 }
 
+int32_t djAudioSource::GetPosition()
+{
+	return _glbPosition + _olaPosition;
+}
+
 wstring djAudioSource::CreateMetadata(wstring wavPath)
 {
 	wstring metaFilePath = wavPath + L".djmeta";
@@ -84,12 +89,30 @@ void djAudioSource::Play()
 	_wsolaSelectedTolerance = 0;
 	ReadInit();
 
+	_useGlobalCue = false;
 	_isPlaying = true;
 }
 
 void djAudioSource::Pause()
 {
 	_isPlaying = false;
+
+	_glbPosition += _olaPosition;
+	_olaPosition = 0;
+}
+
+void djAudioSource::PlayGlobalCue()
+{
+	_olaPosition = 0;
+	_wsolaSelectedTolerance = 0;
+	ReadInit();
+
+	_useGlobalCue = true;
+}
+
+void djAudioSource::PauseGlobalCue()
+{
+	_useGlobalCue = false;
 
 	_glbPosition += _olaPosition;
 	_olaPosition = 0;
@@ -354,7 +377,7 @@ void djAudioSource::Read(int16_t* out)
 	// 3. 최종 샘플 출력
 	// NOTE: 조건을 for문 안에서 검사하면 출력 도중 _isPlaying이 변경되는 경우, 샘플의 원자성이 깨짐.
 	// TODO: 코드 사이즈를 줄일 수 있을까?
-	if (_isPlaying)
+	if (_isPlaying || _useGlobalCue)
 	{
 		int32_t position = _glbPosition + _olaPosition;
 
@@ -376,6 +399,7 @@ void djAudioSource::Read(int16_t* out)
 		else
 		{
 			_isPlaying = false;
+			_useGlobalCue = false;
 
 			for (int32_t i = 0; i < _header->numChannels; ++i)
 			{
