@@ -49,20 +49,31 @@ void djWaveView::OnDrawWave()
 		{ 1.0f, 0.0f, 0.2f },
 		{ 0.0f, 0.2f, 1.0f },
 	};
+	djColor globalCueColor = { 1.0f, 0.0f, 0.2f };
+	djColor hotCueColor[8] = {
+		{ 1.0f, 0.0f, 0.2f },
+		{ 1.0f, 0.0f, 0.2f },
+		{ 1.0f, 0.0f, 0.2f },
+		{ 1.0f, 0.0f, 0.2f },
+		{ 1.0f, 0.0f, 0.2f },
+		{ 1.0f, 0.0f, 0.2f },
+		{ 1.0f, 0.0f, 0.2f },
+		{ 1.0f, 0.0f, 0.2f },
+	};
 
 	djRectLTRB ltrb;
 
 	djAudioSource* audioSource = this->channel->GetSource();
+	int16_t min;
+	int16_t max;
 
 	if (audioSource->IsLoaded())
 	{
+		// 1. 파형 그리기
 		for (int i = 0; i < w; ++i)
 		{
 			for (int32_t j = 0; j < audioSource->GetNumChannels(); ++j)
 			{
-				int16_t min;
-				int16_t max;
-
 				audioSource->Peek(scale, scale * (i - xHalf), j, &min, &max);
 
 				ltrb.left = i;
@@ -75,8 +86,40 @@ void djWaveView::OnDrawWave()
 				DrawLine(ltrb, color[j]);
 			}
 		}
+
+		int32_t beg = audioSource->Peek(scale, -scale * xHalf * audioSource->GetNumChannels(), 0, &min, &max);
+		int32_t end = audioSource->Peek(scale, scale * xHalf * audioSource->GetNumChannels(), 0, &min, &max);
+
+		// 2. 글로벌 큐 포인트 그리기
+		DrawCuePoint(
+			audioSource,
+			scale,
+			audioSource->GetGlobalCueIndex(),
+			beg,
+			end,
+			globalCueColor,
+			1);
+
+		// 3. 핫 큐 포인트 그리기
+		for (int i = 0; i < 8; ++i)
+		{
+			int32_t hotCueIndex = audioSource->GetHotCue(i);
+
+			if (hotCueIndex < 0)
+				continue;
+
+			DrawCuePoint(
+				audioSource,
+				scale,
+				hotCueIndex,
+				beg,
+				end,
+				hotCueColor[i],
+				1);
+		}
 	}
 
+	// 4. 가이드라인 그리기
 	int wGuideline = 4;
 
 	for (int i = 0; i < wGuideline; ++i)
@@ -97,5 +140,38 @@ void djWaveView::OnDrawWave()
 		ltrb.right = ltrb.left;
 		ltrb.bottom = h;
 		DrawLine(ltrb, { grayscale, grayscale, grayscale });
+	}
+}
+
+void djWaveView::DrawCuePoint(
+	djAudioSource* source,
+	int32_t scale,
+	int32_t cueIndex,
+	int32_t begIndex,
+	int32_t endIndex,
+	djColor color,
+	int32_t lineWidth)
+{
+	djRectLTRB ltrb;
+	int16_t min;
+	int16_t max;
+
+	float xHalf = this->viewport.width / 2.0f;
+	int y = this->viewport.height;
+
+	int32_t offset = cueIndex - source->GetPosition();
+	int32_t index = source->Peek(scale, offset, 0, &min, &max);
+	int32_t c = source->GetNumChannels();
+
+	if (index < begIndex || index > endIndex)
+		return;
+
+	for (int32_t i = -lineWidth; i <= lineWidth; ++i)
+	{
+		ltrb.left = offset / (scale * c) + xHalf + i;
+		ltrb.right = ltrb.left;
+		ltrb.top = 0;
+		ltrb.bottom = y;
+		DrawLine(ltrb, color);
 	}
 }

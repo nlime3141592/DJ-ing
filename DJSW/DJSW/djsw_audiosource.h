@@ -59,7 +59,7 @@ public:
 	
 	void ReadInit();
 	void Read(int16_t* out);
-	void Peek(int32_t scale, int32_t offset, int32_t idxChannel, int16_t* outMin, int16_t* outMax);
+	int32_t Peek(int32_t scale, int32_t offset, int32_t idxChannel, int16_t* outMin, int16_t* outMax);
 
 	bool IsPlaying();
 

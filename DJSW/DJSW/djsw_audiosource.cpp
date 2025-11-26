@@ -426,7 +426,8 @@ void djAudioSource::Read(int16_t* out)
 	}
 }
 
-void djAudioSource::Peek(int32_t scale, int32_t offset, int32_t idxChannel, int16_t* outMin, int16_t* outMax)
+// 구간 내의 최대 및 최소값을 찾고 시작 위치를 반환합니다.
+int32_t djAudioSource::Peek(int32_t scale, int32_t offset, int32_t idxChannel, int16_t* outMin, int16_t* outMax)
 {
 	assert(scale > 0);
 	assert(idxChannel >= 0 && idxChannel < _header->numChannels);
@@ -448,7 +449,7 @@ void djAudioSource::Peek(int32_t scale, int32_t offset, int32_t idxChannel, int1
 	{
 		*outMin = 0;
 		*outMax = 0;
-		return;
+		return beg;
 	}
 
 	for (int32_t i = beg; i <= end; i += _header->numChannels)
@@ -463,6 +464,8 @@ void djAudioSource::Peek(int32_t scale, int32_t offset, int32_t idxChannel, int1
 
 	*outMin = min;
 	*outMax = max;
+
+	return beg;
 }
 
 void djAudioSource::SetHopDistance(int32_t hopDistance)

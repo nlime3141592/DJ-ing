@@ -11,4 +11,14 @@ public:
 	virtual void OnGuiInit();
 	virtual void OnGuiUpdate();
 	virtual void OnDrawWave();
+
+private:
+	void DrawCuePoint(
+		djAudioSource* source,
+		int32_t scale,
+		int32_t cueIndex,
+		int32_t begIndex,
+		int32_t endIndex,
+		djColor color,
+		int32_t lineWidth);
 };
