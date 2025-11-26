@@ -71,6 +71,8 @@ void GetView(djView** view, int index);
 djView* GetCurrentView();
 
 // -------------------- Drawing API Definitions --------------------
+djColor GetColorByRGB(uint8_t r, uint8_t g, uint8_t b);
+
 void DrawLine(djRectLTWH rect, djColor color);
 void DrawLine(djRectLTRB rect, djColor color);
 void DrawRectangle(djRectLTWH rect, djColor color);

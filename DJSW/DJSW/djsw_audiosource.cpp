@@ -310,7 +310,12 @@ void djAudioSource::ClearHotCue(int hotCueIndex)
 
 void djAudioSource::SetHotCue(int hotCueIndex)
 {
-	_metaFile.SetHotCue(hotCueIndex, _glbPosition + _olaPosition);
+	int32_t position = _glbPosition + _olaPosition;
+
+	if (position < 0)
+		position = 0;
+	
+	_metaFile.SetHotCue(hotCueIndex, position);
 }
 
 int32_t djAudioSource::GetHotCue(int hotCueIndex)

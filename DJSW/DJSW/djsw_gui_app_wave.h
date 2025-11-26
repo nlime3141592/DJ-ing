@@ -13,6 +13,20 @@ public:
 	virtual void OnDrawWave();
 
 private:
+	void DrawDownArrow(
+		djAudioSource* source,
+		int32_t scale,
+		int32_t cueIndex,
+		djColor color,
+		int32_t triangleWidth);
+
+	void DrawUpArrow(
+		djAudioSource* source,
+		int32_t scale,
+		int32_t cueIndex,
+		djColor color,
+		int32_t triangleWidth);
+
 	void DrawCuePoint(
 		djAudioSource* source,
 		int32_t scale,

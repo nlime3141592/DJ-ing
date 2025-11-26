@@ -20,17 +20,12 @@ void djWaveView::OnGuiInit()
 void djWaveView::OnGuiUpdate()
 {
 	djRectLTRB ltrb;
-	ltrb.left = 10;
-	ltrb.top = 10;
-	ltrb.right = 1080;
-	ltrb.bottom = 720;
+	ltrb.left = 0;
+	ltrb.top = 0;
+	ltrb.right = this->viewport.width;
+	ltrb.bottom = this->viewport.height;
 
-	djColor color;
-	color.r = 0.75f;
-	color.g = 0.75f;
-	color.b = 0.75f;
-
-	DrawRectangle(ltrb, color);
+	DrawRectangle(ltrb, GetColorByRGB(18, 18, 18));
 }
 
 void djWaveView::OnDrawWave()
@@ -46,21 +41,21 @@ void djWaveView::OnDrawWave()
 	int16_t out[2] = { 0 };
 	float sum[2] = { 0 };
 	djColor color[2] = {
-		{ 1.0f, 0.0f, 0.2f },
-		{ 0.0f, 0.2f, 1.0f },
+		GetColorByRGB(255, 64, 0),
+		GetColorByRGB(0, 64, 255),
 	};
-	djColor globalCueColor = { 1.0f, 0.0f, 0.2f };
+	djColor globalCueColor = GetColorByRGB(255, 255, 255);
 	djColor hotCueColor[8] = {
-		{ 1.0f, 0.0f, 0.2f },
-		{ 1.0f, 0.0f, 0.2f },
-		{ 1.0f, 0.0f, 0.2f },
-		{ 1.0f, 0.0f, 0.2f },
-		{ 1.0f, 0.0f, 0.2f },
-		{ 1.0f, 0.0f, 0.2f },
-		{ 1.0f, 0.0f, 0.2f },
-		{ 1.0f, 0.0f, 0.2f },
+		GetColorByRGB(255, 55, 111),
+		GetColorByRGB(69, 172, 219),
+		GetColorByRGB(125, 193, 61),
+		GetColorByRGB(170, 114, 255),
+		GetColorByRGB(48, 210, 110),
+		GetColorByRGB(224, 100, 27),
+		GetColorByRGB(48, 90, 255),
+		GetColorByRGB(195, 175, 4),
 	};
-	djColor loopColor = { 1.0f, 0.75f, 0.05f };
+	djColor loopColor = GetColorByRGB(255, 201, 14);
 
 	djRectLTRB ltrb;
 
@@ -88,10 +83,25 @@ void djWaveView::OnDrawWave()
 			}
 		}
 
+		// 2. 루프 영역 그리기
+		if (audioSource->IsLoop())
+		{
+			int32_t beg = audioSource->GetLoopIndex();
+			int32_t end = beg + audioSource->GetLoopLength();
+
+			DrawLoop(
+				audioSource,
+				scale,
+				beg,
+				end,
+				loopColor,
+				(int32_t)((float)h * 0.1f));
+		}
+
 		int32_t beg = audioSource->Peek(scale, -scale * xHalf * audioSource->GetNumChannels(), 0, &min, &max);
 		int32_t end = audioSource->Peek(scale, scale * xHalf * audioSource->GetNumChannels(), 0, &min, &max);
 
-		// 2. 글로벌 큐 포인트 그리기
+		// 3. 글로벌 큐 포인트 그리기
 		DrawCuePoint(
 			audioSource,
 			scale,
@@ -100,8 +110,14 @@ void djWaveView::OnDrawWave()
 			end,
 			globalCueColor,
 			1);
+		DrawUpArrow(
+			audioSource,
+			scale,
+			audioSource->GetGlobalCueIndex(),
+			globalCueColor,
+			(int32_t)((float)h * 0.1f));
 
-		// 3. 핫 큐 포인트 그리기
+		// 4. 핫 큐 포인트 그리기
 		for (int i = 0; i < 8; ++i)
 		{
 			int32_t hotCueIndex = audioSource->GetHotCue(i);
@@ -117,22 +133,13 @@ void djWaveView::OnDrawWave()
 				end,
 				hotCueColor[i],
 				1);
+			DrawDownArrow(
+				audioSource,
+				scale,
+				hotCueIndex,
+				hotCueColor[i],
+				(int32_t)((float)h * 0.1f));
 		}
-	}
-
-	// 4. 루프 영역 그리기
-	if (audioSource->IsLoop())
-	{
-		int32_t beg = audioSource->GetLoopIndex();
-		int32_t end = beg + audioSource->GetLoopLength();
-
-		DrawLoop(
-			audioSource,
-			scale,
-			beg,
-			end,
-			loopColor,
-			(int32_t)((float)h * 0.1f));
 	}
 
 	// 5. 가이드라인 그리기
@@ -156,6 +163,61 @@ void djWaveView::OnDrawWave()
 		ltrb.right = ltrb.left;
 		ltrb.bottom = h;
 		DrawLine(ltrb, { grayscale, grayscale, grayscale });
+	}
+}
+
+void djWaveView::DrawDownArrow(
+	djAudioSource* source,
+	int32_t scale,
+	int32_t cueIndex,
+	djColor color,
+	int32_t triangleWidth)
+{
+	djRectLTRB ltrb;
+	int16_t min;
+	int16_t max;
+
+	float xHalf = this->viewport.width / 2.0f;
+
+	int32_t offset = cueIndex - source->GetPosition();
+	int32_t index = source->Peek(scale, offset, 0, &min, &max);
+	int32_t c = source->GetNumChannels();
+
+	for (int32_t i = -triangleWidth; i <= triangleWidth; ++i)
+	{
+		ltrb.left = offset / (scale * c) + xHalf + i;
+		ltrb.top = 0;
+		ltrb.right = ltrb.left;
+		ltrb.bottom = triangleWidth - abs(i);
+		DrawLine(ltrb, color);
+	}
+}
+
+void djWaveView::DrawUpArrow(
+	djAudioSource* source,
+	int32_t scale,
+	int32_t cueIndex,
+	djColor color,
+	int32_t triangleWidth)
+{
+	djRectLTRB ltrb;
+	int16_t min;
+	int16_t max;
+
+	float xHalf = this->viewport.width / 2.0f;
+	int y = this->viewport.height;
+
+	int32_t offset = cueIndex - source->GetPosition();
+	int32_t index = source->Peek(scale, offset, 0, &min, &max);
+	int32_t c = source->GetNumChannels();
+
+	for (int32_t i = -triangleWidth; i <= triangleWidth; ++i)
+	{
+		ltrb.left = offset / (scale * c) + xHalf + i;
+		ltrb.top = y - triangleWidth + abs(i);
+		ltrb.right = ltrb.left;
+		ltrb.bottom = y;
+		DrawLine(ltrb, color);
 	}
 }
 

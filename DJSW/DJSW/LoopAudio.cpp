@@ -133,9 +133,11 @@ static void GlobalCueButtonAction(
 			{
 				int32_t position = pChannel->GetSource()->GetPosition();
 
-				// TODO: 위치가 샘플 범위 밖을 벗어나지 않도록 조건문 추가하기.
+				if (position < 0)
+					position = 0;
 
 				pChannel->GetSource()->SetGlobalCueIndex(position);
+				pChannel->GetSource()->Jump(pChannel->GetSource()->GetGlobalCueIndex());
 			}
 		}
 	}
@@ -161,15 +163,19 @@ static void PadButtonAction(
 		case 1: // Hot Cue Performance
 			if ((msg->modifier & shiftMask) != 0)
 			{
+				pChannel->GetSource()->ClearHotCue(index);
+			}
+			else if (pChannel->GetSource()->GetHotCue(index) < 0)
+			{
 				pChannel->GetSource()->SetHotCue(index);
-				OutputDebugStringW((L"_metaFile.hotCueIndices[0] - 0 == " + to_wstring(pChannel->GetSource()->GetHotCue(0)) + L"\n").c_str());
+				//OutputDebugStringW((L"_metaFile.hotCueIndices[0] - 0 == " + to_wstring(pChannel->GetSource()->GetHotCue(0)) + L"\n").c_str());
 			}
 			else
 			{
 				int32_t position = pChannel->GetSource()->GetHotCue(index);
 				pChannel->GetSource()->Jump(position);
-				OutputDebugStringW((L"_metaFile.hotCueIndices[0] - 1 == " + to_wstring(pChannel->GetSource()->GetHotCue(0)) + L"\n").c_str());
-				//pChannel->GetSource()->Play();
+				pChannel->GetSource()->Play();
+				//OutputDebugStringW((L"_metaFile.hotCueIndices[0] - 1 == " + to_wstring(pChannel->GetSource()->GetHotCue(0)) + L"\n").c_str());
 			}
 
 			/*if ((msg->modifier & shiftMask) != 0)

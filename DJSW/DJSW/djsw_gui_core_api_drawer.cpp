@@ -2,6 +2,17 @@
 
 #include <assert.h>
 
+djColor GetColorByRGB(uint8_t r, uint8_t g, uint8_t b)
+{
+	djColor color;
+
+	color.r = (float)r / 255.0f;
+	color.g = (float)g / 255.0f;
+	color.b = (float)b / 255.0f;
+
+	return color;
+}
+
 void DrawLine(djRectLTWH rect, djColor color)
 {
 	djRectLTRB ltrb;
