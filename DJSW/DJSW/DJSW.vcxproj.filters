@@ -19,12 +19,6 @@
     <Filter Include="소스 파일\Audio">
       <UniqueIdentifier>{e2737309-5d1c-4411-8a44-2d20ec67729b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="소스 파일\MiniXML">
-      <UniqueIdentifier>{74158627-b096-4b52-8557-18f75b3c47fc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="헤더 파일\MiniXML">
-      <UniqueIdentifier>{1e1b312b-c959-458a-8caa-d84f404538d7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="소스 파일\Loop">
       <UniqueIdentifier>{e4054bd3-b33f-4ef1-9817-24148664d678}</UniqueIdentifier>
     </Filter>
@@ -67,6 +61,12 @@
     <Filter Include="헤더 파일\JobSystem">
       <UniqueIdentifier>{01b9ea99-a921-4b16-b5b5-35ad1b50d7a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="헤더 파일\Core">
+      <UniqueIdentifier>{4aec0dba-8871-4fc9-a332-3e001801875b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Util">
+      <UniqueIdentifier>{47cc1fc4-58e0-494c-82c6-e23f542773f3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="개발환경설정.md" />
@@ -77,33 +77,6 @@
     </ClCompile>
     <ClCompile Include="audiofilter.cpp">
       <Filter>소스 파일\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="MiniXML\mxml-attr.c">
-      <Filter>소스 파일\MiniXML</Filter>
-    </ClCompile>
-    <ClCompile Include="MiniXML\mxml-file.c">
-      <Filter>소스 파일\MiniXML</Filter>
-    </ClCompile>
-    <ClCompile Include="MiniXML\mxml-get.c">
-      <Filter>소스 파일\MiniXML</Filter>
-    </ClCompile>
-    <ClCompile Include="MiniXML\mxml-index.c">
-      <Filter>소스 파일\MiniXML</Filter>
-    </ClCompile>
-    <ClCompile Include="MiniXML\mxml-node.c">
-      <Filter>소스 파일\MiniXML</Filter>
-    </ClCompile>
-    <ClCompile Include="MiniXML\mxml-options.c">
-      <Filter>소스 파일\MiniXML</Filter>
-    </ClCompile>
-    <ClCompile Include="MiniXML\mxml-private.c">
-      <Filter>소스 파일\MiniXML</Filter>
-    </ClCompile>
-    <ClCompile Include="MiniXML\mxml-search.c">
-      <Filter>소스 파일\MiniXML</Filter>
-    </ClCompile>
-    <ClCompile Include="MiniXML\mxml-set.c">
-      <Filter>소스 파일\MiniXML</Filter>
     </ClCompile>
     <ClCompile Include="audioreverb.cpp">
       <Filter>소스 파일\Audio</Filter>
@@ -165,6 +138,15 @@
     <ClCompile Include="djsw_file_wav.cpp">
       <Filter>소스 파일\Files</Filter>
     </ClCompile>
+    <ClCompile Include="djsw_gui_app_controller.cpp">
+      <Filter>소스 파일\GUIApplication</Filter>
+    </ClCompile>
+    <ClCompile Include="SampleText.cpp">
+      <Filter>소스 파일\GUIApplication</Filter>
+    </ClCompile>
+    <ClCompile Include="LoopRender_Init.cpp">
+      <Filter>소스 파일\Loop</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dx12.h">
@@ -172,15 +154,6 @@
     </ClInclude>
     <ClInclude Include="audiofilter.h">
       <Filter>헤더 파일\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="MiniXML\mxml.h">
-      <Filter>헤더 파일\MiniXML</Filter>
-    </ClInclude>
-    <ClInclude Include="MiniXML\mxml-private.h">
-      <Filter>헤더 파일\MiniXML</Filter>
-    </ClInclude>
-    <ClInclude Include="MiniXML\config.h">
-      <Filter>헤더 파일\MiniXML</Filter>
     </ClInclude>
     <ClInclude Include="audioreverb.h">
       <Filter>헤더 파일\Audio</Filter>
@@ -199,9 +172,6 @@
     </ClInclude>
     <ClInclude Include="LoopRender.h">
       <Filter>헤더 파일\Loop</Filter>
-    </ClInclude>
-    <ClInclude Include="djsw_util_timer.h">
-      <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="djsw_input_hid_controls.h">
       <Filter>헤더 파일\Input</Filter>
@@ -256,6 +226,27 @@
     </ClInclude>
     <ClInclude Include="djsw_message_queue.h">
       <Filter>헤더 파일\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_gui_app_controller.h">
+      <Filter>헤더 파일\GUIApplication</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_util_timer.h">
+      <Filter>헤더 파일\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_errorcode.h">
+      <Filter>헤더 파일\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_iofncode.h">
+      <Filter>헤더 파일\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="djsw_type.h">
+      <Filter>헤더 파일\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="SampleText.h">
+      <Filter>헤더 파일\GUIApplication</Filter>
+    </ClInclude>
+    <ClInclude Include="LoopRender_Init.h">
+      <Filter>헤더 파일\Loop</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,10 +1,42 @@
 ﻿#include "djsw_gui_app.h"
 
 #include "djsw_audio_api.h"
+#include "djsw_gui_app_controller.h"
 #include "djsw_gui_app_wave.h"
+
+static djControllerView _ctrlView1;
+static djControllerView _ctrlView2;
 
 static djWaveView _waveView1;
 static djWaveView _waveView2;
+
+static void OnGuiInit_CtrlView1()
+{
+	_ctrlView1.OnGuiInit();
+
+	_ctrlView1.viewport.topLeftX = 0;
+	_ctrlView1.viewport.topLeftY = 0;
+	_ctrlView1.viewport.width = 1280;
+	_ctrlView1.viewport.height = 360;
+
+	_ctrlView1.channel = GetAudioChannel(0);
+
+	SetView(&_ctrlView1, 2);
+}
+
+static void OnGuiInit_CtrlView2()
+{
+	_ctrlView2.OnGuiInit();
+
+	_ctrlView2.viewport.topLeftX = 0;
+	_ctrlView2.viewport.topLeftY = 360;
+	_ctrlView2.viewport.width = 1280;
+	_ctrlView2.viewport.height = 360;
+
+	_ctrlView2.channel = GetAudioChannel(1);
+
+	SetView(&_ctrlView2, 3);
+}
 
 static void OnGuiInit_WaveView1()
 {
@@ -15,7 +47,7 @@ static void OnGuiInit_WaveView1()
 	_waveView1.viewport.width = 2560;
 	_waveView1.viewport.height = 360;
 
-	_waveView1.channel = GetChannel(0);
+	_waveView1.channel = GetAudioChannel(0);
 
 	SetView(&_waveView1, 0);
 }
@@ -29,13 +61,16 @@ static void OnGuiInit_WaveView2()
 	_waveView2.viewport.width = 2560;
 	_waveView2.viewport.height = 360;
 
-	_waveView2.channel = GetChannel(1);
+	_waveView2.channel = GetAudioChannel(1);
 
 	SetView(&_waveView2, 1);
 }
 
 void OnGuiInit_App()
 {
+	OnGuiInit_CtrlView1();
+	OnGuiInit_CtrlView2();
+
 	OnGuiInit_WaveView1();
 	OnGuiInit_WaveView2();
 }

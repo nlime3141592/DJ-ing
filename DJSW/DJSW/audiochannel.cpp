@@ -20,6 +20,7 @@ AudioChannel::AudioChannel() :
 	eqHighR(Biquad()),
 
 	masterVolume(0.0f),
+	crossVolume(0.0f),
 	mute(1.0f),
 	fx1(0.0f),
 	fx2(0.0f)
@@ -110,8 +111,8 @@ void AudioChannel::Read(int16_t* out)
 		break;
 	}
 
-	out[0] *= masterVolume * mute;
-	out[1] *= masterVolume * mute;
+	out[0] *= masterVolume * crossVolume * mute;
+	out[1] *= masterVolume * crossVolume * mute;
 }
 
 djAudioSource* AudioChannel::GetSource()

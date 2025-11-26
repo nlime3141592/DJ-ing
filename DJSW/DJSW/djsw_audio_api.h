@@ -42,8 +42,10 @@
 #define DJSW_ANALOG_VALUE_MID 127
 #define DJSW_ANALOG_VALUE_MAX 255
 
+#define DJSW_WSOLA_TEMPO_RANGE 5
+
 void SetAnalogValue(uint8_t value, int index);
 uint8_t GetAnalogValueInt(int index);
 float GetAnalogValueFloat(int index);
 
-AudioChannel* GetChannel(int index);
+AudioChannel* GetAudioChannel(int index);

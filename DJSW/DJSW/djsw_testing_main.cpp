@@ -114,7 +114,7 @@ int WINAPI TestUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         case DJSW_HID_SPLIT1:
             if (hidmsg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
             {
-                AudioChannel* channel = GetChannel(0);
+                AudioChannel* channel = GetAudioChannel(0);
 
                 analyzer0 = djAnalyzeJob(
                     channel->GetSource()->GetWavFilePath(),
@@ -135,7 +135,7 @@ int WINAPI TestUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         case DJSW_HID_SPLIT2:
             if (hidmsg.message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
             {
-                AudioChannel* channel = GetChannel(1);
+                AudioChannel* channel = GetAudioChannel(1);
 
                 analyzer1 = djAnalyzeJob(
                     channel->GetSource()->GetWavFilePath(),

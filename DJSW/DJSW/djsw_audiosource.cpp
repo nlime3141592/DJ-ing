@@ -488,6 +488,11 @@ void djAudioSource::SetHopDistance(int32_t hopDistance)
 	_hopDistance = hopDistance;
 }
 
+int32_t djAudioSource::GetHopDistance()
+{
+	return _hopDistance;
+}
+
 int16_t djAudioSource::GetNumChannels()
 {
 	return _header->numChannels;

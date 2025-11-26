@@ -1,5 +1,4 @@
-﻿#ifndef __DJSW_ERRORCODE_H__
-#define __DJSW_ERRORCODE_H__
+﻿#pragma once
 
 #include <stdint.h>
 
@@ -9,5 +8,3 @@
 #define DJSW_ERR_ACCESS_DENIED 0x1000
 
 typedef uint16_t djErrorCode;
-
-#endif

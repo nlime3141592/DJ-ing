@@ -1,91 +1,24 @@
 ﻿#include "LoopRender.h"
+#include "LoopRender_Init.h"
+
+#include <string>
 
 #include "djsw_gui_app.h"
 #include "djsw_gui_core_api_internal.h"
-
 #include "djsw_util_timer.h"
-#include <string>
+
+#include "SampleText.h"
+#include <d2d1_1.h>
 
 #define DJSW_TIMER_EVENT_RESIZING 1
 
-#define DJSW_VERTEX_THROUGHPUT 0x10000 // 16-bit address space
-#define DJSW_VERTEX_CAPACITY 0x100000 // 20-bit address space
-
-static ComPtr<ID3D12CommandQueue> _cmdQueue;
-
-static DXGI_SWAP_CHAIN_DESC1 _swapChainDesc;
-static ComPtr<IDXGISwapChain3> _swapChain0;
-static ComPtr<IDXGISwapChain1> _swapChain1;
-static UINT _frameIndex;
-
-static ComPtr<ID3D12DescriptorHeap> _rtvHeap;
-static ComPtr<ID3D12Resource> _renderTargets[FrameCount];
-static UINT _rtvDescriptorSize;
-
-ComPtr<ID3D12CommandAllocator> _cmdAllocator;
-ComPtr<ID3D12GraphicsCommandList> _cmdList;
-
-static ComPtr<ID3D12Fence> _fence;
-static UINT64 _fenceValue = 0;
-static HANDLE _fenceEvent;
-
-static ComPtr<ID3D12RootSignature> _rootSignature;
-
-static ComPtr<ID3D12Resource> _vertexBuffer;
-static D3D12_VERTEX_BUFFER_VIEW _vertexBufferView;
 static size_t _vertexCount;
 static size_t _vertexDrawCount;
 static size_t _vertexBegin;
 
-static D3D12_GRAPHICS_PIPELINE_STATE_DESC _psoDesc_Triangle;
-static D3D12_GRAPHICS_PIPELINE_STATE_DESC _psoDesc_Line;
-static ComPtr<ID3D12PipelineState> _psoState_Triangle;
-static ComPtr<ID3D12PipelineState> _psoState_Line;
-
-static D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-};
-
-static UINT8* _pVertexDataBegin;
-
 static BOOL _isResizing;
 
-static void InitPSO_Triangle(ComPtr<ID3DBlob> vertexShader, ComPtr<ID3DBlob> pixelShader)
-{
-    _psoDesc_Triangle = {};
-    _psoDesc_Triangle.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-    _psoDesc_Triangle.pRootSignature = _rootSignature.Get();
-    _psoDesc_Triangle.VS = { reinterpret_cast<BYTE*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
-    _psoDesc_Triangle.PS = { reinterpret_cast<BYTE*>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize() };
-    _psoDesc_Triangle.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    _psoDesc_Triangle.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    _psoDesc_Triangle.DepthStencilState.DepthEnable = FALSE;
-    _psoDesc_Triangle.DepthStencilState.StencilEnable = FALSE;
-    _psoDesc_Triangle.SampleMask = UINT_MAX;
-    _psoDesc_Triangle.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; // 이 곳에서 파이프라인 상태를 변경할 수 있음.
-    _psoDesc_Triangle.NumRenderTargets = 1;
-    _psoDesc_Triangle.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    _psoDesc_Triangle.SampleDesc.Count = 1;
-}
-
-static void InitPSO_Line(ComPtr<ID3DBlob> vertexShader, ComPtr<ID3DBlob> pixelShader)
-{
-    _psoDesc_Line = {};
-    _psoDesc_Line.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-    _psoDesc_Line.pRootSignature = _rootSignature.Get();
-    _psoDesc_Line.VS = { reinterpret_cast<BYTE*>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize() };
-    _psoDesc_Line.PS = { reinterpret_cast<BYTE*>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize() };
-    _psoDesc_Line.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    _psoDesc_Line.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    _psoDesc_Line.DepthStencilState.DepthEnable = FALSE;
-    _psoDesc_Line.DepthStencilState.StencilEnable = FALSE;
-    _psoDesc_Line.SampleMask = UINT_MAX;
-    _psoDesc_Line.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
-    _psoDesc_Line.NumRenderTargets = 1;
-    _psoDesc_Line.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    _psoDesc_Line.SampleDesc.Count = 1;
-}
+static SampleText _sampleText;
 
 static void WaitForPreviousFrame()
 {
@@ -151,9 +84,11 @@ int WINAPI RenderInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     wc.lpszClassName = L"DJSW";
     RegisterClassEx(&wc);
 
+    DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+
     HWND hwnd = CreateWindowEx(
         0, wc.lpszClassName, L"DJSW",
-        WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
+        style, CW_USEDEFAULT, CW_USEDEFAULT, 1366, 256,
         nullptr, nullptr, hInstance, nullptr
     );
     ShowWindow(hwnd, nCmdShow);
@@ -166,145 +101,13 @@ int WINAPI RenderInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 #endif
 
     // -------------------- DXGI 팩토리 및 디바이스 --------------------
-    ComPtr<IDXGIFactory6> factory;
-    CreateDXGIFactory1(IID_PPV_ARGS(&factory));
+    _hwnd = hwnd;
+    PipelineInit();
 
-    ComPtr<ID3D12Device> device;
-    D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device));
+    // -------------------- D2D - D3D 간 연동 --------------------
+    _sampleText.Init(hwnd);
 
-    // -------------------- 커맨드 큐 --------------------
-    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-    device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&_cmdQueue));
-
-    // -------------------- 스왑 체인 --------------------
-    _swapChainDesc = {};
-    _swapChainDesc.BufferCount = FrameCount;
-    //swapChainDesc.Width = 800;
-    _swapChainDesc.Width = 3840;
-    //swapChainDesc.Height = 600;
-    _swapChainDesc.Height = 2160;
-    _swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    _swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    _swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    _swapChainDesc.SampleDesc.Count = 1;
-
-    factory->CreateSwapChainForHwnd(
-        _cmdQueue.Get(),
-        hwnd,
-        &_swapChainDesc,
-        nullptr,
-        nullptr,
-        &_swapChain1
-    );
-
-    _swapChain1.As(&_swapChain0);
-    //UINT frameIndex = _swapChain0->GetCurrentBackBufferIndex();
-    _frameIndex = _swapChain0->GetCurrentBackBufferIndex();
-
-    // -------------------- RTV (렌더 타겟 뷰) --------------------
-    D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-    rtvHeapDesc.NumDescriptors = FrameCount;
-    rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-    device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&_rtvHeap));
-
-    _rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(_rtvHeap->GetCPUDescriptorHandleForHeapStart());
-    for (UINT n = 0; n < FrameCount; n++) {
-        _swapChain0->GetBuffer(n, IID_PPV_ARGS(&_renderTargets[n]));
-        device->CreateRenderTargetView(_renderTargets[n].Get(), nullptr, rtvHandle);
-        rtvHandle.Offset(1, _rtvDescriptorSize);
-    }
-
-    // -------------------- 커맨드 할당자 & 리스트 --------------------
-    device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&_cmdAllocator));
-    device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, _cmdAllocator.Get(), nullptr, IID_PPV_ARGS(&_cmdList));
-    _cmdList->Close();
-
-    // -------------------- 펜스 --------------------
-    _fenceValue = 0;
-    device->CreateFence(_fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence));
-    _fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-
-    // -------------------- 정점 버퍼 정의 --------------------
-    CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
-
-    // 정점 버퍼의 크기 정의
-    //CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-    CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(djVertexRGB) * DJSW_VERTEX_CAPACITY);
-
-    // 업로드 힙으로 버텍스 버퍼 생성
-    device->CreateCommittedResource(
-        &heapProps,
-        D3D12_HEAP_FLAG_NONE,
-        &bufferDesc,
-        D3D12_RESOURCE_STATE_GENERIC_READ,
-        nullptr,
-        IID_PPV_ARGS(&_vertexBuffer)
-    );
-
-    //UINT8* pVertexDataBegin;
-    CD3DX12_RANGE readRange(0, 0);
-    _vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&_pVertexDataBegin));
-    //memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
-    //_vertexBuffer->Unmap(0, nullptr);
-
-    _vertexBufferView = {};
-    _vertexBufferView.BufferLocation = _vertexBuffer->GetGPUVirtualAddress();
-    _vertexBufferView.StrideInBytes = sizeof(djVertexRGB);
-    //_vertexBufferView.SizeInBytes = vertexBufferSize;
-    _vertexBufferView.SizeInBytes = sizeof(djVertexRGB) * DJSW_VERTEX_CAPACITY;
-
-    // -------------------- 셰이더 컴파일 --------------------
-    ComPtr<ID3DBlob> vertexShader;
-    ComPtr<ID3DBlob> pixelShader;
-    D3DCompile(
-        "struct VS_INPUT { float3 pos: POSITION; float3 col: COLOR; };"
-        "struct PS_INPUT { float4 pos: SV_POSITION; float3 col: COLOR; };"
-        "PS_INPUT VSMain(VS_INPUT input){ PS_INPUT o; o.pos=float4(input.pos,1); o.col=input.col; return o; }"
-        "float4 PSMain(PS_INPUT input) : SV_TARGET { return float4(input.col,1); }",
-        strlen(
-            "struct VS_INPUT { float3 pos: POSITION; float3 col: COLOR; };"
-            "struct PS_INPUT { float4 pos: SV_POSITION; float3 col: COLOR; };"
-            "PS_INPUT VSMain(VS_INPUT input){ PS_INPUT o; o.pos=float4(input.pos,1); o.col=input.col; return o; }"
-            "float4 PSMain(PS_INPUT input) : SV_TARGET { return float4(input.col,1); }"
-        ),
-        nullptr, nullptr, nullptr,
-        "VSMain", "vs_5_0", 0, 0, &vertexShader, nullptr
-    );
-    D3DCompile(
-        "struct PS_INPUT { float4 pos: SV_POSITION; float3 col: COLOR; };"
-        "float4 PSMain(PS_INPUT input) : SV_TARGET { return float4(input.col,1); }",
-        strlen(
-            "struct PS_INPUT { float4 pos: SV_POSITION; float3 col: COLOR; };"
-            "float4 PSMain(PS_INPUT input) : SV_TARGET { return float4(input.col,1); }"
-        ),
-        nullptr, nullptr, nullptr,
-        "PSMain", "ps_5_0", 0, 0, &pixelShader, nullptr
-    );
-
-    // -------------------- 루트 시그니처 --------------------
-    D3D12_ROOT_SIGNATURE_DESC rootSigDesc = {};
-    rootSigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-
-    ComPtr<ID3DBlob> signature;
-    ComPtr<ID3DBlob> error;
-    D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-    device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&_rootSignature));
-
-    // -------------------- 파이프라인 상태 객체 --------------------
-    InitPSO_Triangle(vertexShader, pixelShader);
-    InitPSO_Line(vertexShader, pixelShader);
-
-    device->CreateGraphicsPipelineState(&_psoDesc_Triangle, IID_PPV_ARGS(&_psoState_Triangle));
-    device->CreateGraphicsPipelineState(&_psoDesc_Line, IID_PPV_ARGS(&_psoState_Line));
-
-    _isResizing = false;
-
-    _vertexCount = 0;
-    _vertexDrawCount = 0;
-    
+    // -------------------- UI 구현 초기화 --------------------
     OnGuiInit_Core();
     OnGuiInit_App();
 
@@ -355,6 +158,43 @@ void DrawCall()
     }
 }
 
+void TestRender2D()
+{
+    _d3d11On12Device->AcquireWrappedResources(_wrappedBackBuffers[_frameIndex].GetAddressOf(), 1);
+
+    _d2dDeviceContext->SetTarget(_d2dRenderTargets[_frameIndex].Get());
+    _d2dDeviceContext->BeginDraw();
+
+    // TODO: Actual 2D rendering here.
+    {
+        RECT rc;
+        GetClientRect(_hwnd, &rc);
+
+        D2D1_RECT_F layoutRect = D2D1::RectF(
+            static_cast<FLOAT>(rc.left),
+            static_cast<FLOAT>(rc.top),
+            static_cast<FLOAT>(rc.right),
+            static_cast<FLOAT>(rc.bottom)
+        );
+
+        std::wstring text = L"Hello World";
+
+        _d2dDeviceContext->SetTransform(D2D1::Matrix3x2F::Translation(10, 10));
+        _d2dDeviceContext->DrawText(
+            text.c_str(),
+            static_cast<UINT32>(text.size()),
+            _sampleText._pTextFormat,
+            &layoutRect,
+            _sampleText._pBlackBrush
+        );
+    }
+
+    _d2dDeviceContext->EndDraw();
+
+    _d3d11On12Device->ReleaseWrappedResources(_wrappedBackBuffers[_frameIndex].GetAddressOf(), 1);
+    _d3d11DeviceContext->Flush();
+}
+
 int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
     // -------------------- 렌더링 --------------------
@@ -378,29 +218,19 @@ int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     );
     
     _cmdList->ResourceBarrier(1, &transition1);
-
     _cmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
     // 기본 렌더링 색상 칠하기
-    //const float clearColor[] = { 0.1f, 0.2f, 0.3f, 1.0f };
     const float clearColor[] = { 0.13f, 0.13f, 0.13f, 1.0f };
     _cmdList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
     _cmdList->IASetVertexBuffers(0, 1, &_vertexBufferView);
     OnGuiUpdate_Core(_cmdList);
 
-    // 실제 그리기 작업을 수행하는 명령
-    /*size_t vertexScaler = 3;
-    for (size_t i = 0; i < _vertexCount; i += DJSW_VERTEX_THROUGHPUT)
-    {
-        size_t drawCount = _vertexCount - i;
+    // TODO: Render 2D here.
+    //TestRender2D();
 
-        if (drawCount > DJSW_VERTEX_THROUGHPUT)
-            drawCount = DJSW_VERTEX_THROUGHPUT;
-
-        _cmdList->DrawInstanced(drawCount * vertexScaler, 1, i * vertexScaler, 0);
-    }*/
-
+    // 렌더 타겟 상태 되돌리기
     CD3DX12_RESOURCE_BARRIER transition2 = CD3DX12_RESOURCE_BARRIER::Transition(
         _renderTargets[_frameIndex].Get(),
         D3D12_RESOURCE_STATE_RENDER_TARGET,
@@ -409,6 +239,7 @@ int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 
     _cmdList->ResourceBarrier(1, &transition2);
 
+    // 커맨드 리스트 닫기
     _cmdList->Close();
 
     // 실행

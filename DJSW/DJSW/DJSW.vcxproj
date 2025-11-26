@@ -31,6 +31,7 @@
     <ClCompile Include="djsw_file_metadata.cpp" />
     <ClCompile Include="djsw_file_wav.cpp" />
     <ClCompile Include="djsw_gui_app.cpp" />
+    <ClCompile Include="djsw_gui_app_controller.cpp" />
     <ClCompile Include="djsw_gui_app_wave.cpp" />
     <ClCompile Include="djsw_gui_core_api_internal.cpp" />
     <ClCompile Include="djsw_gui_core_api_drawer.cpp" />
@@ -43,16 +44,9 @@
     <ClCompile Include="LoopHID.cpp" />
     <ClCompile Include="LoopJob.cpp" />
     <ClCompile Include="LoopRender.cpp" />
+    <ClCompile Include="LoopRender_Init.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="MiniXML\mxml-attr.c" />
-    <ClCompile Include="MiniXML\mxml-file.c" />
-    <ClCompile Include="MiniXML\mxml-get.c" />
-    <ClCompile Include="MiniXML\mxml-index.c" />
-    <ClCompile Include="MiniXML\mxml-node.c" />
-    <ClCompile Include="MiniXML\mxml-options.c" />
-    <ClCompile Include="MiniXML\mxml-private.c" />
-    <ClCompile Include="MiniXML\mxml-search.c" />
-    <ClCompile Include="MiniXML\mxml-set.c" />
+    <ClCompile Include="SampleText.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="djsw_audio_analyzer.h" />
@@ -63,8 +57,10 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="djsw_audiosource.h" />
     <ClInclude Include="djsw_audio_api.h" />
+    <ClInclude Include="djsw_errorcode.h" />
     <ClInclude Include="djsw_file_metadata.h" />
     <ClInclude Include="djsw_gui_app.h" />
+    <ClInclude Include="djsw_gui_app_controller.h" />
     <ClInclude Include="djsw_gui_app_wave.h" />
     <ClInclude Include="djsw_gui_core_api_internal.h" />
     <ClInclude Include="djsw_gui_core_api.h" />
@@ -72,19 +68,20 @@
     <ClInclude Include="djsw_input_keyboard.h" />
     <ClInclude Include="djsw_input_hid_controls.h" />
     <ClInclude Include="djsw_file_wav.h" />
+    <ClInclude Include="djsw_iofncode.h" />
     <ClInclude Include="djsw_job_api.h" />
     <ClInclude Include="djsw_message_queue.h" />
     <ClInclude Include="djsw_testing_main.h" />
+    <ClInclude Include="djsw_type.h" />
     <ClInclude Include="LoopAudio.h" />
     <ClInclude Include="LoopBase.h" />
     <ClInclude Include="LoopHID.h" />
     <ClInclude Include="LoopJob.h" />
     <ClInclude Include="LoopRender.h" />
-    <ClInclude Include="MiniXML\config.h" />
-    <ClInclude Include="MiniXML\mxml-private.h" />
-    <ClInclude Include="MiniXML\mxml.h" />
     <ClInclude Include="djsw_input_keyboard_controls.h" />
     <ClInclude Include="djsw_util_timer.h" />
+    <ClInclude Include="LoopRender_Init.h" />
+    <ClInclude Include="SampleText.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -92,7 +89,7 @@
     <ProjectGuid>{a94efb31-aa8e-4577-918e-0df99c01773e}</ProjectGuid>
     <RootNamespace>DJSW</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>DJSW_Engine</ProjectName>
+    <ProjectName>DJSW</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -172,7 +169,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(SolutionDir)DJSW_Interface;$(ProjectDir)HID\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)HID\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

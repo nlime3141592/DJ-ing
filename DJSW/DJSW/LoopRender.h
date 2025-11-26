@@ -15,6 +15,7 @@
 
 #include "LoopBase.h"
 #include "LoopHID.h"
+#include "LoopRender_Init.h"
 
 using namespace Microsoft::WRL;
 
@@ -24,6 +25,8 @@ typedef struct
 {
 	LoopBaseParams loopBaseParams;
 } RenderParams;
+
+void PipelineInit();
 
 int WINAPI RenderInit(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow);
 int WINAPI RenderUpdate(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow);

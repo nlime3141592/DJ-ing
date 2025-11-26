@@ -10,9 +10,6 @@
 #include "djsw_file_wav.h"
 #include "djsw_file_metadata.h"
 
-//#define DJSW_WSOLA_TOLERANCE_RANGE 20 // even number, prefer 10%~30% of overlap size, fixed tolerance range.
-#define DJSW_WSOLA_TEMPO_RANGE 5
-
 // stereo channel
 class AudioChannel
 {
@@ -40,6 +37,7 @@ public:
 
 	// Master Volume
 	float masterVolume;
+	float crossVolume;
 	float mute;
 	float fx1;
 	float fx2;

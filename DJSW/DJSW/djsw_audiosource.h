@@ -70,6 +70,7 @@ public:
 
 	void SetTimeShiftDistance(int32_t timeShiftSamples);
 	void SetHopDistance(int32_t hopDistance);
+	int32_t GetHopDistance();
 
 	int16_t GetNumChannels();
 	char* GetWavFilePath();

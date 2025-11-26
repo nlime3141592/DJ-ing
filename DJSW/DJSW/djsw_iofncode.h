@@ -1,5 +1,4 @@
-﻿#ifndef __DJSW_IOFNCODE_H__
-#define __DJSW_IOFNCODE_H__
+﻿#pragma once
 
 #define DJSW_IOFN_NULL 0x00
 
@@ -168,5 +167,3 @@
 #define DJSW_IOFN_FX32 0xAD
 #define DJSW_IOFN_FX41 0xAE
 #define DJSW_IOFN_FX42 0xAF
-
-#endif

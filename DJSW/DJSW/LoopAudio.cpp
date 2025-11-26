@@ -106,7 +106,7 @@ static void GlobalCueButtonAction(
 	int32_t index,
 	bool quantize)
 {
-	AudioChannel* pChannel = GetChannel(channel);
+	AudioChannel* pChannel = GetAudioChannel(channel);
 
 	if (pChannel->GetSource()->IsPlaying())
 	{
@@ -151,7 +151,7 @@ static void PadButtonAction(
 	int32_t loopBarCount,
 	bool quantize)
 {
-	AudioChannel* pChannel = GetChannel(channel);
+	AudioChannel* pChannel = GetAudioChannel(channel);
 
 	if (msg->message == DJSW_HID_MASK_MESSAGE_KEY_DOWN)
 	{
@@ -177,16 +177,6 @@ static void PadButtonAction(
 				pChannel->GetSource()->Play();
 				//OutputDebugStringW((L"_metaFile.hotCueIndices[0] - 1 == " + to_wstring(pChannel->GetSource()->GetHotCue(0)) + L"\n").c_str());
 			}
-
-			/*if ((msg->modifier & shiftMask) != 0)
-				pChannel->GetSource()->ClearHotCue(index);
-			else if (pChannel->GetSource()->GetHotCue(index) < 0)
-				pChannel->GetSource()->SetHotCue(index);
-			else
-			{
-				pChannel->GetSource()->Jump(pChannel->GetSource()->GetHotCue(index));
-				pChannel->GetSource()->Play();
-			}*/
 			break;
 		case 2: // Loop Effect
 			pChannel->GetSource()->SetLoop(loopBarCount, quantize);
@@ -214,7 +204,7 @@ static void TimeShiftButtonAction(
 	int32_t index,
 	int32_t shiftSamples)
 {
-	AudioChannel* pChannel = GetChannel(channel);
+	AudioChannel* pChannel = GetAudioChannel(channel);
 
 	int direction = 1;
 
@@ -608,13 +598,18 @@ static void AudioUpdate()
 		_channel0.masterVolume = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME1].analogValueFloat;
 		_channel1.masterVolume = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_VOLUME2].analogValueFloat;
 
-		float xFaderValue0 = 1.0f - _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER].analogValueFloat;
 		float xFaderValue1 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_CROSSFADER].analogValueFloat;
-
-		if (xFaderValue0 < 0.25f)
-			_channel0.masterVolume *= xFaderValue0;
-		if (xFaderValue1 < 0.25f)
-			_channel1.masterVolume *= xFaderValue1;
+		float xFaderValue0 = 1.0f - xFaderValue1;
+		float xFaderThreshold = 0.35f;
+		
+		if (xFaderValue0 < xFaderThreshold)
+			_channel0.crossVolume = xFaderValue0 / xFaderThreshold;
+		else
+			_channel0.crossVolume = 1.0f;
+		if (xFaderValue1 < xFaderThreshold)
+			_channel1.crossVolume = xFaderValue1 / xFaderThreshold;
+		else
+			_channel1.crossVolume = 1.0f;
 
 		float tmpValue0 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO1].analogValueFloat;
 		float tmpValue1 = _analogValues[DJSW_IDX_ANALOG_INTERPOLATION_TEMPO2].analogValueFloat;
@@ -683,7 +678,7 @@ float GetAnalogValueFloat(int index)
 	return _analogValues[index].analogValueFloat;
 }
 
-AudioChannel* GetChannel(int index)
+AudioChannel* GetAudioChannel(int index)
 {
 	switch (index)
 	{
