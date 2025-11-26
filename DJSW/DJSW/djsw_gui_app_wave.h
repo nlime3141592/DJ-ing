@@ -21,4 +21,12 @@ private:
 		int32_t endIndex,
 		djColor color,
 		int32_t lineWidth);
+
+	void DrawLoop(
+		djAudioSource* source,
+		int32_t scale,
+		int32_t begIndex,
+		int32_t endIndex,
+		djColor color,
+		int32_t lineHeight);
 };

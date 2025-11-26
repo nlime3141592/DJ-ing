@@ -50,6 +50,8 @@ public:
 	
 	bool IsLoop();
 	void SetLoop(int32_t loopBarCount, bool shouldQuantize);
+	int32_t GetLoopIndex();
+	int32_t GetLoopLength();
 	
 	void Jump(int32_t jumpIndex);
 

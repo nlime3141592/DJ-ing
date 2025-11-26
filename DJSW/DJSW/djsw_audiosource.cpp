@@ -288,6 +288,16 @@ void djAudioSource::SetLoop(int32_t loopBarCount, bool shouldQuantize)
 	}
 }
 
+int32_t djAudioSource::GetLoopIndex()
+{
+	return _loopIndex;
+}
+
+int32_t djAudioSource::GetLoopLength()
+{
+	return _loopLength;
+}
+
 void djAudioSource::SetTimeShiftDistance(int32_t timeShiftSamples)
 {
 	_tshDistance = timeShiftSamples * _header->numChannels;

@@ -60,6 +60,7 @@ void djWaveView::OnDrawWave()
 		{ 1.0f, 0.0f, 0.2f },
 		{ 1.0f, 0.0f, 0.2f },
 	};
+	djColor loopColor = { 1.0f, 0.75f, 0.05f };
 
 	djRectLTRB ltrb;
 
@@ -119,7 +120,22 @@ void djWaveView::OnDrawWave()
 		}
 	}
 
-	// 4. 가이드라인 그리기
+	// 4. 루프 영역 그리기
+	if (audioSource->IsLoop())
+	{
+		int32_t beg = audioSource->GetLoopIndex();
+		int32_t end = beg + audioSource->GetLoopLength();
+
+		DrawLoop(
+			audioSource,
+			scale,
+			beg,
+			end,
+			loopColor,
+			(int32_t)((float)h * 0.1f));
+	}
+
+	// 5. 가이드라인 그리기
 	int wGuideline = 4;
 
 	for (int i = 0; i < wGuideline; ++i)
@@ -173,5 +189,38 @@ void djWaveView::DrawCuePoint(
 		ltrb.top = 0;
 		ltrb.bottom = y;
 		DrawLine(ltrb, color);
+	}
+}
+
+void djWaveView::DrawLoop(
+	djAudioSource* source,
+	int32_t scale,
+	int32_t begIndex,
+	int32_t endIndex,
+	djColor color,
+	int32_t lineHeight)
+{
+	djRectLTRB ltrb;
+	int16_t min;
+	int16_t max;
+
+	float xHalf = this->viewport.width / 2.0f;
+	int y = this->viewport.height;
+
+	int32_t begOffset = begIndex - source->GetPosition();
+	int32_t endOffset = endIndex - source->GetPosition();
+	int32_t c = source->GetNumChannels();
+	
+	
+	ltrb.left = begOffset / (scale * c) + xHalf;
+	ltrb.top = y;
+	ltrb.right = endOffset / (scale * c) + xHalf;
+	ltrb.bottom = y;
+
+	for (int32_t i = 0; i < lineHeight; ++i)
+	{
+		DrawLine(ltrb, color);
+		--ltrb.top;
+		--ltrb.bottom;
 	}
 }
