@@ -72,8 +72,12 @@ djView* GetCurrentView();
 
 // -------------------- Drawing API Definitions --------------------
 djColor GetColorByRGB(uint8_t r, uint8_t g, uint8_t b);
+djColor GetColorAsGrayscale(float grayscale01);
 
 void DrawLine(djRectLTWH rect, djColor color);
 void DrawLine(djRectLTRB rect, djColor color);
 void DrawRectangle(djRectLTWH rect, djColor color);
 void DrawRectangle(djRectLTRB rect, djColor color);
+void DrawTriangle(djRectLTWH rect, float eulerAngleZ, djColor color);
+void DrawTriangle(djRectLTRB rect, float eulerAngleZ, djColor color);
+void DrawRegularTriangle(djVector3 center, float radius, float eulerAngleZ, djColor color);

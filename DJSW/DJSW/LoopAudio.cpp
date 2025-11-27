@@ -179,7 +179,10 @@ static void PadButtonAction(
 			}
 			break;
 		case 2: // Loop Effect
-			pChannel->GetSource()->SetLoop(loopBarCount, quantize);
+			if (pChannel->GetSource()->SetLoop(loopBarCount, quantize))
+				pChannel->fxNumber = index + 1;
+			else
+				pChannel->fxNumber = 0;
 			break;
 		case 3: // FX Effect
 			if (pChannel->fxNumber == index + 1)

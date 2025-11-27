@@ -49,7 +49,7 @@ public:
 	void SetGlobalCueIndex(int32_t index);
 	
 	bool IsLoop();
-	void SetLoop(int32_t loopBarCount, bool shouldQuantize);
+	bool SetLoop(int32_t loopBarCount, bool shouldQuantize);
 	int32_t GetLoopIndex();
 	int32_t GetLoopLength();
 	
@@ -64,6 +64,7 @@ public:
 	int32_t Peek(int32_t scale, int32_t offset, int32_t idxChannel, int16_t* outMin, int16_t* outMax);
 
 	bool IsPlaying();
+	bool IsGlobalCueEnabled();
 
 	void Play();
 	void Pause();

@@ -66,6 +66,11 @@ bool djAudioSource::IsPlaying()
 	return _isPlaying;
 }
 
+bool djAudioSource::IsGlobalCueEnabled()
+{
+	return _useGlobalCue;
+}
+
 int32_t djAudioSource::GetPosition()
 {
 	return _glbPosition + _olaPosition;
@@ -241,7 +246,7 @@ void djAudioSource::Jump(int32_t jumpIndex)
 	_shouldJump = true;
 }
 
-void djAudioSource::SetLoop(int32_t loopBarCount, bool shouldQuantize)
+bool djAudioSource::SetLoop(int32_t loopBarCount, bool shouldQuantize)
 {
 	//int32_t samplesPerBar = GetSamplesPerBar(_header->sampleRate, _header->numChannels, _metaFile.GetBpm());
 	int32_t samplesPerBar = GetSamplesPerBar(_header->sampleRate, _header->numChannels, 126.0f); // TEST BPM.
@@ -252,7 +257,7 @@ void djAudioSource::SetLoop(int32_t loopBarCount, bool shouldQuantize)
 		_loopBarCount = 0;
 		_loopLength = 0;
 		_loopIndex = -1;
-		return;
+		return false;
 	}
 	if (loopBarCount > 0)
 	{
@@ -286,6 +291,8 @@ void djAudioSource::SetLoop(int32_t loopBarCount, bool shouldQuantize)
 	{
 		_loopIndex = position;
 	}
+
+	return true;
 }
 
 int32_t djAudioSource::GetLoopIndex()

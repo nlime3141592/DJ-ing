@@ -12,6 +12,14 @@ public:
 	virtual void OnGuiUpdate();
 
 private:
+	bool GetPadCondition(int index);
+	bool GetPadFnCondition(int index);
+
+	void DrawPadButton(
+		bool enable,
+		djRectLTWH ltwh,
+		djColor colorEnable,
+		djColor colorDisable);
 	void DrawGauge2(
 		float value,
 		float min,

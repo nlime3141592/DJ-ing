@@ -38,8 +38,8 @@ void djControllerView::OnGuiUpdate()
 			0.0f, 1.0f,
 			{ 1200, 0, 1280, 360 },
 			{ 0, 20, 5, 20 },
-			20,
-			5,
+			32,
+			0,
 			GetColorByRGB(252, 152, 154),
 			GetColorByRGB(39, 42, 61)
 		);
@@ -51,7 +51,7 @@ void djControllerView::OnGuiUpdate()
 			0.0f, 1.0f,
 			{ 1200, 0, 1280, 360 },
 			{ 0, 20, 5, 20 },
-			18,
+			32,
 			0,
 			GetColorByRGB(129, 201, 245),
 			GetColorByRGB(39, 42, 61)
@@ -64,7 +64,7 @@ void djControllerView::OnGuiUpdate()
 		0.0f, 1.0f,
 		{ 1120, 0, 1200, 360 },
 		{ 0, 20, 5, 20 },
-		18,
+		32,
 		0,
 		GetColorByRGB(200, 191, 231),
 		GetColorByRGB(39, 42, 61)
@@ -81,10 +81,200 @@ void djControllerView::OnGuiUpdate()
 		{ 0, 20, 5, 20 },
 		2 * DJSW_WSOLA_TEMPO_RANGE - 1,
 		0,
-		GetColorByRGB(128, 255, 128),
-		GetColorByRGB(225, 255, 225),
-		GetColorByRGB(128, 255, 128)
+		_clrTempoSlider[0],
+		_clrTempoSlider[1],
+		_clrTempoSlider[2]
 	);
+
+	float fx1 = -0.001f + 1.002f * (1.0f - channel->fx1);
+	float fx2 = -0.001f + 1.002f * (1.0f - channel->fx2);
+
+	// FX1 Nobe
+	DrawGauge2(
+		fx1,
+		0.0f, 1.0f,
+		{ 980, 0, 1060, 360 },
+		{ 0, 20, 5, 20 },
+		32,
+		0,
+		_clrFXsMax[0],
+		_clrFXsMin[0]
+	);
+
+	// FX2 Nobe
+	DrawGauge2(
+		fx2,
+		0.0f, 1.0f,
+		{ 900, 0, 980, 360 },
+		{ 0, 20, 5, 20 },
+		32,
+		0,
+		_clrFXsMax[1],
+		_clrFXsMin[1]
+	);
+
+	djRectLTWH rcButton;
+	
+	// Pad Button Properties
+	int32_t wButton = 140;
+	int32_t hButton = 140;
+	int32_t gButton = 20;
+	
+	int32_t wOffset = 260;
+	int32_t hOffset = 30;
+
+	rcButton.topLeftX = wOffset;
+	rcButton.topLeftY = hOffset;
+	rcButton.width = wButton;
+	rcButton.height = hButton;
+
+	// Pad1
+	DrawPadButton(
+		GetPadCondition(0),
+		rcButton,
+		_clrHotCues[0],
+		_clrDisables[3]);
+	// Pad2
+	rcButton.topLeftX = wOffset + 1 * (wButton + gButton);
+	DrawPadButton(
+		GetPadCondition(1),
+		rcButton,
+		_clrHotCues[1],
+		_clrDisables[3]);
+	// Pad3
+	rcButton.topLeftX = wOffset + 2 * (wButton + gButton);
+	DrawPadButton(
+		GetPadCondition(2),
+		rcButton,
+		_clrHotCues[2],
+		_clrDisables[3]);
+	// Pad4
+	rcButton.topLeftX = wOffset + 3 * (wButton + gButton);
+	DrawPadButton(
+		GetPadCondition(3),
+		rcButton,
+		_clrHotCues[3],
+		_clrDisables[3]);
+	// Pad5
+	rcButton.topLeftX = wOffset;
+	rcButton.topLeftY = hOffset + 1 * (hButton + gButton);
+	DrawPadButton(
+		GetPadCondition(4),
+		rcButton,
+		_clrHotCues[4],
+		_clrDisables[3]);
+	// Pad6
+	rcButton.topLeftX = wOffset + 1 * (wButton + gButton);
+	DrawPadButton(
+		GetPadCondition(5),
+		rcButton,
+		_clrHotCues[5],
+		_clrDisables[3]);
+	// Pad7
+	rcButton.topLeftX = wOffset + 2 * (wButton + gButton);
+	DrawPadButton(
+		GetPadCondition(6),
+		rcButton,
+		_clrHotCues[6],
+		_clrDisables[3]);
+	// Pad8
+	rcButton.topLeftX = wOffset + 3 * (wButton + gButton);
+	DrawPadButton(
+		GetPadCondition(7),
+		rcButton,
+		_clrHotCues[7],
+		_clrDisables[3]);
+
+	// PadFn Button Properties
+	wButton = 50;
+	hButton = 50;
+	gButton = 10;
+
+	wOffset = 200;
+	hOffset = 30;
+
+	rcButton.topLeftX = wOffset;
+	rcButton.topLeftY = hOffset;
+	rcButton.width = wButton;
+	rcButton.height = hButton;
+
+	// PadFn1
+	DrawPadButton(
+		GetPadFnCondition(0),
+		rcButton,
+		_clrPadFn,
+		_clrDisables[3]);
+	// PadFn2
+	rcButton.topLeftY = hOffset + 1 * (hButton + gButton);
+	DrawPadButton(
+		GetPadFnCondition(1),
+		rcButton,
+		_clrPadFn,
+		_clrDisables[3]);
+	// PadFn3
+	rcButton.topLeftY = hOffset + 2 * (hButton + gButton);
+	DrawPadButton(
+		GetPadFnCondition(2),
+		rcButton,
+		_clrPadFn,
+		_clrDisables[3]);
+	// PadFn4
+	rcButton.topLeftY = hOffset + 3 * (hButton + gButton);
+	DrawPadButton(
+		GetPadFnCondition(3),
+		rcButton,
+		_clrPadFn,
+		_clrDisables[3]);
+
+	// Play Button
+	DrawRegularTriangle({ 55.0f, 300.0f, 0.0f }, 45.0f, 0.0f, _clrPlayButton[1]);
+	if (channel->GetSource()->IsPlaying())
+		DrawRegularTriangle({ 55.0f, 290.0f, 0.0f }, 45.0f, 0.0f, _clrPlayButton[0]);
+	else
+		DrawRegularTriangle({ 55.0f, 290.0f, 0.0f }, 45.0f, 0.0f, _clrDisables[3]);
+
+	// Global Cue Button
+	DrawRegularTriangle({ 55.0f, 180.0f, 0.0f }, 45.0f, 0.0f, _clrGlobalCueButton[1]);
+	if (channel->GetSource()->IsGlobalCueEnabled())
+		DrawRegularTriangle({ 55.0f, 170.0f, 0.0f }, 45.0f, 0.0f, _clrGlobalCueButton[0]);
+	else
+		DrawRegularTriangle({ 55.0f, 170.0f, 0.0f }, 45.0f, 0.0f, _clrDisables[3]);
+}
+
+bool djControllerView::GetPadCondition(int index)
+{
+	switch (channel->padNumber)
+	{
+	case 0:
+		break;
+	case 1:
+		return channel->GetSource()->GetHotCue(index) >= 0;
+	case 2:
+		return channel->fxNumber == index + 1;
+	case 3:
+		return channel->fxNumber == index + 1;
+	case 4:
+		return false;
+	default:
+		return false;
+	}
+}
+
+bool djControllerView::GetPadFnCondition(int index)
+{
+	return channel->padNumber == index + 1;
+}
+
+void djControllerView::DrawPadButton(
+	bool enable,
+	djRectLTWH ltwh,
+	djColor colorEnable,
+	djColor colorDisable)
+{
+	if (enable)
+		DrawRectangle(ltwh, colorEnable);
+	else
+		DrawRectangle(ltwh, colorDisable);
 }
 
 void djControllerView::DrawGauge2(
@@ -103,10 +293,20 @@ void djControllerView::DrawGauge2(
 	float g = (float)gap;
 
 	djRectLTRB rect;
+	djColor color;
+
+	// Draw Guideline
+	int32_t guidelineWidth = 3;
+	int32_t guidelinePadding = 20;
+	rect.left = ltrb.left + padding.left + w / 2 - guidelineWidth;
+	rect.right = rect.left + guidelineWidth;
+	rect.top = guidelinePadding;
+	rect.bottom = this->viewport.height - guidelinePadding;
+	DrawRectangle(rect, GetColorByRGB(255, 255, 255));
+
+	// Draw Gauge
 	rect.left = ltrb.left + padding.left;
 	rect.top = ltrb.top + padding.top;
-
-	djColor color;
 
 	for (int32_t i = 0; i < count; ++i)
 	{
@@ -145,12 +345,22 @@ void djControllerView::DrawGauge3(
 	float g = (float)gap;
 
 	djRectLTRB rect;
-	rect.left = ltrb.left + padding.left;
-	rect.top = ltrb.top + padding.top;
-
 	djColor clr0;
 	djColor clr1;
 	djColor color;
+	
+	// Draw Guideline
+	int32_t guidelineWidth = 3;
+	int32_t guidelinePadding = 20;
+	rect.left = ltrb.left + padding.left + w / 2 - guidelineWidth;
+	rect.right = rect.left + guidelineWidth;
+	rect.top = guidelinePadding;
+	rect.bottom = this->viewport.height - guidelinePadding;
+	DrawRectangle(rect, GetColorByRGB(255, 255, 255));
+
+	// Draw Gauge
+	rect.left = ltrb.left + padding.left;
+	rect.top = ltrb.top + padding.top;
 
 	for (int32_t i = 0; i < count; ++i)
 	{

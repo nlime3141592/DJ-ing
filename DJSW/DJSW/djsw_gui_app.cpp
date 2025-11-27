@@ -4,6 +4,67 @@
 #include "djsw_gui_app_controller.h"
 #include "djsw_gui_app_wave.h"
 
+djColor _clrChannels[4] = {
+	GetColorByRGB(255, 64, 0),
+	GetColorByRGB(0, 64, 255),
+	GetColorByRGB(255, 0, 64),
+	GetColorByRGB(64, 255, 0)
+};
+
+djColor _clrGlobalCue = GetColorByRGB(255, 255, 255);
+djColor _clrGlobalCueButton[2] = {
+	GetColorByRGB(242, 213, 129),
+	GetColorByRGB(217, 191, 116)
+};
+djColor _clrPlayButton[2] = {
+	GetColorByRGB(120, 240, 111),
+	GetColorByRGB(93, 185, 86)
+};
+
+djColor _clrPadFn = GetColorByRGB(255, 201, 14);
+djColor _clrHotCues[8] = {
+	GetColorByRGB(255, 55, 111),
+	GetColorByRGB(69, 172, 219),
+	GetColorByRGB(125, 193, 61),
+	GetColorByRGB(170, 114, 255),
+	GetColorByRGB(48, 210, 110),
+	GetColorByRGB(224, 100, 27),
+	GetColorByRGB(48, 90, 255),
+	GetColorByRGB(195, 175, 4)
+};
+
+djColor _clrLoop = GetColorByRGB(255, 201, 14);
+djColor _clrCrossfader = GetColorByRGB(200, 191, 231);
+
+djColor _clrFXsMin[4] = {
+	GetColorByRGB(39, 42, 61),
+	GetColorByRGB(39, 42, 61),
+	GetColorByRGB(39, 42, 61),
+	GetColorByRGB(39, 42, 61)
+};
+
+djColor _clrFXsMax[4] = {
+	GetColorByRGB(167, 248, 76),
+	GetColorByRGB(255, 64, 96),
+	GetColorByRGB(125, 193, 61),
+	GetColorByRGB(48, 168, 255)
+	//GetColorByRGB(170, 114, 255)
+};
+
+djColor _clrTempoSlider[3] = {
+	GetColorByRGB(128, 255, 128),
+	GetColorByRGB(225, 255, 225),
+	GetColorByRGB(255, 128, 128)
+};
+
+djColor _clrDisables[4] = {
+	GetColorAsGrayscale(0.21f),
+	GetColorAsGrayscale(0.23f),
+	GetColorAsGrayscale(0.25f),
+	GetColorAsGrayscale(0.27f)
+};
+djColor _clrGuideline = GetColorAsGrayscale(0.85f);
+
 static djControllerView _ctrlView1;
 static djControllerView _ctrlView2;
 

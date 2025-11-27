@@ -13,6 +13,17 @@ djColor GetColorByRGB(uint8_t r, uint8_t g, uint8_t b)
 	return color;
 }
 
+djColor GetColorAsGrayscale(float grayscale01)
+{
+	djColor color;
+
+	color.r = grayscale01;
+	color.g = grayscale01;
+	color.b = grayscale01;
+
+	return color;
+}
+
 void DrawLine(djRectLTWH rect, djColor color)
 {
 	djRectLTRB ltrb;
@@ -87,4 +98,63 @@ void DrawRectangle(djRectLTRB rect, djColor color)
 	};
 
 	AddVertices(vertices, sizeof(djVertexRGB), 6);
+}
+
+void DrawTriangle(djRectLTWH rect, float eulerAngleZ, djColor color)
+{
+
+}
+
+void DrawTriangle(djRectLTRB rect, float eulerAngleZ, djColor color)
+{
+
+}
+
+void DrawRegularTriangle(djVector3 center, float radius, float eulerAngleZ, djColor color)
+{
+	djView* view = GetCurrentView();
+
+	float pi = 3.1415926535897932f;
+	float deg2rad = pi / 180.0f;
+	float radAngleZ = eulerAngleZ * deg2rad;
+	float radAngle120 = 120.0f * deg2rad;
+
+	// eulerAngleZ에 의한 회전 행렬
+	float cZ = cosf(radAngleZ);
+	float sZ = sinf(radAngleZ);
+
+	// 120도 회전 행렬
+	float c120 = cosf(radAngle120);
+	float s120 = sinf(radAngle120);
+
+	float x = radius;
+	float y = 0.0f;
+
+	float tx = 0.0f;
+	float ty = 0.0f;
+
+	tx = x * cZ - y * sZ;
+	ty = x * sZ + y * cZ;
+	x = tx;
+	y = ty;
+
+	djVertexRGB vertices[3];
+
+	for (int i = 0; i < 3; ++i)
+	{
+		float tx = x;
+		float ty = y;
+
+		tx = x * c120 - y * s120;
+		ty = x * s120 + y * c120;
+		x = tx;
+		y = ty;
+
+		vertices[i].position.x = (2.0f * (center.x + x) / view->viewport.width - 1.0f);
+		vertices[i].position.y = (1.0f - 2.0f * (center.y + y) / view->viewport.height);
+		vertices[i].position.z = 0.0f;
+		vertices[i].color = color;
+	}
+
+	AddVertices(vertices, sizeof(djVertexRGB), 3);
 }

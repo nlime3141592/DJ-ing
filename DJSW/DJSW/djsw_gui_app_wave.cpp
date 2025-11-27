@@ -40,23 +40,7 @@ void djWaveView::OnDrawWave()
 
 	int16_t out[2] = { 0 };
 	float sum[2] = { 0 };
-	djColor color[2] = {
-		GetColorByRGB(255, 64, 0),
-		GetColorByRGB(0, 64, 255),
-	};
-	djColor globalCueColor = GetColorByRGB(255, 255, 255);
-	djColor hotCueColor[8] = {
-		GetColorByRGB(255, 55, 111),
-		GetColorByRGB(69, 172, 219),
-		GetColorByRGB(125, 193, 61),
-		GetColorByRGB(170, 114, 255),
-		GetColorByRGB(48, 210, 110),
-		GetColorByRGB(224, 100, 27),
-		GetColorByRGB(48, 90, 255),
-		GetColorByRGB(195, 175, 4),
-	};
-	djColor loopColor = GetColorByRGB(255, 201, 14);
-
+	
 	djRectLTRB ltrb;
 
 	djAudioSource* audioSource = this->channel->GetSource();
@@ -79,7 +63,7 @@ void djWaveView::OnDrawWave()
 				float yMax = yHalf - (max / 32767.0f) * yHalf * amplitude;
 				ltrb.top = yMin;
 				ltrb.bottom = yMax;
-				DrawLine(ltrb, color[j]);
+				DrawLine(ltrb, _clrChannels[j]);
 			}
 		}
 
@@ -94,7 +78,7 @@ void djWaveView::OnDrawWave()
 				scale,
 				beg,
 				end,
-				loopColor,
+				_clrLoop,
 				(int32_t)((float)h * 0.1f));
 		}
 
@@ -108,13 +92,13 @@ void djWaveView::OnDrawWave()
 			audioSource->GetGlobalCueIndex(),
 			beg,
 			end,
-			globalCueColor,
+			_clrGlobalCue,
 			1);
 		DrawUpArrow(
 			audioSource,
 			scale,
 			audioSource->GetGlobalCueIndex(),
-			globalCueColor,
+			_clrGlobalCue,
 			(int32_t)((float)h * 0.1f));
 
 		// 4. 핫 큐 포인트 그리기
@@ -131,38 +115,33 @@ void djWaveView::OnDrawWave()
 				hotCueIndex,
 				beg,
 				end,
-				hotCueColor[i],
+				_clrHotCues[i],
 				1);
 			DrawDownArrow(
 				audioSource,
 				scale,
 				hotCueIndex,
-				hotCueColor[i],
+				_clrHotCues[i],
 				(int32_t)((float)h * 0.1f));
 		}
 	}
 
 	// 5. 가이드라인 그리기
-	int wGuideline = 4;
-
-	for (int i = 0; i < wGuideline; ++i)
+	int wGuideline = 1;
+	
+	for (int i = 0; i <= wGuideline; ++i)
 	{
-		float grayscale = (float)(0) / wGuideline;
-
-		if (i == 0)
-			grayscale = 1.0f;
-
 		ltrb.left = xHalf - i;
 		ltrb.top = 0;
 		ltrb.right = ltrb.left;
 		ltrb.bottom = h;
-		DrawLine(ltrb, { grayscale, grayscale, grayscale });
+		DrawLine(ltrb, _clrGuideline);
 
 		ltrb.left = xHalf + i;
 		ltrb.top = 0;
 		ltrb.right = ltrb.left;
 		ltrb.bottom = h;
-		DrawLine(ltrb, { grayscale, grayscale, grayscale });
+		DrawLine(ltrb, _clrGuideline);
 	}
 }
 
