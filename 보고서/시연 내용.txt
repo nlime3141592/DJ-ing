@@ -1,0 +1,8 @@
+시연 동영상 링크
+https://youtu.be/2VMtw3O4CDI
+
+시연 내용
+- Play/Global Cue 기능 시연
+- Time Shift 기능 시연
+- Performance Pad를 이용한 Hot Cue/Loop/FX 시연
+- Volume/Crossfader/Tempo/FX 시연
